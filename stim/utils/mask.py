@@ -9,8 +9,8 @@ def polar_mask(
     size_pix,
     outer_extent_norm=1.0,
     inner_extent_norm=0.0,
-    sector_start_deg=0.0,
-    sector_end_deg=360.0,
+    sector_centre_deg=0.0,
+    sector_central_angle_deg=360.0,
     mask_min=-1.0,
     mask_max=+1.0
 ):
@@ -28,10 +28,14 @@ def polar_mask(
         r < outer_extent_norm
     )
 
-    theta_mask = np.logical_and(
-        theta >= sector_start_deg,
-        theta < sector_end_deg
+    theta_dist = np.degrees(
+        stim.utils.circ_dist(
+            np.radians(theta),
+            np.radians(sector_centre_deg)
+        )
     )
+
+    theta_mask = (np.abs(theta_dist) < (sector_central_angle_deg / 2.0))
 
     mask = np.logical_and(r_mask, theta_mask).astype("float")
 
@@ -41,4 +45,4 @@ def polar_mask(
         new_interval=[mask_min, mask_max]
     )
 
-    return theta
+    return mask
