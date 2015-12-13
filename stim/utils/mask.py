@@ -14,6 +14,22 @@ def polar_mask(
     mask_min=-1.0,
     mask_max=+1.0
 ):
+    """Generates a mask in polar space.
+
+    Parameters
+    ----------
+    size_pix: int
+        Size of the mask, in pixels (both width and height)
+    outer_extent_norm, inner_extent_norm: floats
+        Inner and outer extent of the mask, in normalised units.
+    sector_centre_deg: float
+        Centre of the visible 'wedge', in degrees.
+    sector_central_angle_deg: float
+        Angular width of the visible 'wedge', in degrees.
+    mask_min, mask_max: floats
+        Minimum and maximum of the returned mask.
+
+    """
 
     half_size = size_pix / 2.0
 
@@ -46,3 +62,4 @@ def polar_mask(
     )
 
     return mask
+

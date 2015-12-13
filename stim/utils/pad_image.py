@@ -4,6 +4,7 @@ import numpy as np
 
 
 def nearest_pow2(n):
+    """Determines the nearest power of two to the value ``n``."""
 
     return np.power(2, np.ceil(np.log(n) / np.log(2)))
 
@@ -13,13 +14,20 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     Parameters
     ----------
-    img : 2D array (or 3D, for colour)
+    img: 2D array (or 3D, for colour)
         Image to be padded
+    calc_mask: bool, optional
+        Whether to also calculate the mask that excludes the padded region.
+    pad_value: number, optional
+        Value with which to fill the padded region.
+    to: str or number, optional
+        Dimension to pad the image to. If is 'pow2', the nearest power of 2 is
+        calculated and used.
 
     Returns
     -------
-    ( pad_img, mask_img ) : 2D (or 3D, for colour) array
-        Image enlarged to square power of two, and its mask (2D)
+    (pad_img, mask_img): 2D (or 3D, for colour) array
+        Image padded to the desired dimensions, and its mask (2D) if requested.
 
     """
 
@@ -28,7 +36,7 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
     else:
         new_size = to
 
-    if len(img.shape) == 3:
+    if img.ndim == 3:
         n_channels = img.shape[-1]
     else:
         n_channels = 1
