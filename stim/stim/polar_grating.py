@@ -9,20 +9,41 @@ import stim.utils
 def polar_grating(
     size_pix=512,
     n_cycles=10,
-    contrast=1.0,
+    amplitude=1.0,
     wave_type="square",
-    phase=0.0
+    phase_radians=0.0
 ):
+    """Generates a polar grating array.
+
+    Parameters
+    ----------
+    size_pix: int, optional
+        Size of the array (both width and height)
+    n_cycles: number, optional
+        Number of grating cycles over the full polar angle range.
+    amplitude: number, optional
+        Amplitude of the grating.
+    wave_type: string, {"square", "quartic"}
+        Wave function, either a square wave or a quartic.
+    phase_radians: float, [0, 2pi]
+        Grating phase, in radians.
+
+    Returns
+    -------
+    img: (size_pix, size_pix) array of floats
+        Grating image in the range -1:1.
+
+    """
 
     half_size = size_pix / 2.0
 
     (y, x) = np.mgrid[-half_size:half_size, -half_size:half_size]
 
-    (theta, r) = stim.utils.cart_to_pol(x, y)
+    (theta, _) = stim.utils.cart_to_pol(x, y)
 
     theta = np.radians(theta)
 
-    theta = (theta + phase) * n_cycles
+    theta = (theta + phase_radians) * n_cycles
 
     if wave_type == "square":
 
@@ -39,7 +60,7 @@ def polar_grating(
     else:
         raise ValueError("Unknown wave_type")
 
-    img *= contrast
+    img *= amplitude
 
     return img
 
