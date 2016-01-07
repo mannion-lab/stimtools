@@ -111,3 +111,49 @@ def pol_to_cart(theta, r):
 
     return (x, y)
 
+
+def sph_to_cart(azimuth, elevation, r):
+    """Convert spherical to cartesian.
+
+    Parameters
+    ----------
+    azimuth, elevation, r: float
+        Coordinates; see docs for Matlab's 'sph2cart'
+
+    Returns
+    -------
+    x, y, z: float
+        Cartesian coordinates
+
+    """
+
+    x = r * np.cos(elevation) * np.cos(azimuth)
+    y = r * np.cos(elevation) * np.sin(azimuth)
+    z = r * np.sin(elevation)
+
+    return (x, y, z)
+
+
+def cart_to_sph(x, y, z):
+    """Convert cartesian to spherical.
+
+    Parameters
+    ----------
+    x, y, z: float
+        Coordinates; see docs for Matlab's 'cart2sph'
+
+    Returns
+    -------
+    azimuth, elevation, r: float
+        Spherical coordinates
+
+    """
+
+    azimuth = np.arctan2(y, x)
+    elevation = np.arctan2(z, np.sqrt(x ** 2 + y ** 2))
+    r = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+
+    return (azimuth, elevation, r)
+
+
+
