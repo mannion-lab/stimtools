@@ -22,7 +22,8 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
         Value with which to fill the padded region.
     to: str or number, optional
         Dimension to pad the image to. If is 'pow2', the nearest power of 2 is
-        calculated and used.
+        calculated and used. If it is 'pow2+', it is one power of 2 more than
+        the nearest power of 2.
 
     Returns
     -------
@@ -31,9 +32,17 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     """
 
-    if to == "pow2":
+    if to.startswith("pow2"):
+
         new_size = nearest_pow2(np.max(img.shape[:2]))
+
+        if to == "pow2+":
+            new_size = nearest_pow2(new_size + 1)
+
     else:
+
+        assert not isinstance(to, str)
+
         new_size = to
 
     if img.ndim == 3:
