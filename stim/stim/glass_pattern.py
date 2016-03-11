@@ -8,344 +8,359 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
+import psychopy.visual
+import psychopy.misc
+
 
 class GlassPattern(object):
-    """Glass patterns.
-
-    Parameters
-    ----------
-    win : window instance
-        PsychoPy window.
-    size : int
-        Size of the pattern region, for both width and height.
-    n_dipoles : int
-        Number of dipoles over the area (not taking any mask into
-        consideration)
-        This is half the number of dots.
-    pole_sep : float
-        Distance between the dipole elements, in pixels.
-    dot_size : float
-        Dot size, given by the sigma of a Gaussian, in pixels.
-    ori_type : string, { "trans", "polar" }
-        Orientation space of the pattern.
-    ori_deg : float
-        The pattern orientation, in degrees.
-    ori_sigma_deg: float
-        Width of the distribution from which the dipole orientations are drawn.
-        If zero, then all dipoles have the same orientation.
-    coh : float, 0 <= coh <= 1
-        Pattern coherence (the proportion of signal dipoles).
-    col_set : list of floats
-        Set of intensity values for the dipoles. Default gives mixed black and
-        white dipoles.
-    pos : 2 item list of numbers
-        Centre position, in `units`
-
-    """
 
     def __init__(
         self,
         win,
         size,
         n_dipoles,
-        pole_sep,
+        dipole_sep,
         dot_size,
         ori_type,
         ori_deg,
-        ori_sigma_deg=0,
+        ori_sigma_deg=None,
         coh=1.0,
         col_set=(+1, -1),
-        pos=(0.0, 0.0)
+        pos=(0.0, 0.0),
+        dot_type="gauss",
+        mask_prop=(None, 1.0),
+        mask_ramp_prop=(None, 0.1),
+        contrast=1.0,
+        dot_sep_tol=3.0,
+        max_iterations=10000
     ):
+        """
+        Glass patterns.
+
+        Parameters
+        ----------
+        win: window instance
+            PsychoPy window.
+        size: int
+            Size of the pattern region, for both width and height.
+        n_dipoles: int
+            Number of dipoles over the area (not taking any mask into
+            consideration).
+        pole_sep: float
+            Distance between the dipole elements.
+        dot_size: float
+            Dot size. The meaning of this parameter depends on the value of
+            `dot_type`.
+        ori_type: string, {"trans", "polar"}
+           Orientation space of the pattern.
+        ori_deg: float
+            The signal orientation, in degrees.
+        ori_sigma_deg: float or None
+            Width of the distribution from which the dipole orientations are
+            drawn. If None, then all dipoles have the same orientation.
+        coh: float, 0 <= coh <= 1
+            Pattern coherence (the proportion of signal dipoles).
+        col_set: list of floats
+            Set of intensity values for the dipoles. Default gives mixed black
+            and white dipoles.
+        pos: 2 item list of numbers
+            Centre position.
+        dot_type: string
+            Form of each individual dot.
+        mask_prop: two-item collection of floats
+            Extent of dot visibility for inner and outer extents of an annulus.
+            These are in normalised units.
+        mask_ramp_prop: two-item collection of floats
+            Extent of the contrast ramp at the edges.
+        contrast: float
+            Contrast of the dots.
+        dot_sep_tol: float
+            Tolerance for dot positioning. Dots will not be allowed to be
+            positioned closer than `dot_size` * `dot_sep_tol` from any other
+            dots.
+        max_iterations: int
+            Maximum number of iterations when calcuating the random dot
+            positions. If this is exceeded, an error is raised.
+
+        """
 
         self._win = win
 
+        self._stim = psychopy.visual.ElementArrayStim(
+            win=self._win,
+            autoLog=False,
+            elementTex=None
+        )
+
+        self.size = size
+        self.n_dipoles = n_dipoles
+        self.dipole_sep = dipole_sep
+        self.dot_size = dot_size
+        self.ori_type = ori_type
+        self.ori_deg = ori_deg
+        self.ori_sigma_deg = ori_sigma_deg
+        self.coh = coh
+        self.col_set = col_set
+        self.pos = pos
+        self.dot_type = dot_type
+        self.mask_prop = mask_prop
+        self.mask_ramp_prop = mask_ramp_prop
+        self.contrast = contrast
+        self.dot_sep_tol = dot_sep_tol
+        self.max_iterations = max_iterations
+
+        self._distribute_req = True
+        self._mask_req = True
+
+
+    @property
+    def _half_size(self):
+        return self._size / 2.0
+
+    @property
+    def _n_dots(self):
+        return self._n_dipoles * 2
+
+    @property
+    def _n_dipole_types(self):
+
+        n_signal = int(self.n_dipoles * self.coh)
+        n_noise = self.n_dipoles - n_signal
+
+        return (n_signal, n_noise)
+
+    @property
+    def _n_signal_dipoles(self):
+        return self._n_dipole_types[0]
+
+    @property
+    def _n_noise_dipoles(self):
+        return self._n_dipole_types[1]
+
+    @property
+    def update_req(self):
+        return self._distribute_req or self._mask_req
+
+    @property
+    def _dipole_centre_sep(self):
+        return self._dipole_sep / 2.0
+
+    @property
+    def density(self):
+        return self._n_dots / float(self._size ** 2)
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, size):
         self._size = size
-        self._half_size = self._size / 2.0
+        self._distribute_req = True
 
+    @property
+    def n_dipoles(self):
+        return self._n_dipoles
+
+    @n_dipoles.setter
+    def n_dipoles(self, n_dipoles):
         self._n_dipoles = n_dipoles
-        self._n_dots = n_dipoles * 2
+        self._distribute_req = True
+
+    @property
+    def dipole_sep(self):
+        return self._dipole_sep
+
+    @dipole_sep.setter
+    def dipole_sep(self, dipole_sep):
+        self._dipole_sep = dipole_sep
+        self._distribute_req = True
+
+    @property
+    def dot_size(self):
+        return self._dot_size
+
+    @dot_size.setter
+    def dot_size(self, dot_size):
         self._dot_size = dot_size
+        self._distribute_req = True
 
-        self._pole_sep = pole_sep
-        self._pole_centre_sep = pole_sep / 2.0
+    @property
+    def coh(self):
+        return self._coh
 
-        self._ori_type = ori_type
-        self._ori_deg = ori_deg
-        self._ori_sigma_deg = ori_sigma_deg
-
-        self._col_set = np.array(col_set)
-
+    @coh.setter
+    def coh(self, coh):
         self._coh = coh
+        self._instance_req = True
 
+    @property
+    def col_set(self):
+        return self._col_set
+
+    @col_set.setter
+    def col_set(self, col_set):
+        self._col_set = col_set
+
+        self._dot_cols = np.repeat(
+            self._col_set,
+            self._n_dots / len(self._col_set)
+        )
+
+        self._mask_req = True
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, pos):
         self._pos = pos
 
-        self._dot_stim = None
+        self._stim.fieldPos = pos
 
-        self.instantiate()
+    @property
+    def dot_type(self):
+        return self._dot_type
 
-        self._set_colours()
+    @dot_type.setter
+    def dot_type(self, dot_type):
+        self._dot_type = dot_type
 
-        self._set_draw_order()
+        self._stim.elementMask = self._dot_type
 
-        self._dot_stim = psychopy.visual.ElementArrayStim(
-            win=self._win,
-            xys=(
-                self._pole_locs[self._draw_order, :] +
-                np.array(self._pos)
-            ),
-            nElements=self._n_dots,
-            elementTex=None,
-            elementMask="gauss",
-            units="pix",
-            sizes=self._dot_size,
-            colors=self._cols[self._draw_order],
-            interpolate=False,
-            opacities=self._opac[self._draw_order]
-        )
+    @property
+    def mask_prop(self):
+        return self._mask_prop
 
-    def draw(self):
-        """Draw the Glass pattern, masked if active"""
+    @mask_prop.setter
+    def mask_prop(self, mask_prop):
+        self._mask_prop = mask_prop
+        self._mask_req = True
 
-        self._dot_stim.draw()
+    @property
+    def mask_ramp_prop(self):
+        return self._mask_ramp_prop
 
-        if self._mask_type is not None:
-            self._mask.draw()
+    @mask_ramp_prop.setter
+    def mask_ramp_prop(self, mask_ramp_prop):
+        self._mask_ramp_prop = mask_ramp_prop
+        self._mask_req = True
 
-    def set_pole_sep(self, pole_sep):
-        "Sets the pole separation"
+    @property
+    def contrast(self):
+        """Some help"""
+        return self._contrast
 
-        self._pole_sep = pole_sep
-        self._pole_centre_sep = pole_sep / 2.0
+    @contrast.setter
+    def contrast(self, contrast):
+        self._contrast = contrast
+        self._mask_req = True
 
-    def set_contrast(self, contrast):
-        "Sets the contrast of all the elements."
+    @property
+    def dot_sep_tol(self):
+        return self._dot_sep_tol
 
-        self._dot_stim.setContrs(contrast)
+    @dot_sep_tol.setter
+    def dot_sep_tol(self, dot_sep_tol):
+        self._dot_sep_tol = dot_sep_tol
+        self._min_dot_sep = self.dot_size * self.dot_sep_tol
+        self._distribute_req = True
 
-    def set_coh(self, coh):
-        "Sets the coherence level. N.B. This does not generate a new instance."
+    def distribute(self):
 
-        self._coh = coh
+        iterations = 0
 
-    def set_ori(self, ori):
-        "Sets the orientation. N.B. This does not generate a new instance."
+        while iterations < self.max_iterations:
 
-        self._ori_deg = ori
+            self._dipole_xy = np.empty((self.n_dipoles, 2))
+            self._dipole_xy.fill(np.NAN)
 
-    def set_ori_sigma(self, ori_sigma):
-        "Sets the orientation sigma."
+            self._dot_xy = np.empty((self._n_dots, 2))
+            self._dot_xy.fill(np.NAN)
 
-        self._ori_sigma_deg = ori_sigma
+            for i_dipole in xrange(self.n_dipoles):
 
-    def instantiate(
-        self,
-        new_loc=True,
-        pole_only=False,
-        randomise_order=True
-    ):
-        "Generates a new Glass pattern instance."
+                i_dot_base = i_dipole * 2
 
-        if new_loc:
-            self._set_dipole_locs()
+                dipole_iterations = 0
 
-        self._set_pole_locs()
+                while dipole_iterations < self.max_iterations:
 
-        self._set_visibility()
+                    # generate a proposed dipole xy pair
+                    p_dipole_xy = np.random.uniform(
+                        low=-self._half_size,
+                        high=+self._half_size,
+                        size=2
+                    )
 
-        self._set_draw_order(randomise_order)
+                    # determine the orientation of the dipole
+                    if i_dipole < self._n_signal_dipoles:
+                        ori = self.ori_deg
+                    else:
+                        ori = np.random.uniform(0.0, 180.0)
 
-        if pole_only:
-            td = [1, 0]
+                    # now need to position the dipole dots
+                    if self.ori_type == "trans":
+                        dipole_ori = ori
+
+                    elif self.ori_type == "polar":
+                        (dipole_ori, _) = psychopy.misc.cart2pol(p_dipole_xy)
+
+                    p_dot_xy = np.empty((2, 2))
+                    p_dot_xy.fill(np.NAN)
+
+                    for (i_dot, dot_offset) in enumerate((-1, +1)):
+
+                        p_dot_xy[i_dot, :] = psychopy.misc.pol2cart(
+                            dipole_ori,
+                            self._dipole_centre_sep * dot_offset
+                        )
+
+                    dist = [
+                        np.sqrt(
+                            np.sum(
+                                (self._dot_xy - p_dot_xy[i_dot, :]) ** 2
+                            )
+                        )
+                        for i_dot in xrange(2)
+                    ]
+
+                    if np.logical_or(
+                        np.all(np.isnan(dist)),
+                        np.all(dist > self._min_dot_sep)
+                    ):
+                        print( dist)
+
+                        self._dipole_xy[i_dipole, :] = p_dipole_xy
+                        self._dot_xy[i_dot_base:i_dot_base + 2, :] = p_dot_xy
+
+                        break
+
+                    dipole_iterations += 1
+
+                # haven't broken out of the dipole iterations, break out of the
+                # pattern iterations
+                else:
+                    break
+
+            # if haven't broken out of the dipole loop, then all good and can
+            # break
+            else:
+                break
+
+            iterations += 1
+
+        # if haven't broken out of the pattern loop, then throw an error
         else:
-            td = [1, 1]
+            raise ValueError("Too many iterations")
 
-        self._opac = np.tile(td, (1, self._draw_order.shape[0] / 2)).T
 
-        if self._dot_stim is not None:
 
-            self._dot_stim.setXYs(self._pole_locs[self._draw_order, :])
-            self._dot_stim.setOpacities(self._opac[self._draw_order])
-            self._dot_stim.setColors(self._cols[self._draw_order])
+    def draw(self, ignore_update_error=False):
 
-            self._dot_stim.fieldPos = self._pos
-
-    def _set_visibility(self):
-        "Culls any elements outside the pattern diameter."
-
-        # start with opacities of 1 (fully visible)
-        self._opac = np.ones(self._n_dots)
-
-        # identify the dots to be culled as those where either their x or y
-        # coordinate (abs) lies outside the pattern radius
-        i_clip = np.any(
-            np.abs(self._pole_locs) > self._radius,
-            axis=1
-        )
-
-        # set them to invisible
-        self._opac[i_clip] = 0
-
-    def _set_mask(self):
-        "Sets the desired pattern mask"
-
-        mon = self._win.monitor
-
-        if self._units == "deg":
-            pattern_diam_pix = psychopy.misc.deg2pix(self._diam, mon)
-        elif self._units == "pix":
-            pattern_diam_pix = self._diam
-
-        mask_diam_pix = stimuli.utils.nearest_power_of_two(pattern_diam_pix)
-
-        if self._units == "deg":
-            mask_in_pix = psychopy.misc.deg2pix(self._mask_in * 2, mon)
-            mask_out_pix = psychopy.misc.deg2pix(self._mask_out * 2, mon)
-            mask_fringe_pix = psychopy.misc.deg2pix(self._mask_fringe * 2, mon)
-            pos = psychopy.misc.deg2pix(self._pos, mon)
-
-        elif self._units == "pix":
-            mask_in_pix = self._mask_in * 2
-            mask_out_pix = self._mask_out * 2
-            mask_fringe_pix = self._mask_fringe * 2
-            pos = self._pos
-
-        in_fringe = mask_fringe_pix / mask_in_pix
-        out_fringe = mask_fringe_pix / mask_out_pix
-
-        # these need to be explicitly cast for makeMask to work
-        in_prop = float(mask_in_pix / mask_diam_pix)
-        out_prop = float(mask_out_pix / mask_diam_pix)
-
-        mask_in = psychopy.filters.makeMask(
-            mask_diam_pix,
-            radius=in_prop,
-            shape="raisedCosine",
-            range=(0, 1),
-            fringeWidth=in_fringe
-        )
-
-        mask_out = psychopy.filters.makeMask(
-            mask_diam_pix,
-            radius=out_prop,
-            shape="raisedCosine",
-            range=(0, 1),
-            fringeWidth=out_fringe
-        )
-
-        mask = -1 * ((mask_out - mask_in) * 2 - 1)
-
-        self._mask_array = mask
-
-        mask_tex = np.zeros((mask_diam_pix, mask_diam_pix))
-
-        self._mask = psychopy.visual.GratingStim(
-            win=self._win,
-            tex=mask_tex,
-            mask=mask,
-            units="pix",
-            interpolate=False,
-            size=mask_diam_pix,
-            pos=pos
-        )
-
-    def _set_draw_order(self, randomise=True):
-        "Calculates a random drawing order for the dipoles"
-
-        self._draw_order = np.arange(self._n_dipoles)
-
-        if randomise:
-            np.random.shuffle(self._draw_order)
-
-        # this gets a bit messy because we want to draw the elements of each
-        # dipole at the same 'depth'
-
-        self._draw_order *= 2
-
-        self._draw_order = np.vstack((self._draw_order, self._draw_order + 1))
-
-        self._draw_order = np.ravel(self._draw_order.T)
-
-        self._draw_order = self._draw_order.astype("int")
-
-    def _set_colours(self):
-        "Sets the colour of each dipole element."
-
-        i_cols = np.random.randint(
-            low=0,
-            high=len(self._col_set),
-            size=self._n_dipoles
-        )
-
-        self._cols = np.repeat(self._col_set[i_cols], repeats=2)
-
-        self._cols = np.tile(self._cols, (3, 1)).T
-
-    def _set_dipole_locs(self):
-        "Sets the location of each dipole centre."
-
-        # generate the xy locations for the dipole centres, uniform random over
-        # area
-        self._dipole_locs = np.random.uniform(
-            low=-self._radius,
-            high=+self._radius,
-            size=(self._n_dipoles, 2)
-        )
-
-    def _set_pole_locs(self):
-        "Sets the location of each dipole element"
-
-        n_signal_dipoles = np.round(self._n_dipoles * self._coh)
-        n_noise_dipoles = self._n_dipoles - n_signal_dipoles
-
-        if self._ori_sigma_deg == 0.0:
-            signal_oris = np.repeat(self._ori_deg, repeats=n_signal_dipoles)
-        else:
-            signal_oris = np.random.normal(
-                loc=self._ori_deg,
-                scale=self._ori_sigma_deg,
-                size=n_signal_dipoles
+        if self._instance_req and not ignore_update_error:
+            raise ValueError(
+                "Trying to draw a Glass pattern without creating a new " +
+                "instance after a setting change"
             )
-
-        noise_oris = np.random.uniform(
-            low=0.0,
-            high=180.0,
-            size=n_noise_dipoles
-        )
-
-        dipole_oris = np.concatenate((signal_oris, noise_oris))
-
-        pole_dist = np.tile(
-            (-self._pole_centre_sep, +self._pole_centre_sep),
-            self._n_dipoles
-        )
-
-        if self._ori_type == "trans":
-
-            pole_ori = np.repeat(dipole_oris, repeats=2)
-
-        elif self._ori_type == "polar":
-
-            theta, _ = psychopy.misc.cart2pol(
-                self._dipole_locs[:, 0],
-                self._dipole_locs[:, 1]
-            )
-
-            theta += dipole_oris
-
-            pole_ori = np.repeat(theta, repeats=2)
-
-        else:
-
-            raise ValueError("Unknown ori_type " + self._ori_type)
-
-        x_offset, y_offset = psychopy.misc.pol2cart(
-            pole_ori,
-            pole_dist
-        )
-
-        self._pole_locs = (
-            np.repeat(self._dipole_locs, repeats=2, axis=0) +
-            np.vstack((x_offset, y_offset)).T
-        )
-
