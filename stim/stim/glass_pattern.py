@@ -7,6 +7,7 @@
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
+import scipy.spatial.distance as dist
 
 import psychopy.visual
 import psychopy.misc
@@ -269,17 +270,73 @@ class GlassPattern(object):
 
     def distribute(self):
 
+        def gen_dipole(is_signal):
+
+            # generate a proposal
+            p_dipole_xy = np.random.uniform(
+                low=-self._half_size,
+                high=+self._half_size,
+                size=2
+            )
+
+            # determine the orientation of the dipole
+            if is_signal:
+                ori = self.ori_deg
+            else:
+                ori = np.random.uniform(0.0, 180.0)
+
+            if self.ori_type == "trans":
+                dipole_ori = ori
+
+            elif self.ori_type == "polar":
+                (dipole_ori, _) = psychopy.misc.cart2pol(p_dipole_xy)
+                dipole_ori += ori
+
+            p_dot_xy = np.empty((2, 2))
+            p_dot_xy.fill(np.NAN)
+
+            for (i_dot, dot_offset) in enumerate((-1, +1)):
+
+                p_dot_offset = psychopy.misc.pol2cart(
+                    dipole_ori,
+                    self._dipole_centre_sep * dot_offset
+                )
+
+                p_dot_xy[i_dot, :] = p_dipole_xy + p_dot_offset
+
+            distances = np.array(
+                [
+                    dist.euclidean(curr_dot_xy, curr_p_dot_xy)
+                    for curr_dot_xy in self._dot_xy
+                    for curr_p_dot_xy in p_dot_xy
+                    if np.logical_not(np.any(np.isnan(curr_dot_xy)))
+                ]
+            )
+
+            if np.all(distances > self._min_dot_sep):
+                return (p_dipole_xy, p_dot_xy)
+
+            else:
+                return None
+
         iterations = 0
 
         while iterations < self.max_iterations:
+            print( iterations)
 
             self._dipole_xy = np.empty((self.n_dipoles, 2))
             self._dipole_xy.fill(np.NAN)
 
             self._dot_xy = np.empty((self._n_dots, 2))
             self._dot_xy.fill(np.NAN)
+            gen_dipole(True)
 
             for i_dipole in xrange(self.n_dipoles):
+
+                if i_dipole < self._n_signal_dipoles:
+                    is_signal = True
+                else:
+                    is_signal = False
 
                 i_dot_base = i_dipole * 2
 
@@ -287,50 +344,13 @@ class GlassPattern(object):
 
                 while dipole_iterations < self.max_iterations:
 
-                    # generate a proposed dipole xy pair
-                    p_dipole_xy = np.random.uniform(
-                        low=-self._half_size,
-                        high=+self._half_size,
-                        size=2
-                    )
+                    print( dipole_iterations)
 
-                    # determine the orientation of the dipole
-                    if i_dipole < self._n_signal_dipoles:
-                        ori = self.ori_deg
-                    else:
-                        ori = np.random.uniform(0.0, 180.0)
+                    p_res = gen_dipole(is_signal)
 
-                    # now need to position the dipole dots
-                    if self.ori_type == "trans":
-                        dipole_ori = ori
+                    if p_res is not None:
 
-                    elif self.ori_type == "polar":
-                        (dipole_ori, _) = psychopy.misc.cart2pol(p_dipole_xy)
-
-                    p_dot_xy = np.empty((2, 2))
-                    p_dot_xy.fill(np.NAN)
-
-                    for (i_dot, dot_offset) in enumerate((-1, +1)):
-
-                        p_dot_xy[i_dot, :] = psychopy.misc.pol2cart(
-                            dipole_ori,
-                            self._dipole_centre_sep * dot_offset
-                        )
-
-                    dist = [
-                        np.sqrt(
-                            np.sum(
-                                (self._dot_xy - p_dot_xy[i_dot, :]) ** 2
-                            )
-                        )
-                        for i_dot in xrange(2)
-                    ]
-
-                    if np.logical_or(
-                        np.all(np.isnan(dist)),
-                        np.all(dist > self._min_dot_sep)
-                    ):
-                        print( dist)
+                        (p_dipole_xy, p_dot_xy) = p_res
 
                         self._dipole_xy[i_dipole, :] = p_dipole_xy
                         self._dot_xy[i_dot_base:i_dot_base + 2, :] = p_dot_xy
