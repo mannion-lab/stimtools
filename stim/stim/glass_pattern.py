@@ -31,8 +31,8 @@ class GlassPattern(object):
         col_set=(+1, -1),
         pos=(0.0, 0.0),
         dot_type="gauss",
-        mask_prop=(0.0, 1.0),
-        mask_ramp_prop=(0.0, 0.1),
+        mask_prop=(None, 1.0),
+        mask_ramp_prop=(0.1, 0.1),
         contrast=1.0,
         units="pix"
     ):
@@ -236,11 +236,10 @@ class GlassPattern(object):
     @mask_prop.setter
     def mask_prop(self, mask_prop):
         self._mask_prop = mask_prop
-        self._mask_vals = [
-            mask_dir * self._half_size
-            for mask_dir in self._mask_prop
-        ]
-        self._mask_size = self._mask_vals[1] - self._mask_vals[0]
+
+        self._inner_mask_active = self.mask_prop[0] is not None
+        self._outer_mask_active = self.mask_prop[1] is not None
+
         self._mask_req = True
 
     @property
@@ -278,12 +277,38 @@ class GlassPattern(object):
 
         size_pix = dummy_mask._sizeRendered
 
-        mask_tex = psychopy.filters.makeMask(
-            matrixSize=size_pix[0],
-            shape="raisedCosine",
-            radius=self._mask_prop[1],
-            fringeWidth=self._mask_ramp_prop[1]
-        )
+        mask_tex = np.zeros(size_pix)
+
+        if self._outer_mask_active:
+
+            outer_mask_tex = psychopy.filters.makeMask(
+                matrixSize=size_pix[0],
+                shape="raisedCosine",
+                radius=self._mask_prop[1],
+                fringeWidth=self.mask_ramp_prop[1],
+                range=[0, 1]
+            )
+
+            mask_tex += outer_mask_tex
+
+        if self._inner_mask_active:
+
+            inner_mask_tex = psychopy.filters.makeMask(
+                matrixSize=size_pix[0],
+                shape="raisedCosine",
+                radius=self._mask_prop[0],
+                fringeWidth=self._mask_ramp_prop[0],
+                range=[0, 1]
+            )
+
+            mask_tex -= inner_mask_tex
+
+        mask_tex[mask_tex > 1] = 1.0
+        mask_tex[mask_tex < 0] = 0.0
+
+        mask_tex = (mask_tex * 2.0) - 1.0
+
+        self._mask_tex = mask_tex
 
         new_mask_tex = stim.utils.pad_image(
             mask_tex,
@@ -407,4 +432,3 @@ class GlassPattern(object):
             pyglet.gl.GL_SRC_ALPHA,
             pyglet.gl.GL_ONE_MINUS_SRC_ALPHA
         )
-
