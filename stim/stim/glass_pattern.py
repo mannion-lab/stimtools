@@ -10,6 +10,8 @@ import numpy as np
 
 import psychopy.visual
 import psychopy.misc
+import psychopy.filters
+
 import pyglet.gl
 
 import stim.utils
@@ -170,6 +172,15 @@ class GlassPattern(object):
         self._mask_req = True
 
     @property
+    def ori_deg(self):
+        return self._ori_deg
+
+    @ori_deg.setter
+    def ori_deg(self, ori_deg):
+        self._ori_deg = ori_deg
+        self._distribute_dots_req = True
+
+    @property
     def dipole_sep(self):
         return self._dipole_sep
 
@@ -262,6 +273,7 @@ class GlassPattern(object):
 
     def set_contrast(self):
         self._stim.contrs = self._contrast * self._dot_cols
+        self._contrast_req = False
 
     def set_mask(self):
 
@@ -414,6 +426,10 @@ class GlassPattern(object):
     def draw(self, ignore_update_error=False):
 
         if self._update_req and not ignore_update_error:
+            print(self._distribute_dp_req)
+            print(self._distribute_dots_req)
+            print(self._mask_req)
+            print(self._contrast_req)
             raise ValueError(
                 "Trying to draw a Glass pattern without creating a new " +
                 "instance after a setting change"
