@@ -272,7 +272,15 @@ class GlassPattern(object):
         self._contrast_req = True
 
     def set_contrast(self):
-        self._stim.contrs = self._contrast * self._dot_cols
+
+        i_rand = np.random.permutation(self._n_dipoles)
+
+        i_order = []
+
+        for i in i_rand:
+            i_order.extend([i * 2, i * 2 + 1])
+
+        self._stim.contrs = (self._contrast * self._dot_cols)[i_order]
         self._contrast_req = False
 
     def set_mask(self):
@@ -412,6 +420,12 @@ class GlassPattern(object):
             pole_ori,
             pole_dist
         )
+
+        # shuffle the dipoles
+        self._dipole_xy = self._dipole_xy[
+            np.random.permutation(self._n_dipoles),
+            :
+        ]
 
         self._dot_xy = (
             np.repeat(self._dipole_xy, repeats=2, axis=0) +

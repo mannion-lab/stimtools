@@ -260,10 +260,12 @@ def psi_demo(n_trials=150, fixed_seed=False):
 
         psi.step()
 
-        print "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
-            t=i_trial + 1,
-            a=est_alpha,
-            b=est_beta
+        print(
+            "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
+                t=i_trial + 1,
+                a=est_alpha,
+                b=est_beta
+            )
         )
 
     return psi
