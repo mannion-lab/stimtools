@@ -45,6 +45,8 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
         new_size = to
 
+    new_size = int(new_size)
+
     if img.ndim == 3:
         n_channels = img.shape[-1]
     else:
