@@ -34,9 +34,7 @@ class GlassPattern(object):
         pos=(0.0, 0.0),
         dot_type="gauss",
         mask_prop=(None, 1.0),
-        mask_ramp_prop=(0.1, 0.1),
         contrast=1.0,
-        signal_constraint=None,
         units="pix"
     ):
         """
@@ -75,16 +73,8 @@ class GlassPattern(object):
         mask_prop: two-item collection of floats
             Extent of dot visibility for inner and outer extents of an annulus.
             These are in normalised units.
-        mask_ramp_prop: two-item collection of floats
-            Extent of the contrast ramp at the edges.
         contrast: float
             Contrast of the dots.
-        signal_constraint: None or [float, string]
-            Whether to constrain the signal dipoles to a particular region of
-            the pattern. If not None, then the first item is the radius of the
-            signal / noise border, and the second is a string that is either
-            "in" or "out" to signify the direction of the signal relative to
-            the noise.
         units: string
             Format of the parameters, in psychopy format (e.g. "pix", "deg").
 
@@ -115,8 +105,6 @@ class GlassPattern(object):
         self.pos = pos
         self.dot_type = dot_type
         self.mask_prop = mask_prop
-        self.mask_ramp_prop = mask_ramp_prop
-        self.signal_constraint = signal_constraint
 
         self._distribute_dp_req = True
         self._distribute_dots_req = True
@@ -255,19 +243,6 @@ class GlassPattern(object):
     @mask_prop.setter
     def mask_prop(self, mask_prop):
         self._mask_prop = mask_prop
-
-        self._inner_mask_active = self.mask_prop[0] is not None
-        self._outer_mask_active = self.mask_prop[1] is not None
-
-        self._mask_req = True
-
-    @property
-    def mask_ramp_prop(self):
-        return self._mask_ramp_prop
-
-    @mask_ramp_prop.setter
-    def mask_ramp_prop(self, mask_ramp_prop):
-        self._mask_ramp_prop = mask_ramp_prop
         self._mask_req = True
 
     @property
@@ -278,26 +253,6 @@ class GlassPattern(object):
     def contrast(self, contrast):
         self._contrast = contrast
         self._contrast_req = True
-
-    @property
-    def signal_constraint(self):
-        return self._signal_constraint
-
-    @signal_constraint.setter
-    def signal_constraint(self, signal_constraint):
-
-        self._signal_constraint = signal_constraint
-
-        if self._signal_constraint is not None:
-
-            if len(self._signal_constraint) != 2:
-                raise ValueError(
-                    "Signal constraint needs to be a two-item collection"
-                )
-
-        self._distribute_dp_req = True
-        self._distribute_dots_req = True
-        self._mask_req = True
 
     def set_contrast(self):
 
@@ -313,69 +268,25 @@ class GlassPattern(object):
 
     def set_mask(self):
 
-        dummy_mask = psychopy.visual.GratingStim(
-            win=self._win,
-            size=[self.size] * 2,
-            tex=np.zeros((2, 2)),
-            mask="raisedCos",
-            units=self._units
+        (_, r) = psychopy.misc.cart2pol(
+            self._dipole_xy[:, 0],
+            self._dipole_xy[:, 1]
         )
 
-        dummy_mask._calcSizeRendered()
+        r /= (self.size / 2.0)
 
-        size_pix = map(int, dummy_mask._sizeRendered)
+        self._mask = np.zeros(self._n_dipoles)
 
-        if np.mod(size_pix[0], 2) == 1:
-            size_pix[0] += 1
-
-        mask_tex = np.zeros([size_pix[0]] * 2)
-
-        if self._outer_mask_active:
-
-            outer_mask_tex = psychopy.filters.makeMask(
-                matrixSize=size_pix[0],
-                shape="raisedCosine",
-                radius=self._mask_prop[1],
-                fringeWidth=self.mask_ramp_prop[1],
-                range=[0, 1]
-            )
-
-            mask_tex += outer_mask_tex
-
-        if self._inner_mask_active:
-
-            inner_mask_tex = psychopy.filters.makeMask(
-                matrixSize=size_pix[0],
-                shape="raisedCosine",
-                radius=self._mask_prop[0],
-                fringeWidth=self._mask_ramp_prop[0],
-                range=[0, 1]
-            )
-
-            mask_tex -= inner_mask_tex
-
-        mask_tex[mask_tex > 1] = 1.0
-        mask_tex[mask_tex < 0] = 0.0
-
-        mask_tex = (mask_tex * 2.0) - 1.0
-
-        self._mask_tex = mask_tex
-
-        new_mask_tex = stim.utils.pad_image(
-            mask_tex,
-            pad_value=-1,
-            to="pow2+"
+        in_mask = np.logical_and(
+            r >= self._mask_prop[0],
+            r < self._mask_prop[1]
         )
 
-        new_size = new_mask_tex.shape[0]
+        self._mask[in_mask] = 1
 
-        self._mask = psychopy.visual.GratingStim(
-            win=self._win,
-            size=[new_size] * 2,
-            tex=np.zeros((2, 2)),
-            mask=new_mask_tex,
-            units="pix"
-        )
+        self._mask = np.repeat(self._mask, 2)
+
+        self._stim.opacities = self._mask
 
         self._mask_req = False
 
@@ -412,29 +323,6 @@ class GlassPattern(object):
                 self.ori_deg,
                 repeats=self._n_signal_dipoles
             )
-
-        if self.signal_constraint is not None:
-
-            (_, r) = psychopy.misc.cart2pol(
-                self._dipole_xy[:, 0],
-                self._dipole_xy[:, 1]
-            )
-
-            r /= (self.size / 2.0)
-
-            (sig_r, sig_type) = self.signal_constraint
-
-            if sig_type == "in":
-                i_signal = np.where(r < sig_r)[0]
-
-            elif sig_type == "out":
-                i_signal = np.where(r > sig_r)[0]
-
-            else:
-                raise ValueError("Unknown signal constraint")
-
-            i_signal = i_signal[:self._n_signal_dipoles]
-
 
         noise_oris = np.random.uniform(
             low=0.0,
@@ -491,7 +379,11 @@ class GlassPattern(object):
         self._distribute_dots_req = False
 
 
-    def draw(self, ignore_update_error=False):
+    def draw(
+        self,
+        ignore_update_error=False,
+        other_pattern=None
+    ):
 
         if self._update_req and not ignore_update_error:
             print(self._distribute_dp_req)
@@ -503,16 +395,90 @@ class GlassPattern(object):
                 "instance after a setting change"
             )
 
+        # merge drawing with another pattern
+        if other_pattern:
+
+            n_other = other_pattern._dot_xy.shape[0]
+
+            old_stim = self._stim
+
+
+
         self._stim.draw()
 
-        pyglet.gl.glBlendFunc(
-            pyglet.gl.GL_ONE_MINUS_SRC_ALPHA,
-            pyglet.gl.GL_SRC_ALPHA
-        )
 
-        self._mask.draw()
+def add(gp_a, gp_b):
 
-        pyglet.gl.glBlendFunc(
-            pyglet.gl.GL_SRC_ALPHA,
-            pyglet.gl.GL_ONE_MINUS_SRC_ALPHA
+    n_el = (
+        gp_a._stim.nElements +
+        gp_b._stim.nElements
+    )
+
+    i_rand = np.random.permutation(int(n_el / 2))
+
+    i_order = []
+
+    for i in i_rand:
+        i_order.extend([i * 2, i * 2 + 1])
+
+    gp = GlassPattern(
+        win=gp_a._win,
+        size=gp_a.size,
+        n_dipoles=int(n_el / 2),
+        dipole_sep=gp_a.dipole_sep,
+        dot_size=gp_a.dot_size,
+        ori_type=gp_a.ori_type,
+        ori_deg=gp_a.ori_deg,
+        ori_sigma_deg=gp_a.ori_sigma_deg,
+        coh=0.0,
+        col_set=(+1, -1),
+        pos=gp_a.pos,
+        dot_type=gp_a.dot_type,
+        mask_prop=(None, 1.0),
+        contrast=1.0,
+        units=gp_a._units
+    )
+
+    gp._stim.xys = np.vstack(
+        (
+            gp_a._dot_xy,
+            gp_b._dot_xy
         )
+    )[i_order, :]
+
+    gp._stim.contrs = np.hstack(
+        (
+            gp_a._stim.contrs,
+            gp_b._stim.contrs
+        )
+    )[i_order]
+
+    gp._stim.opacities = np.hstack(
+        (
+            gp_a._stim.opacities,
+            gp_b._stim.opacities
+        )
+    )[i_order]
+
+    gp._stim.sizes = np.vstack(
+        (
+            gp_a._stim.sizes,
+            gp_b._stim.sizes
+        )
+    )[i_order, :]
+
+    gp._stim.rgbs = np.vstack(
+        (
+            gp_a._stim.rgbs,
+            gp_b._stim.rgbs
+        )
+    )[i_order, :]
+
+    gp._stim.oris = np.hstack(
+        (
+            gp_a._stim.oris,
+            gp_b._stim.oris
+        )
+    )[i_order]
+
+    return gp
