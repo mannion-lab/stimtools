@@ -36,6 +36,7 @@ class GlassPattern(object):
         mask_prop=(None, 1.0),
         mask_ramp_prop=(0.1, 0.1),
         contrast=1.0,
+        signal_constraint=None,
         units="pix"
     ):
         """
@@ -78,6 +79,12 @@ class GlassPattern(object):
             Extent of the contrast ramp at the edges.
         contrast: float
             Contrast of the dots.
+        signal_constraint: None or [float, string]
+            Whether to constrain the signal dipoles to a particular region of
+            the pattern. If not None, then the first item is the radius of the
+            signal / noise border, and the second is a string that is either
+            "in" or "out" to signify the direction of the signal relative to
+            the noise.
         units: string
             Format of the parameters, in psychopy format (e.g. "pix", "deg").
 
@@ -109,6 +116,7 @@ class GlassPattern(object):
         self.dot_type = dot_type
         self.mask_prop = mask_prop
         self.mask_ramp_prop = mask_ramp_prop
+        self.signal_constraint = signal_constraint
 
         self._distribute_dp_req = True
         self._distribute_dots_req = True
@@ -271,6 +279,26 @@ class GlassPattern(object):
         self._contrast = contrast
         self._contrast_req = True
 
+    @property
+    def signal_constraint(self):
+        return self._signal_constraint
+
+    @signal_constraint.setter
+    def signal_constraint(self, signal_constraint):
+
+        self._signal_constraint = signal_constraint
+
+        if self._signal_constraint is not None:
+
+            if len(self._signal_constraint) != 2:
+                raise ValueError(
+                    "Signal constraint needs to be a two-item collection"
+                )
+
+        self._distribute_dp_req = True
+        self._distribute_dots_req = True
+        self._mask_req = True
+
     def set_contrast(self):
 
         i_rand = np.random.permutation(self._n_dipoles)
@@ -300,7 +328,7 @@ class GlassPattern(object):
         if np.mod(size_pix[0], 2) == 1:
             size_pix[0] += 1
 
-        mask_tex = np.zeros(size_pix)
+        mask_tex = np.zeros([size_pix[0]] * 2)
 
         if self._outer_mask_active:
 
@@ -384,6 +412,29 @@ class GlassPattern(object):
                 self.ori_deg,
                 repeats=self._n_signal_dipoles
             )
+
+        if self.signal_constraint is not None:
+
+            (_, r) = psychopy.misc.cart2pol(
+                self._dipole_xy[:, 0],
+                self._dipole_xy[:, 1]
+            )
+
+            r /= (self.size / 2.0)
+
+            (sig_r, sig_type) = self.signal_constraint
+
+            if sig_type == "in":
+                i_signal = np.where(r < sig_r)[0]
+
+            elif sig_type == "out":
+                i_signal = np.where(r > sig_r)[0]
+
+            else:
+                raise ValueError("Unknown signal constraint")
+
+            i_signal = i_signal[:self._n_signal_dipoles]
+
 
         noise_oris = np.random.uniform(
             low=0.0,
