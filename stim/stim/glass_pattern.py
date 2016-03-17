@@ -407,7 +407,7 @@ class GlassPattern(object):
         self._stim.draw()
 
 
-def add(gp_a, gp_b):
+def combine_gp(gp_a, gp_b):
 
     n_el = (
         gp_a._stim.nElements +
