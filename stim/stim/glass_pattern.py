@@ -1,9 +1,3 @@
-
-# UNFINISHED
-#  - use properties
-#  - general cleanup
-#  - get rid of mask stuff
-
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
@@ -11,10 +5,6 @@ import numpy as np
 import psychopy.visual
 import psychopy.misc
 import psychopy.filters
-
-import pyglet.gl
-
-import stim.utils
 
 
 class GlassPattern(object):
@@ -353,7 +343,7 @@ class GlassPattern(object):
             pole_ori = np.repeat(theta, repeats=2)
 
         else:
-            raise ValueError("Unknown ori_type " + self._ori_type)
+            raise ValueError("Unknown ori_type " + self.ori_type)
 
         (x_offset, y_offset) = psychopy.misc.pol2cart(
             pole_ori,
@@ -381,8 +371,7 @@ class GlassPattern(object):
 
     def draw(
         self,
-        ignore_update_error=False,
-        other_pattern=None
+        ignore_update_error=False
     ):
 
         if self._update_req and not ignore_update_error:
@@ -395,19 +384,12 @@ class GlassPattern(object):
                 "instance after a setting change"
             )
 
-        # merge drawing with another pattern
-        if other_pattern:
-
-            n_other = other_pattern._dot_xy.shape[0]
-
-            old_stim = self._stim
-
-
-
         self._stim.draw()
 
 
-def combine_gp(gp_a, gp_b):
+def combine_gps(gp_a, gp_b):
+    """Combine two Glass pattern instances into one, shuffling the dipole draw
+    order."""
 
     n_el = (
         gp_a._stim.nElements +
