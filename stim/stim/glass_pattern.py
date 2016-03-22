@@ -396,6 +396,8 @@ class GlassPattern(object):
             else:
                 thetas[i_dipole] = np.random.uniform(0.0, 180.0)
 
+        self._thetas = thetas
+
         # now we have an orientation for each dipole
 
         pole_dist = np.tile(
