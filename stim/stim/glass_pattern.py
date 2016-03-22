@@ -6,6 +6,8 @@ import psychopy.visual
 import psychopy.misc
 import psychopy.filters
 
+import stim.utils
+
 
 class GlassPattern(object):
 
@@ -25,6 +27,10 @@ class GlassPattern(object):
         dot_type="gauss",
         mask_prop=(None, 1.0),
         contrast=1.0,
+        coh_mod_amp=0.0,
+        coh_mod_freq=0.0,
+        coh_mod_ori_deg=0.0,
+        coh_mod_phase=0.0,
         units="pix"
     ):
         """
@@ -65,6 +71,15 @@ class GlassPattern(object):
             These are in normalised units.
         contrast: float
             Contrast of the dots.
+        coh_mod_amp: float
+            Amplitude of a sinusoidal spatial coherence modulation. The
+            coherence will peak/trough at `coh` +- `coh_amp_mod`.
+        coh_amp_freq: float
+            Frequency of the coherence modulation, in cycles per unit.
+        coh_amp_ori_deg: float
+            Orientation of the coherence modulation, in degrees.
+        coh_mod_phase: float
+            Phase of the coherence modulation, in radians.
         units: string
             Format of the parameters, in psychopy format (e.g. "pix", "deg").
 
@@ -95,6 +110,10 @@ class GlassPattern(object):
         self.pos = pos
         self.dot_type = dot_type
         self.mask_prop = mask_prop
+        self.coh_mod_amp = coh_mod_amp
+        self.coh_mod_freq = coh_mod_freq
+        self.coh_mod_ori_deg = coh_mod_ori_deg
+        self.coh_mod_phase = coh_mod_phase
 
         self._distribute_dp_req = True
         self._distribute_dots_req = True
@@ -104,6 +123,7 @@ class GlassPattern(object):
         self.distribute()
         self.set_contrast()
         self.set_mask()
+
 
     @property
     def _half_size(self):
@@ -236,6 +256,42 @@ class GlassPattern(object):
         self._mask_req = True
 
     @property
+    def coh_mod_amp(self):
+        return self._coh_mod_amp
+
+    @coh_mod_amp.setter
+    def coh_mod_amp(self, coh_mod_amp):
+        self._coh_mod_amp = coh_mod_amp
+        self._distribute_dots_req = True
+
+    @property
+    def coh_mod_freq(self):
+        return self._coh_mod_freq
+
+    @coh_mod_freq.setter
+    def coh_mod_freq(self, coh_mod_freq):
+        self._coh_mod_freq = coh_mod_freq
+        self._distribute_dots_req = True
+
+    @property
+    def coh_mod_ori_deg(self):
+        return self._coh_mod_ori_deg
+
+    @coh_mod_ori_deg.setter
+    def coh_mod_ori_deg(self, coh_mod_ori_deg):
+        self._coh_mod_ori_deg = coh_mod_ori_deg
+        self._distribute_dots_req = True
+
+    @property
+    def coh_mod_phase(self):
+        return self._coh_mod_phase
+
+    @coh_mod_phase.setter
+    def coh_mod_phase(self, coh_mod_phase):
+        self._coh_mod_phase = coh_mod_phase
+        self._distribute_dots_req = True
+
+    @property
     def contrast(self):
         return self._contrast
 
@@ -302,25 +358,45 @@ class GlassPattern(object):
                 "Trying to generate dots, but dipoles need updating"
             )
 
-        if self.ori_sigma_deg is not None:
-            signal_oris = np.random.normal(
-                loc=self.ori_deg,
-                scale=self.ori_sigma_deg,
-                size=self._n_signal_dipoles
-            )
-        else:
-            signal_oris = np.repeat(
-                self.ori_deg,
-                repeats=self._n_signal_dipoles
+        # orientation in the different convention
+        ori_conv = np.radians(-stim.utils.math_to_nav_polar(self.ori_deg))
+
+        thetas = np.empty((self._n_dipoles))
+        thetas.fill(np.NAN)
+
+        for i_dipole in xrange(self._n_dipoles):
+
+            (x, y) = self._dipole_xy[i_dipole, :]
+
+            # from -1 to 1
+            signal_p = np.sin(
+                self.coh_mod_freq * 2 * np.pi * (
+                    y * np.sin(ori_conv) +
+                    x * np.cos(ori_conv)
+                ) +
+                self.coh_mod_phase
             )
 
-        noise_oris = np.random.uniform(
-            low=0.0,
-            high=180.0,
-            size=self._n_noise_dipoles
-        )
+            # from -amp to +amp
+            signal_p *= self.coh_mod_amp
 
-        dipole_oris = np.concatenate((signal_oris, noise_oris))
+            # change offset to base coh
+            signal_p += self.coh
+
+            if np.random.rand() < signal_p:
+
+                if self.ori_sigma_deg is not None:
+                    thetas[i_dipole] = np.random.normal(
+                        loc=self.ori_deg,
+                        scale=self.ori_sigma_deg
+                    )
+                else:
+                    thetas[i_dipole] = self.ori_deg
+
+            else:
+                thetas[i_dipole] = np.random.uniform(0.0, 180.0)
+
+        # now we have an orientation for each dipole
 
         pole_dist = np.tile(
             (-self._dipole_centre_sep, +self._dipole_centre_sep),
@@ -329,7 +405,7 @@ class GlassPattern(object):
 
         if self.ori_type == "trans":
 
-            pole_ori = np.repeat(dipole_oris, repeats=2)
+            pole_ori = np.repeat(thetas, repeats=2)
 
         elif self.ori_type == "polar":
 
@@ -338,7 +414,7 @@ class GlassPattern(object):
                 self._dipole_xy[:, 1]
             )
 
-            theta += dipole_oris
+            theta += thetas
 
             pole_ori = np.repeat(theta, repeats=2)
 
@@ -349,12 +425,6 @@ class GlassPattern(object):
             pole_ori,
             pole_dist
         )
-
-        # shuffle the dipoles
-        self._dipole_xy = self._dipole_xy[
-            np.random.permutation(self._n_dipoles),
-            :
-        ]
 
         self._dot_xy = (
             np.repeat(self._dipole_xy, repeats=2, axis=0) +
