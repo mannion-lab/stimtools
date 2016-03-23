@@ -31,6 +31,7 @@ class GlassPattern(object):
         coh_mod_freq=0.0,
         coh_mod_ori_deg=0.0,
         coh_mod_phase=0.0,
+        coh_mod_wave="sin",
         units="pix"
     ):
         """
@@ -80,6 +81,8 @@ class GlassPattern(object):
             Orientation of the coherence modulation, in degrees.
         coh_mod_phase: float
             Phase of the coherence modulation, in radians.
+        coh_mod_wave: string, {"sin", "sqr"}
+            Shape of the coherence modulation.
         units: string
             Format of the parameters, in psychopy format (e.g. "pix", "deg").
 
@@ -114,6 +117,7 @@ class GlassPattern(object):
         self.coh_mod_freq = coh_mod_freq
         self.coh_mod_ori_deg = coh_mod_ori_deg
         self.coh_mod_phase = coh_mod_phase
+        self.coh_mod_wave = coh_mod_wave
 
         self._distribute_dp_req = True
         self._distribute_dots_req = True
@@ -256,6 +260,15 @@ class GlassPattern(object):
         self._mask_req = True
 
     @property
+    def coh_mod_wave(self):
+        return self._coh_mod_wave
+
+    @coh_mod_wave.setter
+    def coh_mod_wave(self, coh_mod_wave):
+        self._coh_mod_wave = coh_mod_wave
+        self._distribute_dots_req = True
+
+    @property
     def coh_mod_amp(self):
         return self._coh_mod_amp
 
@@ -376,6 +389,9 @@ class GlassPattern(object):
                 ) +
                 self.coh_mod_phase
             )
+
+            if self.coh_mod_wave == "sqr":
+                signal_p = np.sign(signal_p)
 
             # from -amp to +amp
             signal_p *= self.coh_mod_amp
