@@ -1,3 +1,9 @@
+
+# UNFINISHED
+#  - use properties
+#  - general cleanup
+#  - get rid of mask stuff
+
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
@@ -5,6 +11,8 @@ import numpy as np
 import psychopy.visual
 import psychopy.misc
 import psychopy.filters
+
+import pyglet.gl
 
 import stim.utils
 
@@ -26,12 +34,8 @@ class GlassPattern(object):
         pos=(0.0, 0.0),
         dot_type="gauss",
         mask_prop=(None, 1.0),
+        mask_ramp_prop=(0.1, 0.1),
         contrast=1.0,
-        coh_mod_amp=0.0,
-        coh_mod_freq=0.0,
-        coh_mod_ori_deg=0.0,
-        coh_mod_phase=0.0,
-        coh_mod_wave="sin",
         units="pix"
     ):
         """
@@ -70,19 +74,10 @@ class GlassPattern(object):
         mask_prop: two-item collection of floats
             Extent of dot visibility for inner and outer extents of an annulus.
             These are in normalised units.
+        mask_ramp_prop: two-item collection of floats
+            Extent of the contrast ramp at the edges.
         contrast: float
             Contrast of the dots.
-        coh_mod_amp: float
-            Amplitude of a sinusoidal spatial coherence modulation. The
-            coherence will peak/trough at `coh` +- `coh_amp_mod`.
-        coh_amp_freq: float
-            Frequency of the coherence modulation, in cycles per unit.
-        coh_amp_ori_deg: float
-            Orientation of the coherence modulation, in degrees.
-        coh_mod_phase: float
-            Phase of the coherence modulation, in radians.
-        coh_mod_wave: string, {"sin", "sqr"}
-            Shape of the coherence modulation.
         units: string
             Format of the parameters, in psychopy format (e.g. "pix", "deg").
 
@@ -113,11 +108,7 @@ class GlassPattern(object):
         self.pos = pos
         self.dot_type = dot_type
         self.mask_prop = mask_prop
-        self.coh_mod_amp = coh_mod_amp
-        self.coh_mod_freq = coh_mod_freq
-        self.coh_mod_ori_deg = coh_mod_ori_deg
-        self.coh_mod_phase = coh_mod_phase
-        self.coh_mod_wave = coh_mod_wave
+        self.mask_ramp_prop = mask_ramp_prop
 
         self._distribute_dp_req = True
         self._distribute_dots_req = True
@@ -127,7 +118,6 @@ class GlassPattern(object):
         self.distribute()
         self.set_contrast()
         self.set_mask()
-
 
     @property
     def _half_size(self):
@@ -257,52 +247,20 @@ class GlassPattern(object):
     @mask_prop.setter
     def mask_prop(self, mask_prop):
         self._mask_prop = mask_prop
+
+        self._inner_mask_active = self.mask_prop[0] is not None
+        self._outer_mask_active = self.mask_prop[1] is not None
+
         self._mask_req = True
 
     @property
-    def coh_mod_wave(self):
-        return self._coh_mod_wave
+    def mask_ramp_prop(self):
+        return self._mask_ramp_prop
 
-    @coh_mod_wave.setter
-    def coh_mod_wave(self, coh_mod_wave):
-        self._coh_mod_wave = coh_mod_wave
-        self._distribute_dots_req = True
-
-    @property
-    def coh_mod_amp(self):
-        return self._coh_mod_amp
-
-    @coh_mod_amp.setter
-    def coh_mod_amp(self, coh_mod_amp):
-        self._coh_mod_amp = coh_mod_amp
-        self._distribute_dots_req = True
-
-    @property
-    def coh_mod_freq(self):
-        return self._coh_mod_freq
-
-    @coh_mod_freq.setter
-    def coh_mod_freq(self, coh_mod_freq):
-        self._coh_mod_freq = coh_mod_freq
-        self._distribute_dots_req = True
-
-    @property
-    def coh_mod_ori_deg(self):
-        return self._coh_mod_ori_deg
-
-    @coh_mod_ori_deg.setter
-    def coh_mod_ori_deg(self, coh_mod_ori_deg):
-        self._coh_mod_ori_deg = coh_mod_ori_deg
-        self._distribute_dots_req = True
-
-    @property
-    def coh_mod_phase(self):
-        return self._coh_mod_phase
-
-    @coh_mod_phase.setter
-    def coh_mod_phase(self, coh_mod_phase):
-        self._coh_mod_phase = coh_mod_phase
-        self._distribute_dots_req = True
+    @mask_ramp_prop.setter
+    def mask_ramp_prop(self, mask_ramp_prop):
+        self._mask_ramp_prop = mask_ramp_prop
+        self._mask_req = True
 
     @property
     def contrast(self):
@@ -327,25 +285,69 @@ class GlassPattern(object):
 
     def set_mask(self):
 
-        (_, r) = psychopy.misc.cart2pol(
-            self._dipole_xy[:, 0],
-            self._dipole_xy[:, 1]
+        dummy_mask = psychopy.visual.GratingStim(
+            win=self._win,
+            size=[self.size] * 2,
+            tex=np.zeros((2, 2)),
+            mask="raisedCos",
+            units=self._units
         )
 
-        r /= (self.size / 2.0)
+        dummy_mask._calcSizeRendered()
 
-        self._mask = np.zeros(self._n_dipoles)
+        size_pix = map(int, dummy_mask._sizeRendered)
 
-        in_mask = np.logical_and(
-            r >= self._mask_prop[0],
-            r < self._mask_prop[1]
+        if np.mod(size_pix[0], 2) == 1:
+            size_pix[0] += 1
+
+        mask_tex = np.zeros(size_pix)
+
+        if self._outer_mask_active:
+
+            outer_mask_tex = psychopy.filters.makeMask(
+                matrixSize=size_pix[0],
+                shape="raisedCosine",
+                radius=self._mask_prop[1],
+                fringeWidth=self.mask_ramp_prop[1],
+                range=[0, 1]
+            )
+
+            mask_tex += outer_mask_tex
+
+        if self._inner_mask_active:
+
+            inner_mask_tex = psychopy.filters.makeMask(
+                matrixSize=size_pix[0],
+                shape="raisedCosine",
+                radius=self._mask_prop[0],
+                fringeWidth=self._mask_ramp_prop[0],
+                range=[0, 1]
+            )
+
+            mask_tex -= inner_mask_tex
+
+        mask_tex[mask_tex > 1] = 1.0
+        mask_tex[mask_tex < 0] = 0.0
+
+        mask_tex = (mask_tex * 2.0) - 1.0
+
+        self._mask_tex = mask_tex
+
+        new_mask_tex = stim.utils.pad_image(
+            mask_tex,
+            pad_value=-1,
+            to="pow2+"
         )
 
-        self._mask[in_mask] = 1
+        new_size = new_mask_tex.shape[0]
 
-        self._mask = np.repeat(self._mask, 2)
-
-        self._stim.opacities = self._mask
+        self._mask = psychopy.visual.GratingStim(
+            win=self._win,
+            size=[new_size] * 2,
+            tex=np.zeros((2, 2)),
+            mask=new_mask_tex,
+            units="pix"
+        )
 
         self._mask_req = False
 
@@ -371,50 +373,25 @@ class GlassPattern(object):
                 "Trying to generate dots, but dipoles need updating"
             )
 
-        # orientation in the different convention
-        ori_conv = np.radians(-stim.utils.math_to_nav_polar(self.ori_deg))
-
-        thetas = np.empty((self._n_dipoles))
-        thetas.fill(np.NAN)
-
-        for i_dipole in xrange(self._n_dipoles):
-
-            (x, y) = self._dipole_xy[i_dipole, :]
-
-            # from -1 to 1
-            signal_p = np.sin(
-                self.coh_mod_freq * 2 * np.pi * (
-                    y * np.sin(ori_conv) +
-                    x * np.cos(ori_conv)
-                ) +
-                self.coh_mod_phase
+        if self.ori_sigma_deg is not None:
+            signal_oris = np.random.normal(
+                loc=self.ori_deg,
+                scale=self.ori_sigma_deg,
+                size=self._n_signal_dipoles
+            )
+        else:
+            signal_oris = np.repeat(
+                self.ori_deg,
+                repeats=self._n_signal_dipoles
             )
 
-            if self.coh_mod_wave == "sqr":
-                signal_p = np.sign(signal_p)
+        noise_oris = np.random.uniform(
+            low=0.0,
+            high=180.0,
+            size=self._n_noise_dipoles
+        )
 
-            # from -amp to +amp
-            signal_p *= self.coh_mod_amp
-
-            # change offset to base coh
-            signal_p += self.coh
-
-            if np.random.rand() < signal_p:
-
-                if self.ori_sigma_deg is not None:
-                    thetas[i_dipole] = np.random.normal(
-                        loc=self.ori_deg,
-                        scale=self.ori_sigma_deg
-                    )
-                else:
-                    thetas[i_dipole] = self.ori_deg
-
-            else:
-                thetas[i_dipole] = np.random.uniform(0.0, 180.0)
-
-        self._thetas = thetas
-
-        # now we have an orientation for each dipole
+        dipole_oris = np.concatenate((signal_oris, noise_oris))
 
         pole_dist = np.tile(
             (-self._dipole_centre_sep, +self._dipole_centre_sep),
@@ -423,7 +400,7 @@ class GlassPattern(object):
 
         if self.ori_type == "trans":
 
-            pole_ori = np.repeat(thetas, repeats=2)
+            pole_ori = np.repeat(dipole_oris, repeats=2)
 
         elif self.ori_type == "polar":
 
@@ -432,17 +409,23 @@ class GlassPattern(object):
                 self._dipole_xy[:, 1]
             )
 
-            theta += thetas
+            theta += dipole_oris
 
             pole_ori = np.repeat(theta, repeats=2)
 
         else:
-            raise ValueError("Unknown ori_type " + self.ori_type)
+            raise ValueError("Unknown ori_type " + self._ori_type)
 
         (x_offset, y_offset) = psychopy.misc.pol2cart(
             pole_ori,
             pole_dist
         )
+
+        # shuffle the dipoles
+        self._dipole_xy = self._dipole_xy[
+            np.random.permutation(self._n_dipoles),
+            :
+        ]
 
         self._dot_xy = (
             np.repeat(self._dipole_xy, repeats=2, axis=0) +
@@ -457,10 +440,7 @@ class GlassPattern(object):
         self._distribute_dots_req = False
 
 
-    def draw(
-        self,
-        ignore_update_error=False
-    ):
+    def draw(self, ignore_update_error=False):
 
         if self._update_req and not ignore_update_error:
             print(self._distribute_dp_req)
@@ -474,81 +454,14 @@ class GlassPattern(object):
 
         self._stim.draw()
 
-
-def combine_gps(gp_a, gp_b):
-    """Combine two Glass pattern instances into one, shuffling the dipole draw
-    order."""
-
-    n_el = (
-        gp_a._stim.nElements +
-        gp_b._stim.nElements
-    )
-
-    i_rand = np.random.permutation(int(n_el / 2))
-
-    i_order = []
-
-    for i in i_rand:
-        i_order.extend([i * 2, i * 2 + 1])
-
-    gp = GlassPattern(
-        win=gp_a._win,
-        size=gp_a.size,
-        n_dipoles=int(n_el / 2),
-        dipole_sep=gp_a.dipole_sep,
-        dot_size=gp_a.dot_size,
-        ori_type=gp_a.ori_type,
-        ori_deg=gp_a.ori_deg,
-        ori_sigma_deg=gp_a.ori_sigma_deg,
-        coh=0.0,
-        col_set=(+1, -1),
-        pos=gp_a.pos,
-        dot_type=gp_a.dot_type,
-        mask_prop=(None, 1.0),
-        contrast=1.0,
-        units=gp_a._units
-    )
-
-    gp._stim.xys = np.vstack(
-        (
-            gp_a._dot_xy,
-            gp_b._dot_xy
+        pyglet.gl.glBlendFunc(
+            pyglet.gl.GL_ONE_MINUS_SRC_ALPHA,
+            pyglet.gl.GL_SRC_ALPHA
         )
-    )[i_order, :]
 
-    gp._stim.contrs = np.hstack(
-        (
-            gp_a._stim.contrs,
-            gp_b._stim.contrs
+        self._mask.draw()
+
+        pyglet.gl.glBlendFunc(
+            pyglet.gl.GL_SRC_ALPHA,
+            pyglet.gl.GL_ONE_MINUS_SRC_ALPHA
         )
-    )[i_order]
-
-    gp._stim.opacities = np.hstack(
-        (
-            gp_a._stim.opacities,
-            gp_b._stim.opacities
-        )
-    )[i_order]
-
-    gp._stim.sizes = np.vstack(
-        (
-            gp_a._stim.sizes,
-            gp_b._stim.sizes
-        )
-    )[i_order, :]
-
-    gp._stim.rgbs = np.vstack(
-        (
-            gp_a._stim.rgbs,
-            gp_b._stim.rgbs
-        )
-    )[i_order, :]
-
-    gp._stim.oris = np.hstack(
-        (
-            gp_a._stim.oris,
-            gp_b._stim.oris
-        )
-    )[i_order]
-
-    return gp
