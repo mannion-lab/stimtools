@@ -421,12 +421,6 @@ class GlassPattern(object):
             pole_dist
         )
 
-        # shuffle the dipoles
-        self._dipole_xy = self._dipole_xy[
-            np.random.permutation(self._n_dipoles),
-            :
-        ]
-
         self._dot_xy = (
             np.repeat(self._dipole_xy, repeats=2, axis=0) +
             np.vstack((x_offset, y_offset)).T
