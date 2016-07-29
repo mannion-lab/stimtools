@@ -48,14 +48,14 @@ class FusionLock(object):
         self._contrast = contrast
         self._binary = binary
 
-        self._lowres_lock_size = self._size_pix / self._upsample_factor
+        self._lowres_lock_size = int(self._size_pix / self._upsample_factor)
 
         lock_mask = stim.utils.polar_mask(
             size_pix=size_pix,
             outer_extent_norm=outer_extent_norm,
             inner_extent_norm=inner_extent_norm,
             sector_centre_deg=0.0,
-            sector_central_angle_deg=360.0
+            sector_central_angle_deg=361.0
         )
 
         self._stim = psychopy.visual.GratingStim(
