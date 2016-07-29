@@ -1,16 +1,11 @@
 
-# UNFINISHED
-#  - use properties
-#  - general cleanup
-#  - get rid of mask stuff
-
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
 import psychopy.visual
 import psychopy.misc
-import psychopy.filters
+import psychopy.visual.filters
 
 import pyglet.gl
 
