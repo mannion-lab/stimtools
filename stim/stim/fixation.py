@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function, division
 
 import psychopy.visual
 import psychopy.misc
-import psychopy.visual.filters
+import psychopy.filters
 
 
 class Fixation(object):

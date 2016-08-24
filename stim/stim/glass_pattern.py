@@ -5,7 +5,7 @@ import numpy as np
 
 import psychopy.visual
 import psychopy.misc
-import psychopy.visual.filters
+import psychopy.filters
 
 import pyglet.gl
 
