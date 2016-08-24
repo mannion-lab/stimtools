@@ -5,7 +5,12 @@ import numpy as np
 
 import psychopy.visual
 import psychopy.misc
-import psychopy.filters
+try:
+    import psychopy.visual.filters as f
+    psychopy.filters = f
+    del f
+except ImportError:
+    import psychopy.filters
 
 import pyglet.gl
 
