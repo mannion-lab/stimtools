@@ -118,10 +118,27 @@ class Fixation(object):
         self._stim["spot"].lineColor = spot_colour
         self._stim["spot"].fillColor = spot_colour
 
-    def draw(self):
+    def draw(self, contrast=1):
 
-        _ = [
+        if contrast == 1:
+            stim_c = (
+                ("bg", -1),
+                ("h_line", 1),
+                ("v_line", 1),
+                ("spot", -1)
+            )
+        elif contrast == -1:
+
+            stim_c = (
+                ("bg", 1),
+                ("h_line", -1),
+                ("v_line", -1),
+                ("spot", 1)
+            )
+
+        for (stim_type, stim_contrast) in stim_c:
+            self._stim[stim_type].lineColor = stim_contrast
+            self._stim[stim_type].fillColor = stim_contrast
+
             self._stim[stim_type].draw()
-            for stim_type in ["bg", "h_line", "v_line", "spot"]
-        ]
 
