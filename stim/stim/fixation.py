@@ -120,21 +120,12 @@ class Fixation(object):
 
     def draw(self, contrast=1):
 
-        if contrast == 1:
-            stim_c = (
-                ("bg", -1),
-                ("h_line", 1),
-                ("v_line", 1),
-                ("spot", -1)
-            )
-        elif contrast == -1:
-
-            stim_c = (
-                ("bg", 1),
-                ("h_line", -1),
-                ("v_line", -1),
-                ("spot", 1)
-            )
+        stim_c = (
+            ("bg", -contrast),
+            ("h_line", contrast),
+            ("v_line", contrast),
+            ("spot", -contrast)
+        )
 
         for (stim_type, stim_contrast) in stim_c:
             self._stim[stim_type].lineColor = stim_contrast
