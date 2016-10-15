@@ -22,12 +22,19 @@ def pink_noise(
 
     n_samples = int(dur_s * rate)
 
-    freqs = np.fft.fftfreq(n_samples)
+    freqs = np.fft.fftfreq(n_samples) * rate
 
     with np.errstate(divide="ignore"):
         amps = 1.0 / np.abs(freqs)
 
     amps[np.isinf(amps)] = 0.0
+
+    i_audible = np.logical_and(
+        freqs > 20,
+        freqs < 20000
+    )
+
+    amps[np.logical_not(i_audible)] = 0.0
 
     uniform = np.random.uniform(-1, 1, n_samples)
 
@@ -54,12 +61,9 @@ def pink_noise(
 
     max_amp = 32767.0
 
-    y = (y * max_amp).astype("int16")
+    y *= max_amp
 
-    if range_method == "clip":
-        y = np.clip(y, a_min=-max_amp, a_max=max_amp)
-
-    elif range_method in ("warn", "error"):
+    if range_method in ("warn", "error"):
 
         clip_req = np.logical_or(
             np.any(y < -max_amp),
@@ -72,6 +76,8 @@ def pink_noise(
                 warnings.warn("Clipping required")
             else:
                 raise ValueError("Clipping would be required")
+
+    y = np.clip(y, a_min=-max_amp, a_max=max_amp)
 
     y = np.concatenate((y, np.zeros((post_pad_samples, 2))))
 
