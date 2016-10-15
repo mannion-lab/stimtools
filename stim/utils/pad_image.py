@@ -32,20 +32,26 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     """
 
-    if to.startswith("pow2"):
+    if isinstance(to, str):
 
-        new_size = nearest_pow2(np.max(img.shape[:2]))
+       if to.startswith("pow2"):
 
-        if to == "pow2+":
-            new_size = nearest_pow2(new_size + 1)
+            new_size = nearest_pow2(np.max(img.shape[:2]))
+
+            if to == "pow2+":
+                new_size = nearest_pow2(new_size + 1)
+
+            new_size = [new_size] * 2
 
     else:
 
-        assert not isinstance(to, str)
+        if type(to) not in [list, tuple, np.ndarray]:
+            new_size = [to] * 2
 
-        new_size = to
+        else:
+            new_size = to
 
-    new_size = int(new_size)
+    new_size = map(int, new_size)
 
     if img.ndim == 3:
         n_channels = img.shape[-1]
@@ -53,12 +59,12 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
         n_channels = 1
         img = img[..., np.newaxis]
 
-    pad_img = np.ones((new_size, new_size, n_channels)) * pad_value
+    pad_img = np.ones((new_size[0], new_size[1], n_channels)) * pad_value
 
     pad_img[:img.shape[0], :img.shape[1], :] = img
 
-    row_roll_k = int(np.floor((new_size - img.shape[0]) / 2.0))
-    col_roll_k = int(np.floor((new_size - img.shape[1]) / 2.0))
+    row_roll_k = int(np.floor((new_size[0] - img.shape[0]) / 2.0))
+    col_roll_k = int(np.floor((new_size[1] - img.shape[1]) / 2.0))
 
     pad_img = np.roll(pad_img, row_roll_k, axis=0)
     pad_img = np.roll(pad_img, col_roll_k, axis=1)
@@ -67,7 +73,7 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
         pad_img = pad_img[..., 0]
 
     if calc_mask:
-        mask_img = np.ones((new_size, new_size)) * -1
+        mask_img = np.ones(new_size) * -1
         mask_img[:img.shape[0], :img.shape[1]] = 1
         mask_img = np.roll(mask_img, row_roll_k, axis=0)
         mask_img = np.roll(mask_img, col_roll_k, axis=1)
