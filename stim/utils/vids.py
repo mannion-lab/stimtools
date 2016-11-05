@@ -12,7 +12,8 @@ def img_seq_to_vid(
     vid_stem,
     vid_extensions,
     fps=25,
-    overwrite=False
+    overwrite=False,
+    extra_ffmpeg_args=None
 ):
     """Converts an image sequence to video files.
 
@@ -28,6 +29,8 @@ def img_seq_to_vid(
         Frames per second of the output.
     overwrite: boolean, optional
         Whether to overwrite videos already existing.
+    extra_ffmpeg_args: collection of strings, optional
+        Any extra arguments to pass directly to ffmpeg.
 
     """
 
@@ -41,6 +44,9 @@ def img_seq_to_vid(
         ]
     ):
         raise ValueError("Unknown extension")
+
+    if extra_ffmpeg_args is None:
+        extra_ffmpeg_args = []
 
     image_list_txt = tempfile.NamedTemporaryFile(
         suffix=".txt",
@@ -95,6 +101,8 @@ def img_seq_to_vid(
                     "-codec:v", "libvpx",
                     "-f", "webm"
                 ]
+
+            cmd += extra_ffmpeg_args
 
             out_path = ".".join([vid_stem, vid_extension])
 
