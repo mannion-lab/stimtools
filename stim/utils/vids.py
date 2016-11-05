@@ -13,6 +13,7 @@ def img_seq_to_vid(
     vid_extensions,
     fps=25,
     overwrite=False,
+    audio_path=None,
     extra_ffmpeg_args=None
 ):
     """Converts an image sequence to video files.
@@ -29,6 +30,8 @@ def img_seq_to_vid(
         Frames per second of the output.
     overwrite: boolean, optional
         Whether to overwrite videos already existing.
+    audio_path: string or None, optional
+        Path to an audio file to embed.
     extra_ffmpeg_args: collection of strings, optional
         Any extra arguments to pass directly to ffmpeg.
 
@@ -72,6 +75,18 @@ def img_seq_to_vid(
             "-i", image_list_txt.name,
             "-r", str(fps)
         ]
+
+        if audio_path is None:
+            base_cmd.append("-an")
+
+        else:
+            base_cmd.extend(
+                [
+                    "-i", audio_path,
+                    "-c:a", "aac",
+                    "-b:a", "128k"
+                ]
+            )
 
         if overwrite:
             base_cmd.append("-y")
