@@ -77,7 +77,6 @@ def img_seq_to_vid(
             "-safe", "0",
             "-f", "concat",
             "-i", image_list_txt.name,
-            "-r", str(fps)
         ]
 
         if audio_path is None:
@@ -124,6 +123,8 @@ def img_seq_to_vid(
             cmd += extra_ffmpeg_args
 
             out_path = ".".join([vid_stem, vid_extension])
+
+            cmd.extend(["-r", str(fps)])
 
             cmd.append(out_path)
 
