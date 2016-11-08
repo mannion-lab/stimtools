@@ -14,7 +14,8 @@ def img_seq_to_vid(
     fps=25,
     overwrite=False,
     audio_path=None,
-    extra_ffmpeg_args=None
+    extra_ffmpeg_args=None,
+    print_output=True
 ):
     """Converts an image sequence to video files.
 
@@ -34,6 +35,8 @@ def img_seq_to_vid(
         Path to an audio file to embed.
     extra_ffmpeg_args: collection of strings, optional
         Any extra arguments to pass directly to ffmpeg.
+    print_output: boolean, optional
+        Whether to print the ffmpeg output when finished.
 
     """
 
@@ -70,8 +73,9 @@ def img_seq_to_vid(
 
         base_cmd = [
             "ffmpeg",
+            "-nostdin",
             "-safe", "0",
-            "-f" "concat",
+            "-f", "concat",
             "-i", image_list_txt.name,
             "-r", str(fps)
         ]
@@ -123,7 +127,7 @@ def img_seq_to_vid(
 
             cmd.append(out_path)
 
-            print(" ".join(out_path))
+            print(out_path)
 
             out = subprocess.check_output(
                 cmd,
@@ -135,7 +139,8 @@ def img_seq_to_vid(
         raise
 
     else:
-        print(out)
+        if print_output:
+            print(out)
 
     finally:
         os.remove(image_list_txt.name)
