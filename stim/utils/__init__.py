@@ -12,3 +12,4 @@ from .conversions import (
 from .circ_dist import circ_dist
 from .psi import Psi, logistic, weibull
 from .vids import img_seq_to_vid
+from .exr import write_exr
