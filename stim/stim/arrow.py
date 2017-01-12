@@ -1,5 +1,8 @@
 
-import psychopy.visual
+try:
+    import psychopy.visual
+except ImportError:
+    pass
 
 
 class Arrow(object):

@@ -2,7 +2,10 @@
 import numpy as np
 import scipy.ndimage
 
-import psychopy.visual
+try:
+    import psychopy.visual
+except ImportError:
+    pass
 
 import stim.utils
 

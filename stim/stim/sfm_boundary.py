@@ -4,10 +4,14 @@ import numpy as np
 import scipy.signal
 import scipy.ndimage
 
-import psychopy.visual
-import psychopy.event
+try:
+    import psychopy.visual
+    import psychopy.event
+except ImportError:
+    pass
 
 import stim.utils
+
 
 class SFMBoundary(object):
 
