@@ -38,8 +38,7 @@ def read_exr(exr_path):
     elif all([k in channels for k in ["R", "G", "B"]]):
         channel_order = ["R", "G", "B"]
     else:
-        print(channels)
-        raise ValueError("This channel format not implemented yet.")
+        channel_order = channels
 
     img = np.full((img_size[1], img_size[0], len(channels)), np.nan)
 
