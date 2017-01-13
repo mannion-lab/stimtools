@@ -3,16 +3,21 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
-import psychopy.visual
-import psychopy.misc
 try:
-    import psychopy.visual.filters as f
-    psychopy.filters = f
-    del f
-except ImportError:
-    import psychopy.filters
+    import psychopy.visual
+    import psychopy.misc
+    try:
+        import psychopy.visual.filters as f
+        psychopy.filters = f
+        del f
+    except ImportError:
+        import psychopy.filters
 
-import pyglet.gl
+    import pyglet.gl
+
+except ImportError:
+    pass
+
 
 import stim.utils
 
