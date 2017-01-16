@@ -5,6 +5,8 @@ try:
     import psychopy.misc
 except ImportError:
     pass
+except:
+    pass
 
 
 class Fixation(object):

@@ -6,6 +6,9 @@ import collections
 import tempfile
 import os
 
+import numpy as np
+import scipy.misc
+
 
 def img_seq_to_vid(
     image_paths,
@@ -21,8 +24,9 @@ def img_seq_to_vid(
 
     Parameters
     ----------
-    image_paths: collection of strings
-        Path to each image frame.
+    image_paths: collection of strings OR numpy array (uint8).
+        Path to each image frame. If numpy array, the last dimension is assumed
+        to index frames.
     vid_stem: string
         Output file name, with full path and no extension.
     vid_extensions: string or collection of strings
@@ -39,6 +43,34 @@ def img_seq_to_vid(
         Whether to print the ffmpeg output when finished.
 
     """
+
+    # rather than 'paths', it is a numpy array
+    if isinstance(image_paths, np.ndarray):
+
+        from_array = True
+
+        if image_paths.ndim != 3:
+            raise ValueError("Array not shaped correctly")
+
+        n_frames = image_paths.shape[-1]
+
+        new_image_paths = []
+
+        for i_frame in xrange(n_frames):
+
+            new_image_path = tempfile.NamedTemporaryFile(
+                suffix=".png",
+                delete=False
+            ).name
+
+            scipy.misc.imsave(new_image_path, image_paths[..., i_frame])
+
+            new_image_paths.append(new_image_path)
+
+        image_paths = new_image_paths
+
+    else:
+        from_array = False
 
     if not isinstance(vid_extensions, collections.Iterable):
         vid_extensions = [vid_extensions]
@@ -145,3 +177,7 @@ def img_seq_to_vid(
 
     finally:
         os.remove(image_list_txt.name)
+
+        if from_array:
+            for new_image_path in new_image_paths:
+                os.remove(new_image_path)
