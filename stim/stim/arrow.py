@@ -3,6 +3,8 @@ try:
     import psychopy.visual
 except ImportError:
     pass
+except:
+    pass
 
 
 class Arrow(object):

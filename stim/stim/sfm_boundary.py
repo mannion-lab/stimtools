@@ -9,6 +9,8 @@ try:
     import psychopy.event
 except ImportError:
     pass
+except:
+    pass
 
 import stim.utils
 

@@ -17,6 +17,8 @@ try:
 
 except ImportError:
     pass
+except:
+    pass
 
 
 import stim.utils

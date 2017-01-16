@@ -10,13 +10,15 @@ except ImportError:
     pass
 
 
-def read_exr(exr_path):
+def read_exr(exr_path, squeeze=True):
     """Read an EXR file and return a numpy array.
 
     Parameters
     ----------
     exr_path: string
         Path to the EXR file to read.
+    squeeze: boolean, optional
+        Whether to remove single channel dimensions.
 
     """
 
@@ -51,6 +53,9 @@ def read_exr(exr_path):
     assert np.sum(np.isnan(img)) == 0
 
     exr_file.close()
+
+    if squeeze:
+        img = np.squeeze(img)
 
     return img
 
