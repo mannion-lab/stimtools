@@ -49,7 +49,7 @@ def img_seq_to_vid(
 
         from_array = True
 
-        if image_paths.ndim != 3:
+        if image_paths.ndim not in [3, 4]:
             raise ValueError("Array not shaped correctly")
 
         n_frames = image_paths.shape[-1]
