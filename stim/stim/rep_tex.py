@@ -16,6 +16,7 @@ def rep_tex(
     extra_args=None,
     random_seed=None,
     random_polarity=False,
+    dot_shape="gauss",
     return_alpha=False
 ):
     """Generate a repeatable texture from randomly-positioned dots.
@@ -37,6 +38,8 @@ def rep_tex(
         Value to seed the random number generator.
     random_polarity: bool
         Whether each dot should have random contrast polarity.
+    dot_shape: string
+        What form each dot should take.
     return_alpha: bool
         Whether to also return an alpha mask; requires `win` to be `None`.
 
@@ -86,7 +89,7 @@ def rep_tex(
         sizes=dot_size_pix,
         contrs=contrasts,
         xys=xy,
-        elementMask="gauss",
+        elementMask=dot_shape,
         elementTex=np.ones([4, 4])
     )
 
