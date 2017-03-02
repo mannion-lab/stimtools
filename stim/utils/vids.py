@@ -72,6 +72,11 @@ def img_seq_to_vid(
     else:
         from_array = False
 
+        image_paths = [
+            os.path.abspath(image_path)
+            for image_path in image_paths
+        ]
+
     if not isinstance(vid_extensions, collections.Iterable):
         vid_extensions = [vid_extensions]
 
