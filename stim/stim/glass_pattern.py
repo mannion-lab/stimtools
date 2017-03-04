@@ -43,6 +43,7 @@ class GlassPattern(object):
         mask_prop=(None, 1.0),
         mask_ramp_prop=(0.1, 0.1),
         contrast=1.0,
+        single_dot_draw=False,
         units="pix"
     ):
         """
@@ -85,6 +86,8 @@ class GlassPattern(object):
             Extent of the contrast ramp at the edges.
         contrast: float
             Contrast of the dots.
+        single_dot_draw: bool
+            If `True`, only draws a single dot in the pair.
         units: string
             Format of the parameters, in psychopy format (e.g. "pix", "deg").
 
@@ -116,6 +119,7 @@ class GlassPattern(object):
         self.dot_type = dot_type
         self.mask_prop = mask_prop
         self.mask_ramp_prop = mask_ramp_prop
+        self.single_dot_draw = single_dot_draw
 
         self._distribute_dp_req = True
         self._distribute_dots_req = True
@@ -268,6 +272,29 @@ class GlassPattern(object):
     def mask_ramp_prop(self, mask_ramp_prop):
         self._mask_ramp_prop = mask_ramp_prop
         self._mask_req = True
+
+    @property
+    def single_dot_draw(self):
+        return self._single_dot_draw
+
+    @single_dot_draw.setter
+    def single_dot_draw(self, single_dot_draw):
+        self._single_dot_draw = single_dot_draw
+
+        if self._single_dot_draw:
+            self._stim.opacities = np.tile([1, 0], self._n_dipoles)
+        else:
+            self._stim.opacities = np.ones(self._n_dots)
+
+    @property
+    def ori_type(self):
+        return self._ori_type
+
+    @ori_type.setter
+    def ori_type(self, ori_type):
+        self._ori_type = ori_type
+
+        self._distribute_dots_req = True
 
     @property
     def contrast(self):
