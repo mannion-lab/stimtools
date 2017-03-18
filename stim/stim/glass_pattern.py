@@ -58,7 +58,7 @@ class GlassPattern(object):
         n_dipoles: int
             Number of dipoles over the area (not taking any mask into
             consideration).
-        pole_sep: float
+        dipole_sep: float
             Distance between the dipole elements.
         dot_size: float
             Dot size. The meaning of this parameter depends on the value of
@@ -95,7 +95,7 @@ class GlassPattern(object):
 
         self._win = win
 
-        self._n_dipoles = n_dipoles
+        self._n_dipoles = int(n_dipoles)
         self._units = units
 
         self._stim = psychopy.visual.ElementArrayStim(
@@ -106,7 +106,7 @@ class GlassPattern(object):
             units=self._units
         )
 
-        self.size = size
+        self.size = int(size)
         self.dipole_sep = dipole_sep
         self.dot_size = dot_size
         self.ori_type = ori_type
@@ -303,19 +303,7 @@ class GlassPattern(object):
     @contrast.setter
     def contrast(self, contrast):
         self._contrast = contrast
-        self._contrast_req = True
-
-    def set_contrast(self):
-
-        i_rand = np.random.permutation(self._n_dipoles)
-
-        i_order = []
-
-        for i in i_rand:
-            i_order.extend([i * 2, i * 2 + 1])
-
-        self._stim.contrs = (self._contrast * self._dot_cols)[i_order]
-        self._contrast_req = False
+        self._stim.contrs = (self._contrast * self._dot_cols)
 
     def set_mask(self):
 
@@ -338,25 +326,49 @@ class GlassPattern(object):
 
         if self._outer_mask_active:
 
-            outer_mask_tex = psychopy.filters.makeMask(
-                matrixSize=size_pix[0],
-                shape="raisedCosine",
-                radius=self._mask_prop[1],
-                fringeWidth=self.mask_ramp_prop[1],
-                range=[0, 1]
-            )
+            if self.mask_ramp_prop[1] > 0.0:
+
+                outer_mask_tex = psychopy.filters.makeMask(
+                    matrixSize=size_pix[0],
+                    shape="raisedCosine",
+                    radius=self._mask_prop[1],
+                    fringeWidth=self.mask_ramp_prop[1],
+                    range=[0, 1]
+                )
+
+            else:
+
+                outer_mask_tex = psychopy.filters.makeRadialMatrix(
+                    matrixSize=size_pix[0]
+                )
+
+                outer_mask_tex = (
+                    (outer_mask_tex < self._mask_prop[1]).astype("int")
+                )
 
             mask_tex += outer_mask_tex
 
         if self._inner_mask_active:
 
-            inner_mask_tex = psychopy.filters.makeMask(
-                matrixSize=size_pix[0],
-                shape="raisedCosine",
-                radius=self._mask_prop[0],
-                fringeWidth=self._mask_ramp_prop[0],
-                range=[0, 1]
-            )
+            if self.mask_ramp_prop[0] > 0.0:
+
+                inner_mask_tex = psychopy.filters.makeMask(
+                    matrixSize=size_pix[0],
+                    shape="raisedCosine",
+                    radius=self._mask_prop[0],
+                    fringeWidth=self._mask_ramp_prop[0],
+                    range=[0, 1]
+                )
+
+            else:
+
+                inner_mask_tex = psychopy.filters.makeRadialMatrix(
+                    matrixSize=size_pix[0]
+                )
+
+                inner_mask_tex = (
+                    (inner_mask_tex < self._mask_prop[0]).astype("int")
+                )
 
             mask_tex -= inner_mask_tex
 
