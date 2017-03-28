@@ -7,7 +7,8 @@ from .conversions import (
     cart_to_pol,
     pol_to_cart,
     sph_to_cart,
-    cart_to_sph
+    cart_to_sph,
+    rgb_to_grey
 )
 from .circ_dist import circ_dist
 from .psi import Psi, logistic, weibull
