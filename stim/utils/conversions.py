@@ -161,12 +161,12 @@ def rgb_to_grey(img):
 
     Parameters
     ----------
-    rgb_image : numpy array, shape of (N, N, 3)
-        The input image to convert
+    rgb_image : numpy array, shape of ([n], N, N, 3)
+        The input image to convert. Extra first dimension is optional.
 
     Returns
     -------
-    grey_image : numpy array, shape of (N, N)
+    grey_image : numpy array, shape of ([n], N, N)
         The converted image.
 
     Notes
@@ -176,12 +176,17 @@ def rgb_to_grey(img):
 
     """
 
+    if img.ndim == 3:
+        img = img[np.newaxis, ...]
+
     r_w = 0.2126
     g_w = 0.7152
     b_w = 0.0722
 
-    (r, g, b) = np.rollaxis(rgb_image[..., :3], axis=-1)
+    weights = np.array([r_w, g_w, b_w])[np.newaxis, np.newaxis, np.newaxis, :]
 
-    grey_image = (r * r_w) + (g * g_w) + (b * b_w)
+    grey_img = np.sum(img * weights, axis=-1)
 
-    return grey_image
+    grey_img = np.squeeze(grey_img)
+
+    return grey_img
