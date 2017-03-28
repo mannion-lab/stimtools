@@ -156,4 +156,32 @@ def cart_to_sph(x, y, z):
     return (azimuth, elevation, r)
 
 
+def rgb_to_grey(img):
+    """Convert an RGB image to greyscale.
 
+    Parameters
+    ----------
+    rgb_image : numpy array, shape of (N, N, 3)
+        The input image to convert
+
+    Returns
+    -------
+    grey_image : numpy array, shape of (N, N)
+        The converted image.
+
+    Notes
+    -----
+    * Currently only implements the 'luminosity' method (with weights R =
+      0.2126, G = 0.7152, B = 0.0722
+
+    """
+
+    r_w = 0.2126
+    g_w = 0.7152
+    b_w = 0.0722
+
+    (r, g, b) = np.rollaxis(rgb_image[..., :3], axis=-1)
+
+    grey_image = (r * r_w) + (g * g_w) + (b * b_w)
+
+    return grey_image
