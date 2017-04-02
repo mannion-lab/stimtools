@@ -23,24 +23,24 @@ def rep_tex(
 
     Parameters
     ----------
-    img_size: two-item list of integers
+    img_size : two-item list of integers
         Size of the output image, (x, y)
-    win: psychopy Window
+    win : psychopy Window
         If not provided, a window is opened and closed and the screenshot
         returned.
-    n_dots: integer
+    n_dots : integer
         Number of dots to be randomly distributed over `img_size`.
-    dot_size_pix: number
+    dot_size_pix : number
         Size of each dot, in pixels.
-    extra_args: dict or None
+    extra_args : dict or None
         Any extra arguments to be passed to psychopy's `ElementArrayStim`.
-    random_seed: integer or None
+    random_seed : integer or None
         Value to seed the random number generator.
-    random_polarity: bool
+    random_polarity : bool
         Whether each dot should have random contrast polarity.
-    dot_shape: string
+    dot_shape : string
         What form each dot should take.
-    return_alpha: bool
+    return_alpha : bool
         Whether to also return an alpha mask; requires `win` to be `None`.
 
     """
