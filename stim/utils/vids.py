@@ -51,8 +51,6 @@ def img_seq_to_vid(
     # rather than 'paths', it is a numpy array
     if isinstance(image_paths, np.ndarray):
 
-        from_array = True
-
         if image_paths.ndim not in [3, 4]:
             raise ValueError("Array not shaped correctly")
 
@@ -74,7 +72,6 @@ def img_seq_to_vid(
         image_paths = new_image_paths
 
     else:
-        from_array = False
 
         image_paths = [
             os.path.abspath(image_path)

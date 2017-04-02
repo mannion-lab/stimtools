@@ -6,3 +6,13 @@ from .fixation import Fixation
 from .fusion_lock import FusionLock
 from .arrow import Arrow
 from .rep_tex import rep_tex
+
+__all__ = [
+    "polar_grating",
+    "SFMBoundary",
+    "GlassPattern",
+    "Fixation",
+    "FusionLock",
+    "Arrow",
+    "rep_tex"
+]

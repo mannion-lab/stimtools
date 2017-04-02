@@ -34,7 +34,7 @@ def pure_tone(
 
         y[-window_samples:] *= hamming_win[window_samples + 1:]
 
-    y = np.concatenate((y,np.zeros(post_pad_samples)))
+    y = np.concatenate((y, np.zeros(post_pad_samples)))
 
     # convert to stereo
     y = np.tile(y[:, np.newaxis], (1, 2))

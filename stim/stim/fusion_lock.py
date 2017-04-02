@@ -103,4 +103,3 @@ class FusionLock(object):
     def draw(self):
 
         self._stim.draw()
-
