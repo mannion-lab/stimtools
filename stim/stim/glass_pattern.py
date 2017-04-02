@@ -51,44 +51,44 @@ class GlassPattern(object):
 
         Parameters
         ----------
-        win: window instance
+        win : window instance
             PsychoPy window.
-        size: int
+        size : int
             Size of the pattern region, for both width and height.
-        n_dipoles: int
+        n_dipoles : int
             Number of dipoles over the area (not taking any mask into
             consideration).
-        dipole_sep: float
+        dipole_sep : float
             Distance between the dipole elements.
-        dot_size: float
+        dot_size : float
             Dot size. The meaning of this parameter depends on the value of
             `dot_type`.
-        ori_type: string, {"trans", "polar"}
+        ori_type : string, {"trans", "polar"}
            Orientation space of the pattern.
-        ori_deg: float
+        ori_deg : float
             The signal orientation, in degrees.
-        ori_sigma_deg: float or None
+        ori_sigma_deg : float or None
             Width of the distribution from which the dipole orientations are
             drawn. If None, then all dipoles have the same orientation.
-        coh: float, 0 <= coh <= 1
+        coh : float, 0 <= coh <= 1
             Pattern coherence (the proportion of signal dipoles).
-        col_set: list of floats
+        col_set : list of floats
             Set of intensity values for the dipoles. Default gives mixed black
             and white dipoles.
-        pos: 2 item list of numbers
+        pos : 2 item list of numbers
             Centre position.
-        dot_type: string
+        dot_type : string
             Form of each individual dot.
-        mask_prop: two-item collection of floats
+        mask_prop : two-item collection of floats
             Extent of dot visibility for inner and outer extents of an annulus.
             These are in normalised units.
-        mask_ramp_prop: two-item collection of floats
+        mask_ramp_prop : two-item collection of floats
             Extent of the contrast ramp at the edges.
-        contrast: float
+        contrast : float
             Contrast of the dots.
-        single_dot_draw: bool
+        single_dot_draw : bool
             If `True`, only draws a single dot in the pair.
-        units: string
+        units : string
             Format of the parameters, in psychopy format (e.g. "pix", "deg").
 
         """
@@ -320,7 +320,8 @@ class GlassPattern(object):
         size_pix = map(int, dummy_mask._sizeRendered)
 
         if np.mod(size_pix[0], 2) == 1:
-            size_pix[0] += 1
+            for i_dim in xrange(2):
+                size_pix[i_dim] += 1
 
         mask_tex = np.zeros(size_pix)
 
