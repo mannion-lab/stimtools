@@ -62,4 +62,3 @@ def polar_mask(
     )
 
     return mask
-
