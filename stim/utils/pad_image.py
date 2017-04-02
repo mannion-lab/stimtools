@@ -34,7 +34,7 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     if isinstance(to, str):
 
-       if to.startswith("pow2"):
+        if to.startswith("pow2"):
 
             new_size = nearest_pow2(np.max(img.shape[:2]))
 
@@ -81,4 +81,3 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
         return (pad_img, mask_img)
 
     return pad_img
-

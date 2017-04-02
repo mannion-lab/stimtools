@@ -4,7 +4,6 @@ import itertools
 
 import numpy as np
 import numpy.testing as npt
-import scipy.stats
 
 
 class Psi(object):
@@ -232,11 +231,13 @@ def psi_demo(n_trials=150, fixed_seed=False):
     if fixed_seed:
         np.random.seed(28513)
 
+    psych_func = logistic
+
     psi = Psi(
         alpha_levels=alpha_levels,
         beta_levels=beta_levels,
         stim_levels=stim_levels,
-        psych_func=logistic
+        psych_func=psych_func
     )
 
     psi.step()

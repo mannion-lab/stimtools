@@ -14,6 +14,7 @@ def img_seq_to_vid(
     fps=25,
     overwrite=False,
     audio_path=None,
+    ffmpeg_cmd="ffmpeg",
     extra_ffmpeg_args=None,
     print_output=True
 ):
@@ -21,21 +22,24 @@ def img_seq_to_vid(
 
     Parameters
     ----------
-    image_paths: collection of strings
+    image_paths : collection of strings
         Path to each image frame.
-    vid_stem: string
+    vid_stem : string
         Output file name, with full path and no extension.
-    vid_extensions: string or collection of strings
+    vid_extensions : string or collection of strings
         Video file formats; {"mp4", "ogg", "webm"}
-    fps: number, optional
+    fps : number, optional
         Frames per second of the output.
-    overwrite: boolean, optional
+    overwrite : boolean, optional
         Whether to overwrite videos already existing.
-    audio_path: string or None, optional
+    audio_path : string or None, optional
         Path to an audio file to embed.
-    extra_ffmpeg_args: collection of strings, optional
+    ffmpeg_cmd : string, optional
+        Command to call 'ffmpeg'. This can be overwritten if a full path is
+        required.
+    extra_ffmpeg_args : collection of strings, optional
         Any extra arguments to pass directly to ffmpeg.
-    print_output: boolean, optional
+    print_output : boolean, optional
         Whether to print the ffmpeg output when finished.
 
     """
@@ -72,7 +76,7 @@ def img_seq_to_vid(
         image_list_txt.close()
 
         base_cmd = [
-            "ffmpeg",
+            ffmpeg_cmd,
             "-nostdin",
             "-safe", "0",
             "-f", "concat",
@@ -127,8 +131,6 @@ def img_seq_to_vid(
             cmd.extend(["-r", str(fps)])
 
             cmd.append(out_path)
-
-            print(out_path)
 
             out = subprocess.check_output(
                 cmd,

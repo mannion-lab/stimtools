@@ -154,6 +154,3 @@ def cart_to_sph(x, y, z):
     r = np.sqrt(x ** 2 + y ** 2 + z ** 2)
 
     return (azimuth, elevation, r)
-
-
-
