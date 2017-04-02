@@ -17,4 +17,3 @@ def circ_dist(a, b):
         np.exp(a * 1j) /
         np.exp(b * 1j)
     )
-
