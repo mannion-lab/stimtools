@@ -89,7 +89,6 @@ class Fixation(object):
         self.line_colour = line_colour
         self.spot_colour = spot_colour
 
-
     @property
     def bg_colour(self):
         return self._bg_colour
@@ -137,4 +136,3 @@ class Fixation(object):
             self._stim[stim_type].fillColor = stim_contrast
 
             self._stim[stim_type].draw()
-

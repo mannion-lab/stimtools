@@ -61,5 +61,3 @@ def noise_image(img_size, slope_alpha=1.0, phase_src_img=None, rescale=True):
         img /= np.max(img)
 
     return img
-
-

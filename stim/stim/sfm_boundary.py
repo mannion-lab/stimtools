@@ -42,10 +42,10 @@ class SFMBoundary(object):
                 [
                     np.random.uniform(
                         low=0,
-                        high=bg_size_pix,
+                        high=bg_dim_size_pix,
                         size=self._bg_n_dots
                     )
-                    for bg_size_pix in self._bg_size_pix
+                    for bg_dim_size_pix in self._bg_size_pix
                 ]
             ).T
 
@@ -85,15 +85,17 @@ class SFMBoundary(object):
 
         fg_img_mask[:self._fg_size_pix[1], :self._fg_size_pix[0]] = 1
 
-        roll_k = fg_img_mask.shape[0] / 2 + self._fg_size_pix[0] / 2
-
         fg_img_mask = np.roll(
             np.roll(
                 fg_img_mask,
-                shift=-int(fg_img_mask.shape[0] / 2 + self._fg_size_pix[0] / 2),
+                shift=-int(
+                    fg_img_mask.shape[0] / 2 + self._fg_size_pix[0] / 2
+                ),
                 axis=1
             ),
-            shift=-int(fg_img_mask.shape[1] / 2 + self._fg_size_pix[1] / 2),
+            shift=-int(
+                fg_img_mask.shape[1] / 2 + self._fg_size_pix[1] / 2
+            ),
             axis=0
         )
 
@@ -106,7 +108,6 @@ class SFMBoundary(object):
             interpolate=False,
             autoLog=False
         )
-
 
     def update(self, delta_t):
 
@@ -136,8 +137,6 @@ def demo():
 
     keep_going = True
 
-    frames = []
-
     while keep_going:
 
         sfm.update(ph_inc)
@@ -156,5 +155,3 @@ def demo():
     win.saveMovieFrames("sfm_boundary.png")
 
     win.close()
-
-

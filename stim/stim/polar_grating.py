@@ -63,4 +63,3 @@ def polar_grating(
     img *= amplitude
 
     return img
-

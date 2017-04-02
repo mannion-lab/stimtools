@@ -479,7 +479,6 @@ class GlassPattern(object):
 
         self._distribute_dots_req = False
 
-
     def draw(self, ignore_update_error=False):
 
         if self._update_req and not ignore_update_error:
