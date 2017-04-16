@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function, division
 import numpy as np
 import scipy.signal
 
-import stim.utils
+import stimtools.utils
 
 
 def polar_grating(
@@ -39,7 +39,7 @@ def polar_grating(
 
     (y, x) = np.mgrid[-half_size:half_size, -half_size:half_size]
 
-    (theta, _) = stim.utils.cart_to_pol(x, y)
+    (theta, _) = stimtools.utils.cart_to_pol(x, y)
 
     theta = np.radians(theta)
 

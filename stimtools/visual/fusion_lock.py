@@ -9,7 +9,7 @@ except ImportError:
 except:
     pass
 
-import stim.utils
+import stimtools.utils
 
 
 class FusionLock(object):
@@ -55,7 +55,7 @@ class FusionLock(object):
 
         self._lowres_lock_size = int(self._size_pix / self._upsample_factor)
 
-        lock_mask = stim.utils.polar_mask(
+        lock_mask = stimtools.utils.polar_mask(
             size_pix=size_pix,
             outer_extent_norm=outer_extent_norm,
             inner_extent_norm=inner_extent_norm,

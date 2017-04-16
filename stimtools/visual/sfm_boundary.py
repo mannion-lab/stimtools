@@ -12,7 +12,7 @@ except ImportError:
 except:
     pass
 
-import stim.utils
+import stimtools.utils
 
 
 class SFMBoundary(object):
@@ -60,7 +60,7 @@ class SFMBoundary(object):
 
         self.dot_loc = dot_loc
 
-        (bg_img, bg_img_mask) = stim.utils.pad_image(
+        (bg_img, bg_img_mask) = stimtools.utils.pad_image(
             img=base_img[..., 0],
             calc_mask=True
         )
@@ -77,7 +77,7 @@ class SFMBoundary(object):
             autoLog=False
         )
 
-        fg_img = stim.utils.pad_image(img=base_img[..., 1])
+        fg_img = stimtools.utils.pad_image(img=base_img[..., 1])
 
         fg_img = fg_img / 0.08 * -1
 
