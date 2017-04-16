@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
-import stim.utils
+import stimtools.utils
 
 
 def polar_mask(
@@ -35,7 +35,7 @@ def polar_mask(
 
     (y, x) = np.mgrid[-half_size:+half_size, -half_size:+half_size]
 
-    (theta, r) = stim.utils.cart_to_pol(x, y)
+    (theta, r) = stimtools.utils.cart_to_pol(x, y)
 
     r = r / half_size
 
@@ -45,7 +45,7 @@ def polar_mask(
     )
 
     theta_dist = np.degrees(
-        stim.utils.circ_dist(
+        stimtools.utils.circ_dist(
             np.radians(theta),
             np.radians(sector_centre_deg)
         )
@@ -55,7 +55,7 @@ def polar_mask(
 
     mask = np.logical_and(r_mask, theta_mask).astype("float")
 
-    mask = stim.utils.interval_convert(
+    mask = stimtools.utils.interval_convert(
         value=mask,
         old_interval=[0, 1],
         new_interval=[mask_min, mask_max]

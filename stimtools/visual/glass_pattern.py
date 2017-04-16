@@ -21,7 +21,7 @@ except:
     pass
 
 
-import stim.utils
+import stimtools.utils
 
 
 class GlassPattern(object):
@@ -380,7 +380,7 @@ class GlassPattern(object):
 
         self._mask_tex = mask_tex
 
-        new_mask_tex = stim.utils.pad_image(
+        new_mask_tex = stimtools.utils.pad_image(
             mask_tex,
             pad_value=-1,
             to="pow2+"
