@@ -6,6 +6,8 @@ import warnings
 import numpy as np
 import scipy.io.wavfile
 
+import stimtools.utils
+
 
 def pink_noise(
     dur_s,
@@ -31,7 +33,7 @@ def pink_noise(
     rate : int, optional
         Sample rate.
     window_samples : int, optional
-        Number of samples to use in a Hamming window at the start and end of
+        Number of samples to use in a Hanning window at the start and end of
         the waveform.
     post_pad_samples : int, optional
         The number of zeros to append to the waveform.
@@ -79,12 +81,7 @@ def pink_noise(
     y = np.real(np.fft.ifft(freq_domain))
 
     if window_samples > 0:
-
-        hamming_win = np.hamming(2 * window_samples + 1)
-
-        y[:window_samples] *= hamming_win[:window_samples]
-
-        y[-window_samples:] *= hamming_win[window_samples + 1:]
+        y = stimtools.utils.apply_hanning(y, window_samples)
 
     y = ((y - np.mean(y)) / np.std(y))
 
