@@ -13,7 +13,6 @@ class AudioFile(object):
 
         Parameters
         ----------
-
         port: int or None, optional
             The `port` value, as required by `pyparallel`.
 
@@ -29,14 +28,12 @@ class AudioFile(object):
 
         Parameters
         ----------
-
         track_num: integer, [1, 127]
             Track number, according to the 'Playlist.xml' register on the
             device.
 
         Notes
         -----
-
         * This automatically resets the trigger bit.
 
         """
@@ -51,7 +48,6 @@ class AudioFile(object):
 
         Parameters
         ----------
-
         trigger_val: int, [128, 255], optional
             The trigger is set by any value greater than 128. By specifying an
             appropriate value here, the next track to deliver can be
