@@ -15,6 +15,7 @@ from .psi import Psi, logistic, weibull
 from .vids import img_seq_to_vid
 from .exr import write_exr, read_exr
 from .vid_read import read_frames
+from .wav_env import apply_hanning
 
 __all__ = [
     "pad_image",
@@ -34,5 +35,6 @@ __all__ = [
     "img_seq_to_vid",
     "write_exr",
     "read_exr",
-    "read_frames"
+    "read_frames",
+    "apply_hanning"
 ]
