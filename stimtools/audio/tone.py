@@ -1,3 +1,4 @@
+from __future__ import absolute_import, print_function, division
 
 import collections
 
@@ -14,6 +15,32 @@ def pure_tone(
     window_samples=220,
     post_pad_samples=10000
 ):
+    """Generates a pure tone waveform.
+
+    Parameters
+    ----------
+    freq: float
+        Frequency, in Hz.
+    dur_s: float
+        Duration, in seconds.
+    amplitude: float or two-item sequence of floats, both [0, 1]
+        Sine wave amplitude for the L and R channels.
+    filename : string or None, optional
+        If provided, saves the waveform as a 'wav' file.
+    rate : int, optional
+        Sample rate.
+    window_samples : int, optional
+        Number of samples to use in a Hamming window at the start and end of
+        the waveform.
+    post_pad_samples : int, optional
+        The number of zeros to append to the waveform.
+
+    Returns
+    -------
+    y : numpy array of 16-bit integers
+        A 2D array (number of samples x 2).
+
+    """
 
     if not isinstance(amplitude, collections.Sequence):
         amplitude = [amplitude] * 2
