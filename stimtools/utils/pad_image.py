@@ -51,6 +51,8 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
         else:
             new_size = to
 
+    img_size = img.shape[:2]
+
     new_size = map(int, new_size)
 
     if img.ndim == 3:
@@ -59,25 +61,40 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
         n_channels = 1
         img = img[..., np.newaxis]
 
-    pad_img = np.ones((new_size[0], new_size[1], n_channels)) * pad_value
+    pad_amounts = []
 
-    pad_img[:img.shape[0], :img.shape[1], :] = img
+    # iterate over the spatial dimensions
+    for i_dim in xrange(2):
 
-    row_roll_k = int(np.floor((new_size[0] - img.shape[0]) / 2.0))
-    col_roll_k = int(np.floor((new_size[1] - img.shape[1]) / 2.0))
+        first_offset = int((new_size[i_dim] - img_size[i_dim]) / 2.0)
+        second_offset = new_size[i_dim] - img_size[i_dim] - first_offset
 
-    pad_img = np.roll(pad_img, row_roll_k, axis=0)
-    pad_img = np.roll(pad_img, col_roll_k, axis=1)
+        pad_amounts.append([first_offset, second_offset])
+
+    # don't want to pad the colour channels
+    pad_amounts += [[0, 0]]
+
+    pad_img = np.pad(
+        array=img,
+        pad_width=pad_amounts,
+        mode="constant",
+        constant_values=pad_value
+    )
 
     if n_channels == 1:
         pad_img = pad_img[..., 0]
 
     if calc_mask:
-        mask_img = np.ones(new_size) * -1
-        mask_img[:img.shape[0], :img.shape[1]] = 1
-        mask_img = np.roll(mask_img, row_roll_k, axis=0)
-        mask_img = np.roll(mask_img, col_roll_k, axis=1)
 
-        return (pad_img, mask_img)
+        mask = np.ones(img_size)
+
+        pad_mask = np.pad(
+            array=mask,
+            pad_width=pad_amounts,
+            mode="constant",
+            constant_values=-1.0
+        )
+
+        return (pad_img, pad_mask)
 
     return pad_img
