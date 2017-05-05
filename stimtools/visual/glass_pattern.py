@@ -317,7 +317,7 @@ class GlassPattern(object):
 
         dummy_mask._calcSizeRendered()
 
-        size_pix = map(int, dummy_mask._sizeRendered)
+        size_pix = [int(dim_size) for dim_size in dummy_mask._sizeRendered]
 
         if np.mod(size_pix[0], 2) == 1:
             for i_dim in range(2):
