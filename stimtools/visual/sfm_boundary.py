@@ -36,7 +36,7 @@ class SFMBoundary(object):
 
         base_img = np.zeros(self._bg_size_pix + [2])
 
-        for i_img in xrange(2):
+        for i_img in range(2):
 
             dot_loc = np.vstack(
                 [
@@ -49,7 +49,7 @@ class SFMBoundary(object):
                 ]
             ).T
 
-            for i_dot in xrange(self._bg_n_dots):
+            for i_dot in range(self._bg_n_dots):
                 base_img[dot_loc[i_dot, 0], dot_loc[i_dot, 1], i_img] = 1
 
             base_img[..., i_img] = scipy.ndimage.filters.gaussian_filter(
