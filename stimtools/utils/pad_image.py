@@ -1,5 +1,7 @@
 from __future__ import absolute_import, print_function, division
 
+import distutils.version
+
 import numpy as np
 
 
@@ -9,7 +11,7 @@ def nearest_pow2(n):
     return np.power(2, np.ceil(np.log(n) / np.log(2)))
 
 
-def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
+def pad_image(img, calc_mask=False, pad_value=0, to="pow2"):
     """Pads an image to its nearest power of two.
 
     Parameters
@@ -31,6 +33,19 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
         Image padded to the desired dimensions, and its mask (2D) if requested.
 
     """
+
+    if isinstance(pad_value, float):
+
+        np_version = distutils.version.StrictVersion(np.version.version)
+
+        necc_version = distutils.version.StrictVersion("1.10")
+
+        if np_version < necc_version:
+
+            raise ValueError(
+                "For this version of numpy (< 1.10), only integers are " +
+                "accepted for `pad_value'"
+            )
 
     if isinstance(to, str):
 
@@ -86,13 +101,13 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     if calc_mask:
 
-        mask = np.ones(img.shape)
+        mask = np.ones(img_size)
 
         pad_mask = np.pad(
             array=mask,
-            pad_width=pad_amounts,
+            pad_width=pad_amounts[:2],
             mode="constant",
-            constant_values=-1.0
+            constant_values=-1
         )
 
         return (pad_img, pad_mask)
