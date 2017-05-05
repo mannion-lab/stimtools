@@ -86,7 +86,7 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     if calc_mask:
 
-        mask = np.ones(img_size)
+        mask = np.ones(img.shape)
 
         pad_mask = np.pad(
             array=mask,
