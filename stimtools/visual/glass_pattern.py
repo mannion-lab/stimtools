@@ -320,7 +320,7 @@ class GlassPattern(object):
         size_pix = map(int, dummy_mask._sizeRendered)
 
         if np.mod(size_pix[0], 2) == 1:
-            for i_dim in xrange(2):
+            for i_dim in range(2):
                 size_pix[i_dim] += 1
 
         mask_tex = np.zeros(size_pix)

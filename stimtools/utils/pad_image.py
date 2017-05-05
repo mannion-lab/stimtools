@@ -79,7 +79,7 @@ def pad_image(img, calc_mask=False, pad_value=0, to="pow2"):
     pad_amounts = []
 
     # iterate over the spatial dimensions
-    for i_dim in xrange(2):
+    for i_dim in range(2):
 
         first_offset = int((new_size[i_dim] - img_size[i_dim]) / 2.0)
         second_offset = new_size[i_dim] - img_size[i_dim] - first_offset

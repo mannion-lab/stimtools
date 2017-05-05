@@ -100,8 +100,8 @@ class Psi(object):
         p_r_x.fill(np.NAN)
 
         for (i_resp, i_stim) in itertools.product(
-            xrange(2),
-            xrange(self._n_stim_levels)
+            range(2),
+            range(self._n_stim_levels)
         ):
 
             p_r_x[i_resp, i_stim] = np.sum(
@@ -114,8 +114,8 @@ class Psi(object):
         posterior.fill(np.NAN)
 
         for (i_resp, i_stim) in itertools.product(
-            xrange(2),
-            xrange(self._n_stim_levels)
+            range(2),
+            range(self._n_stim_levels)
         ):
 
             posterior[i_resp, i_stim, ...] = (
@@ -129,8 +129,8 @@ class Psi(object):
         h.fill(np.NAN)
 
         for (i_resp, i_stim) in itertools.product(
-            xrange(2),
-            xrange(self._n_stim_levels)
+            range(2),
+            range(self._n_stim_levels)
         ):
 
             h[i_resp, i_stim] = -1 * np.sum(
@@ -143,7 +143,7 @@ class Psi(object):
         e_h = np.empty((self._n_stim_levels))
         e_h.fill(np.NAN)
 
-        for i_stim in xrange(self._n_stim_levels):
+        for i_stim in range(self._n_stim_levels):
 
             e_h[i_stim] = (
                 h[0, i_stim] * p_r_x[0, i_stim] +
@@ -242,7 +242,7 @@ def psi_demo(n_trials=150, fixed_seed=False):
 
     psi.step()
 
-    for i_trial in xrange(n_trials):
+    for i_trial in range(n_trials):
 
         resp_prob = psych_func(
             stim_levels[psi._curr_stim_index],

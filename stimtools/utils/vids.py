@@ -58,7 +58,7 @@ def img_seq_to_vid(
 
         new_image_paths = []
 
-        for i_frame in xrange(n_frames):
+        for i_frame in range(n_frames):
 
             new_image_path = tempfile.NamedTemporaryFile(
                 suffix=".png",
