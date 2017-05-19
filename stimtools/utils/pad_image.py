@@ -8,7 +8,7 @@ import numpy as np
 def nearest_pow2(n):
     """Determines the nearest power of two to the value ``n``."""
 
-    return np.power(2, np.ceil(np.log(n) / np.log(2)))
+    return int(np.power(2, np.ceil(np.log(n) / np.log(2))))
 
 
 def pad_image(img, calc_mask=False, pad_value=0, to="pow2"):
