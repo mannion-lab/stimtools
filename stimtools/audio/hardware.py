@@ -113,6 +113,26 @@ class AudioFileSerial(object):
 
         self._device.close()
 
+    def playlist(self, playlist):
+        """Change to the new playlist file.
+
+        Parameters
+        ----------
+        playlist: string
+            Path to the new playlist file. Must end in '.xml'.
+
+        """
+
+        if not playlist.endswith(".xml"):
+            raise ValueError("Playlist needs to end in .xml")
+
+        message = "$playlist=[{p:s}]".format(p=playlist)
+
+        reply = self._send_msg(message_str=message)
+
+        if reply != playlist:
+            print("Error setting playlist; response was " + reply)
+
     def play(self, track_num):
         """Plays a track.
 
