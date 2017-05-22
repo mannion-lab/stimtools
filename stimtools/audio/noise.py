@@ -4,10 +4,13 @@ import collections
 import warnings
 
 import numpy as np
-import scipy.io.wavfile
+
+import soundfile
 
 import stimtools.utils
 
+
+# TODO: update to use 'soundfile'
 
 def pink_noise(
     dur_s,

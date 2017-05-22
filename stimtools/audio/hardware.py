@@ -1,12 +1,19 @@
 from __future__ import absolute_import, print_function, division
 
+import time
+
 try:
     import parallel
 except ImportError:
     pass
 
+try:
+    import serial
+except ImportError:
+    pass
 
-class AudioFile(object):
+
+class AudioFileParallel(object):
 
     def __init__(self, port=None):
         """Interface to the CRS 'AudioFile' device.
@@ -56,3 +63,73 @@ class AudioFile(object):
         """
 
         self._device.setData(trigger_val)
+
+
+class AudioFileSerial(object):
+
+    def __init__(self, port="/dev/audiofile"):
+        """Interface to the CRS 'AudioFile' device.
+
+        Parameters
+        ----------
+        port: string, optional
+            The `port` path, as required by `pyserial`.
+
+        """
+
+        self._device = serial.Serial(port=port)
+
+        self._product_type = self._send_msg("$ProductType")
+
+        if self._product_type != "AudioFile":
+            raise OSError("Device doesn't seem to be an AudioFile")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def _send_msg(self, message_str, delay=0.1):
+
+        _ = self._device.read(self._device.inWaiting())  # noqa
+
+        if not message_str.endswith("\r"):
+            message_str += "\r"
+
+        self._device.write(message_str)
+
+        time.sleep(delay)
+
+        response = self._device.read(self._device.inWaiting())
+
+        if response.startswith("$"):
+            response = response.strip().split(";")[1]
+
+        return response
+
+    def close(self):
+        """Closes the serial communication channel."""
+
+        self._device.close()
+
+    def play(self, track_num):
+        """Plays a track.
+
+        Parameters
+        ----------
+        track_num: integer, [1, 499]
+            Track number, according to the 'Playlist.xml' register on the
+            device.
+
+        """
+
+        if not (1 <= track_num <= 499):
+            raise ValueError("Incorrect track number")
+
+        msg = "$starttrack=[{n:d}]".format(n=track_num)
+
+        reply = self._send_msg(msg)
+
+        if reply != str(track_num):
+            print("Error playing track; response was " + reply)

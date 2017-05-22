@@ -9,6 +9,8 @@ import scipy.io.wavfile
 import stimtools.utils
 
 
+# TODO: update to use 'soundfile'
+
 def pure_tone(
     freq,
     dur_s,
