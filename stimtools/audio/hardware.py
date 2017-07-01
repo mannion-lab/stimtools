@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function, division
 
+import os
 import time
 import xml.etree.ElementTree as etree
 import xml.dom.minidom
@@ -110,6 +111,11 @@ class AudioFileSerial(object):
 
         return response
 
+    def reboot(self):
+        """Reboots the device"""
+
+        self._send_msg(message_str="$debug")
+
     def close(self):
         """Closes the serial communication channel."""
 
@@ -207,3 +213,29 @@ def write_playlist(playlist_path, wav_folder, entries, swap_channels=False):
 
     with open(playlist_path, "w") as playlist_file:
         playlist_file.write(reparsed_pretty)
+
+
+def check_audiofile(mount_expected):
+    """Checks the details of the AudioFile.
+
+    Parameters
+    ----------
+    mount_expected: bool
+        Whether the AudioFile is expected to be mounted or not.
+
+    """
+
+    try:
+        audiofile_path = os.environ["AUDIOFILE_PATH"]
+    except KeyError:
+        raise ValueError(
+            "The environmental variable AUDIOFILE_PATH has not been set"
+        )
+
+    mounted = os.path.ismount(audiofile_path)
+
+    if (not mounted) and mount_expected:
+        raise ValueError("AudioFile not mounted")
+
+    if mounted and (not mount_expected):
+        raise ValueError("AudioFile mounted")
