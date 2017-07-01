@@ -1,7 +1,9 @@
 
 from .tone import pure_tone
 from .noise import pink_noise, white_noise
-from .hardware import AudioFileParallel, AudioFileSerial, write_playlist
+from .hardware import (
+    AudioFileParallel, AudioFileSerial, write_playlist, check_audiofile
+)
 
 __all__ = [
     "pure_tone",
@@ -9,5 +11,6 @@ __all__ = [
     "white_noise",
     "AudioFileParallel",
     "AudioFileSerial",
-    "write_playlist"
+    "write_playlist",
+    "check_audiofile"
 ]
