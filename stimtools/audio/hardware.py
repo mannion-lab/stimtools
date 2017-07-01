@@ -130,7 +130,7 @@ class AudioFileSerial(object):
 
         message = "$playlist=[{p:s}]".format(p=playlist)
 
-        reply = self._send_msg(message_str=message)
+        reply = self._send_msg(message_str=message, delay=5.0)
 
         if reply != playlist:
             print("Error setting playlist; response was " + reply)
@@ -157,7 +157,7 @@ class AudioFileSerial(object):
             print("Error playing track; response was " + reply)
 
 
-def write_playlist(playlist_path, wav_folder, entries, swap_channels=True):
+def write_playlist(playlist_path, wav_folder, entries, swap_channels=False):
     """Writes an audiofile XML playlist file.
 
     Parameters

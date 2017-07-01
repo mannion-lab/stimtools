@@ -17,7 +17,7 @@ def white_noise(
     rate=44100,
     window_samples=220,
     post_pad_samples=0,
-    out_of_range=None,
+    out_of_range="error",
     rand=None
 ):
     """Generates a 'white noise' waveform (Gaussian noise).
@@ -39,7 +39,7 @@ def white_noise(
         the waveform.
     post_pad_samples: int, optional
         The number of zeros to append to the waveform.
-    out_of_range: string, {"warn", "err"}, or None, optional
+    out_of_range: string, {"warn", "error"}, or None, optional
         What to do if the waveform goes out of range.
     rand: np.random.RandomState instance or None, optional
         Random number generator.
@@ -88,7 +88,10 @@ def white_noise(
             if out_of_range == "warn":
                 warnings.warn("Clipping required")
             else:
-                raise ValueError("Clipping would be required")
+                rms_str = ",".join(map(str, rms))
+                raise ValueError(
+                    "Clipping would be required for an RMS of " + rms_str
+                )
 
     y = np.clip(y, a_min=-max_amp, a_max=max_amp)
 
