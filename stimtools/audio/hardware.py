@@ -1,6 +1,8 @@
 from __future__ import absolute_import, print_function, division
 
 import time
+import xml.etree.ElementTree as etree
+import xml.dom.minidom
 
 try:
     import parallel
@@ -153,3 +155,55 @@ class AudioFileSerial(object):
 
         if reply != str(track_num):
             print("Error playing track; response was " + reply)
+
+
+def write_playlist(playlist_path, wav_folder, entries, swap_channels=True):
+    """Writes an audiofile XML playlist file.
+
+    Parameters
+    ----------
+    playlist_path: string
+        Location to write the playlist.
+    wav_folder: string
+        The relative path to the directory containing the wav files on the
+        device.
+    entries: dict
+        Keys are integers and values are the associated wav file paths.
+    swap_channels: bool, optional
+        Whether to include a flag in the XML to swap the channels on the
+        device.
+
+    """
+
+    base = etree.Element("AUDIOFILE_PLAYLIST")
+
+    playlist = etree.SubElement(base, "PLAYLIST1")
+
+    etree.SubElement(playlist, "Entry", Folder=wav_folder)
+
+    keys = sorted(entries)
+
+    for key in keys:
+
+        key_code = "Code{n:03d}".format(n=key)
+
+        etree.SubElement(
+            playlist,
+            "Entry",
+            **{key_code: entries[key]}
+        )
+
+    system = etree.SubElement(base, "SYSTEM")
+
+    etree.SubElement(system, "Entry", UseDigitalInputD0="FALSE")
+    etree.SubElement(system, "Entry", StopCode="0")
+    etree.SubElement(system, "Entry", SwapChannels=str(swap_channels).upper())
+    etree.SubElement(system, "Entry", SDRAMTest="FALSE")
+
+    rough_string = etree.tostring(base)
+    reparsed = xml.dom.minidom.parseString(rough_string)
+
+    reparsed_pretty = reparsed.toprettyxml(indent=" " * 4)
+
+    with open(playlist_path, "w") as playlist_file:
+        playlist_file.write(reparsed_pretty)

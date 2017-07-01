@@ -22,14 +22,19 @@ def apply_hanning(waveform, window_samples):
 
     """
 
+    if waveform.ndim == 1:
+        waveform = waveform[:, np.newaxis]
+
     hanning_win = np.hanning((2 * (window_samples - 1)) + 1)
 
-    window = hanning_win[:window_samples]
+    window = hanning_win[:window_samples][:, np.newaxis]
 
     npt.assert_almost_equal(window[0], 0.0)
     npt.assert_almost_equal(window[-1], 1.0)
 
-    waveform[:window_samples] *= window
-    waveform[-window_samples:] *= window[::-1]
+    waveform[:window_samples, :] *= window
+    waveform[-window_samples:, :] *= window[::-1]
+
+    waveform = np.squeeze(waveform)
 
     return waveform
