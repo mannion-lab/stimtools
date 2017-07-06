@@ -16,6 +16,87 @@ except ImportError:
     pass
 
 
+class AudioFileParallelUsingD0(object):
+
+    def __init__(self, port=None):
+        """Interface to the CRS 'AudioFile' device, when the option in the
+        playlist file ''UseDigitalInputD0'' is set to TRUE. This allows for
+        tracks from 1 to 255, whereas otherwise it is from 1 to 128.
+
+        Parameters
+        ----------
+        port: int or None, optional
+            The `port` value, as required by `pyparallel`.
+
+        """
+
+        if port is None:
+            port = 0
+
+        self._device = parallel.Parallel(port=port)
+
+    def _track_to_pins(self, track_num, set_trigger=False):
+        """Converts a desired track number and trigger status to the pin
+        settings for the 'data' and 'strobe' lines.
+
+        Parameters
+        ----------
+        track_num: integer, [1, 256]
+            Track number, according to the 'Playlist.xml' register on the
+            device.
+        set_trigger: bool, optional
+            Whether the trigger bit should be set or not.
+
+        Returns
+        -------
+        (data_val, strobe_val): integers
+            Values to send to the data and strobe lines.
+
+        """
+
+        if not (0 <= track_num <= 256):
+            raise ValueError("Incorrect track number")
+
+        track_binary = "{n:08b}".format(n=track_num)
+
+        data_line = (
+            str(int(set_trigger)) +  # trigger bit
+            track_binary[:-1]
+        )
+
+        data_val = int(data_line, 2)
+
+        strobe_val = int(track_binary[-1])
+
+        return (data_val, strobe_val)
+
+    def cue(self, track_num):
+        """Prepares a track for presentation.
+
+        Parameters
+        ----------
+        track_num: integer, [1, 256]
+            Track number, according to the 'Playlist.xml' register on the
+            device.
+
+        Notes
+        -----
+        * This automatically resets the trigger bit.
+
+        """
+
+        (data_val, strobe_val) = self._track_to_pins(track_num=track_num)
+
+        self._device.setData(data_val)
+        self._device.setDataStrobe(strobe_val)
+
+    def trigger(self):
+        """Triggers sound playback and resets all pins."""
+
+        self._device.setDataStrobe(0)
+        self._device.setData(128)
+
+
 class AudioFileParallel(object):
 
     def __init__(self, port=None):
@@ -84,8 +165,8 @@ class AudioFileSerial(object):
 
         self._product_type = self._send_msg("$ProductType")
 
-        if self._product_type != "AudioFile":
-            raise OSError("Device doesn't seem to be an AudioFile")
+        #if self._product_type != "AudioFile":
+        #    raise OSError("Device doesn't seem to be an AudioFile")
 
     def __enter__(self):
         return self
@@ -104,10 +185,10 @@ class AudioFileSerial(object):
 
         time.sleep(delay)
 
-        response = self._device.read(self._device.inWaiting())
+        response = "" #self._device.read(self._device.inWaiting())
 
-        if response.startswith("$"):
-            response = response.strip().split(";")[1]
+        #if response.startswith("$"):
+        #    response = response.strip().split(";")[1]
 
         return response
 
