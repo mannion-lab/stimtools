@@ -111,6 +111,10 @@ class AudioFileSerial(object):
 
         return response
 
+    def stop(self):
+        """Stops the device from playing"""
+        self._send_msg(message_str="$Stoptrack")
+
     def reboot(self):
         """Reboots the device"""
 
@@ -130,12 +134,14 @@ class AudioFileSerial(object):
         )
 
     @playlist.setter
-    def playlist(self, new_playlist, max_wait=60.0, force_change=False):
+    def playlist(self, new_playlist):
+
+        max_wait = 180.0
 
         if not new_playlist.endswith(".xml"):
             raise ValueError("Playlist needs to end in .xml")
 
-        if (self.playlist != new_playlist) or force_change:
+        if (self.playlist != new_playlist):
 
             start_time = time.clock()
 
@@ -156,13 +162,13 @@ class AudioFileSerial(object):
             else:
                 print("Unable to set playlist")
 
-    def play(self, track_num):
+    def play(self, track_num, delay=0.1):
         """Plays a track.
 
         Parameters
         ----------
         track_num: integer, [1, 499]
-            Track number, according to the 'Playlist.xml' register on the
+            Track number, according to the active playlist on the
             device.
 
         """
@@ -172,7 +178,7 @@ class AudioFileSerial(object):
 
         msg = "$starttrack=[{n:d}]".format(n=track_num)
 
-        reply = self._send_msg(msg)
+        reply = self._send_msg(msg, delay=delay)
 
         if reply != str(track_num):
             print("Error playing track; response was " + reply)
