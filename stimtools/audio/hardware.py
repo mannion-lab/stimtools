@@ -265,7 +265,13 @@ class AudioFileSerial(object):
             print("Error playing track; response was " + reply)
 
 
-def write_playlist(playlist_path, wav_folder, entries, swap_channels=False):
+def write_playlist(
+    playlist_path,
+    wav_folder,
+    entries,
+    swap_channels=False,
+    use_D0=True
+):
     """Writes an audiofile XML playlist file.
 
     Parameters
@@ -280,6 +286,9 @@ def write_playlist(playlist_path, wav_folder, entries, swap_channels=False):
     swap_channels: bool, optional
         Whether to include a flag in the XML to swap the channels on the
         device.
+    use_D0: bool, optional
+        Whether to include a flag in the XML to indicate the use of the first
+        parallel port pin.
 
     """
 
@@ -303,7 +312,9 @@ def write_playlist(playlist_path, wav_folder, entries, swap_channels=False):
 
     system = etree.SubElement(base, "SYSTEM")
 
-    etree.SubElement(system, "Entry", UseDigitalInputD0="FALSE")
+    use_D0 = str(use_D0).upper()
+
+    etree.SubElement(system, "Entry", UseDigitalInputD0=use_D0)
     etree.SubElement(system, "Entry", StopCode="0")
     etree.SubElement(system, "Entry", SwapChannels=str(swap_channels).upper())
     etree.SubElement(system, "Entry", SDRAMTest="FALSE")
