@@ -19,6 +19,7 @@ def img_seq_to_vid(
     audio_path=None,
     ffmpeg_cmd="ffmpeg",
     extra_ffmpeg_args=None,
+    durations=None,
     print_output=True
 ):
     """Converts an image sequence to video files.
@@ -43,6 +44,9 @@ def img_seq_to_vid(
         required.
     extra_ffmpeg_args : collection of strings, optional
         Any extra arguments to pass directly to ffmpeg.
+    durations: collection of floats or None, optional
+        The duration of every frame in `image_paths`. If `None`, defaults to
+        the inverse of `fps`.
     print_output : boolean, optional
         Whether to print the ffmpeg output when finished.
 
@@ -78,6 +82,12 @@ def img_seq_to_vid(
             for image_path in image_paths
         ]
 
+    if durations is None:
+
+        frame_duration = 1.0 / fps
+
+        durations = [frame_duration] * len(image_paths)
+
     if not isinstance(vid_extensions, collections.Iterable):
         vid_extensions = [vid_extensions]
 
@@ -99,13 +109,12 @@ def img_seq_to_vid(
 
     try:
 
-        image_list_txt.writelines(
-            [
+        for (image_path, frame_duration) in zip(image_paths, durations):
+
+            image_list_txt.write(
                 "file '" + image_path + "'\n" +
-                "duration {d:.8f}\n".format(d=1.0 / fps)
-                for image_path in image_paths
-            ]
-        )
+                "duration {d:.8f}\n".format(d=frame_duration)
+            )
 
         image_list_txt.close()
 
