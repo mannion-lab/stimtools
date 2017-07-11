@@ -116,6 +116,10 @@ def img_seq_to_vid(
                 "duration {d:.8f}\n".format(d=frame_duration)
             )
 
+        # need to specify the last image by itself, with no duration, in order
+        # to show the last frame
+        image_list_txt.write("file '" + image_paths[-1] + "'")
+
         image_list_txt.close()
 
         base_cmd = [
