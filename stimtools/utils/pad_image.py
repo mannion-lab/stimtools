@@ -10,8 +10,7 @@ def nearest_pow2(n):
 
     return int(np.power(2, np.ceil(np.log(n) / np.log(2))))
 
-
-def pad_image(img, calc_mask=False, pad_value=0, to="pow2"):
+def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
     """Pads an image to its nearest power of two.
 
     Parameters
@@ -34,19 +33,6 @@ def pad_image(img, calc_mask=False, pad_value=0, to="pow2"):
 
     """
 
-    if isinstance(pad_value, float):
-
-        np_version = distutils.version.StrictVersion(np.version.version)
-
-        necc_version = distutils.version.StrictVersion("1.10")
-
-        if np_version < necc_version:
-
-            raise ValueError(
-                "For this version of numpy (< 1.10), only integers are " +
-                "accepted for `pad_value'"
-            )
-
     if isinstance(to, str):
 
         if to.startswith("pow2"):
@@ -66,9 +52,7 @@ def pad_image(img, calc_mask=False, pad_value=0, to="pow2"):
         else:
             new_size = to
 
-    img_size = img.shape[:2]
-
-    new_size = [int(new_dim_size) for new_dim_size in new_size]
+    new_size = map(int, new_size)
 
     if img.ndim == 3:
         n_channels = img.shape[-1]
@@ -76,40 +60,25 @@ def pad_image(img, calc_mask=False, pad_value=0, to="pow2"):
         n_channels = 1
         img = img[..., np.newaxis]
 
-    pad_amounts = []
+    pad_img = np.ones((new_size[0], new_size[1], n_channels)) * pad_value
 
-    # iterate over the spatial dimensions
-    for i_dim in range(2):
+    pad_img[:img.shape[0], :img.shape[1], :] = img
 
-        first_offset = int((new_size[i_dim] - img_size[i_dim]) / 2.0)
-        second_offset = new_size[i_dim] - img_size[i_dim] - first_offset
+    row_roll_k = int(np.floor((new_size[0] - img.shape[0]) / 2.0))
+    col_roll_k = int(np.floor((new_size[1] - img.shape[1]) / 2.0))
 
-        pad_amounts.append([first_offset, second_offset])
-
-    # don't want to pad the colour channels
-    pad_amounts += [[0, 0]]
-
-    pad_img = np.pad(
-        array=img,
-        pad_width=pad_amounts,
-        mode="constant",
-        constant_values=pad_value
-    )
+    pad_img = np.roll(pad_img, row_roll_k, axis=0)
+    pad_img = np.roll(pad_img, col_roll_k, axis=1)
 
     if n_channels == 1:
         pad_img = pad_img[..., 0]
 
     if calc_mask:
+        mask_img = np.ones(new_size) * -1
+        mask_img[:img.shape[0], :img.shape[1]] = 1
+        mask_img = np.roll(mask_img, row_roll_k, axis=0)
+        mask_img = np.roll(mask_img, col_roll_k, axis=1)
 
-        mask = np.ones(img_size)
-
-        pad_mask = np.pad(
-            array=mask,
-            pad_width=pad_amounts[:2],
-            mode="constant",
-            constant_values=-1
-        )
-
-        return (pad_img, pad_mask)
+        return (pad_img, mask_img)
 
     return pad_img
