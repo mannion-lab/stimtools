@@ -185,10 +185,10 @@ class AudioFileSerial(object):
 
         time.sleep(delay)
 
-        response = "" #self._device.read(self._device.inWaiting())
+        response = self._device.read(self._device.inWaiting())
 
-        #if response.startswith("$"):
-        #    response = response.strip().split(";")[1]
+        if response.startswith("$"):
+            response = response.strip().split(";")[1]
 
         return response
 
