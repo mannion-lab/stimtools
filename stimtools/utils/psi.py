@@ -94,6 +94,13 @@ class Psi(object):
 
         return (alpha_hat, beta_hat)
 
+    def override_level(self, new_level=None):
+
+        if new_level is None:
+            new_level = np.random.choice(self._n_stim_levels)
+
+        self._curr_stim_index = new_level
+
     def step(self):
 
         p_r_x = np.empty((2, self._n_stim_levels))

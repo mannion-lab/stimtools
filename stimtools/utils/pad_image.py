@@ -1,7 +1,5 @@
 from __future__ import absolute_import, print_function, division
 
-import distutils.version
-
 import numpy as np
 
 
@@ -9,6 +7,7 @@ def nearest_pow2(n):
     """Determines the nearest power of two to the value ``n``."""
 
     return int(np.power(2, np.ceil(np.log(n) / np.log(2))))
+
 
 def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
     """Pads an image to its nearest power of two.

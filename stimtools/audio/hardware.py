@@ -165,8 +165,8 @@ class AudioFileSerial(object):
 
         self._product_type = self._send_msg("$ProductType")
 
-        #if self._product_type != "AudioFile":
-        #    raise OSError("Device doesn't seem to be an AudioFile")
+        if self._product_type != "AudioFile":
+            raise OSError("Device doesn't seem to be an AudioFile")
 
     def __enter__(self):
         return self
@@ -232,12 +232,11 @@ class AudioFileSerial(object):
 
             status_ok = (reply == new_playlist)
 
-            while (time.clock() - start_time) < max_wait:
+            while (not status_ok) and (time.clock() - start_time) < max_wait:
 
                 reply = self.playlist
 
                 if reply == new_playlist:
-                    status_ok = True
                     break
 
             else:
