@@ -7,7 +7,8 @@ import tempfile
 import os
 
 import numpy as np
-import scipy.misc
+
+import imageio
 
 
 def img_seq_to_vid(
@@ -58,6 +59,9 @@ def img_seq_to_vid(
         if image_paths.ndim not in [3, 4]:
             raise ValueError("Array not shaped correctly")
 
+        if image_paths.dtype != np.uint8:
+            raise ValueError("Array datatype must be uint8")
+
         n_frames = image_paths.shape[-1]
 
         new_image_paths = []
@@ -69,7 +73,7 @@ def img_seq_to_vid(
                 delete=False
             ).name
 
-            scipy.misc.imsave(new_image_path, image_paths[..., i_frame])
+            imageio.imwrite(new_image_path, image_paths[..., i_frame])
 
             new_image_paths.append(new_image_path)
 
