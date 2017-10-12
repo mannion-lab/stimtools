@@ -8,12 +8,16 @@ import xml.dom.minidom
 try:
     import parallel
 except ImportError:
-    pass
+    parallel_imported = False
+else:
+    parallel_imported = True
 
 try:
     import serial
 except ImportError:
-    pass
+    serial_imported = False
+else:
+    serial_imported = True
 
 
 class AudioFileParallelUsingD0(object):
@@ -29,6 +33,9 @@ class AudioFileParallelUsingD0(object):
             The `port` value, as required by `pyparallel`.
 
         """
+
+        if not parallel_imported:
+            raise ImportError("Could not import pyparallel")
 
         if port is None:
             port = 0
@@ -109,6 +116,9 @@ class AudioFileParallel(object):
 
         """
 
+        if not parallel_imported:
+            raise ImportError("Could not import pyparallel")
+
         if port is None:
             port = 0
 
@@ -160,6 +170,9 @@ class AudioFileSerial(object):
             The `port` path, as required by `pyserial`.
 
         """
+
+        if not parallel_imported:
+            raise ImportError("Could not import pyserial")
 
         self._device = serial.Serial(port=port)
 
