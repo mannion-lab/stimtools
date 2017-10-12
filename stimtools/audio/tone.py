@@ -4,12 +4,11 @@ import collections
 import warnings
 
 import numpy as np
-import scipy.io.wavfile
+
+import soundfile
 
 import stimtools.utils
 
-
-# TODO: update to use 'soundfile'
 
 def pure_tone(
     freq,
@@ -19,7 +18,7 @@ def pure_tone(
     filename=None,
     rate=44100,
     window_samples=220,
-    post_pad_samples=10000
+    post_pad_samples=0
 ):
     """Generates a pure tone waveform.
 
@@ -71,10 +70,6 @@ def pure_tone(
 
     y *= amplitude
 
-    max_amp = 32767.0
-
-    y = (y * max_amp).astype("int16")
-
     if np.all(y[0, :] != 0):
         warnings.warn("Waveform does not start at 0")
 
@@ -83,10 +78,12 @@ def pure_tone(
 
     if filename is not None:
 
-        scipy.io.wavfile.write(
-            filename=filename,
-            rate=rate,
-            data=y
+        soundfile.write(
+            file=filename,
+            data=y,
+            samplerate=rate,
+            format="WAV",
+            subtype="PCM_16"
         )
 
     return y
