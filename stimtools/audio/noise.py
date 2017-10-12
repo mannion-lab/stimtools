@@ -4,7 +4,8 @@ import collections
 import warnings
 
 import numpy as np
-import scipy.io
+
+import soundfile
 
 import stimtools.utils
 
@@ -72,15 +73,11 @@ def white_noise(
 
     y *= rms
 
-    max_amp = 32767.0
-
-    y *= max_amp
-
     if out_of_range in ("warn", "error"):
 
         clip_req = np.logical_or(
-            np.any(y < -max_amp),
-            np.any(y > +max_amp)
+            np.any(y < -1),
+            np.any(y > +1)
         )
 
         if clip_req:
@@ -93,17 +90,18 @@ def white_noise(
                     "Clipping would be required for an RMS of " + rms_str
                 )
 
-    y = np.clip(y, a_min=-max_amp, a_max=max_amp)
+    y = np.clip(y, a_min=-1, a_max=1)
 
     y = np.concatenate((y, np.zeros((post_pad_samples, 2))))
 
-    y = y.astype("int16")
-
     if filename is not None:
-        scipy.io.wavfile.write(
-            filename=filename,
-            rate=rate,
-            data=y
+
+        soundfile.write(
+            file=filename,
+            data=y,
+            samplerate=rate,
+            format="wav",
+            subtype="PCM_16"
         )
 
     return y
@@ -190,15 +188,11 @@ def pink_noise(
 
     y *= rms
 
-    max_amp = 32767.0
-
-    y *= max_amp
-
     if out_of_range in ("warn", "error"):
 
         clip_req = np.logical_or(
-            np.any(y < -max_amp),
-            np.any(y > +max_amp)
+            np.any(y < -1),
+            np.any(y > +1)
         )
 
         if clip_req:
@@ -208,17 +202,18 @@ def pink_noise(
             else:
                 raise ValueError("Clipping would be required")
 
-    y = np.clip(y, a_min=-max_amp, a_max=max_amp)
+    y = np.clip(y, a_min=-1, a_max=1)
 
     y = np.concatenate((y, np.zeros((post_pad_samples, 2))))
 
-    y = y.astype("int16")
-
     if filename is not None:
-        scipy.io.wavfile.write(
-            filename=filename,
-            rate=rate,
-            data=y
+
+        soundfile.write(
+            file=filename,
+            data=y,
+            samplerate=rate,
+            format="wav",
+            subtype="PCM_16"
         )
 
     return y
