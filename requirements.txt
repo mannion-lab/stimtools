@@ -1,0 +1,9 @@
+numpy
+scipy
+pyserial
+pyparallel
+soundfile
+resampy
+OpenEXR
+Imath
+imageio
