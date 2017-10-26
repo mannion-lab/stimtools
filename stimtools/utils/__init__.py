@@ -16,6 +16,7 @@ from .vids import img_seq_to_vid
 from .exr import write_exr, read_exr
 from .vid_read import read_frames
 from .wav_env import apply_hanning
+from .transforms import img_polar_to_cart
 
 __all__ = [
     "pad_image",
@@ -36,5 +37,6 @@ __all__ = [
     "write_exr",
     "read_exr",
     "read_frames",
-    "apply_hanning"
+    "apply_hanning",
+    "img_polar_to_cart"
 ]
