@@ -17,6 +17,7 @@ from .exr import write_exr, read_exr
 from .vid_read import read_frames
 from .wav_env import apply_hanning
 from .transforms import img_polar_to_cart
+from .sf_slope import sf_slope
 
 __all__ = [
     "pad_image",
@@ -38,5 +39,6 @@ __all__ = [
     "read_exr",
     "read_frames",
     "apply_hanning",
-    "img_polar_to_cart"
+    "img_polar_to_cart",
+    "sf_slope"
 ]
