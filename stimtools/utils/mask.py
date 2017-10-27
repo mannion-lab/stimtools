@@ -10,7 +10,7 @@ def polar_mask(
     outer_extent_norm=1.0,
     inner_extent_norm=0.0,
     sector_centre_deg=0.0,
-    sector_central_angle_deg=360.0,
+    sector_central_angle_deg=361.0,
     mask_min=-1.0,
     mask_max=+1.0
 ):
