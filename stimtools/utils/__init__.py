@@ -18,6 +18,7 @@ from .vid_read import read_frames
 from .wav_env import apply_hanning
 from .transforms import img_polar_to_cart
 from .sf_slope import sf_slope
+from .scramble import scramble_image
 
 __all__ = [
     "pad_image",
@@ -40,5 +41,6 @@ __all__ = [
     "read_frames",
     "apply_hanning",
     "img_polar_to_cart",
-    "sf_slope"
+    "sf_slope",
+    "scramble_image"
 ]
