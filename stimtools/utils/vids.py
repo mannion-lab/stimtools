@@ -21,6 +21,8 @@ def img_seq_to_vid(
     ffmpeg_cmd="ffmpeg",
     extra_ffmpeg_args=None,
     durations=None,
+    gamma=1.0,
+    quality="high",
     print_output=True
 ):
     """Converts an image sequence to video files.
@@ -48,6 +50,11 @@ def img_seq_to_vid(
     durations: collection of floats or None, optional
         The duration of every frame in `image_paths`. If `None`, defaults to
         the inverse of `fps`.
+    gamma: float, optional
+        Gamma value to apply to the raw images prior to saving, if images are
+        passed as a numpy array.
+    quality: string, {"normal", "high"], optional
+        Sets the 'quality' of the video output.
     print_output : boolean, optional
         Whether to print the ffmpeg output when finished.
 
@@ -61,6 +68,12 @@ def img_seq_to_vid(
 
         if image_paths.dtype != np.uint8:
             raise ValueError("Array datatype must be uint8")
+
+        image_paths = (
+            (
+                (image_paths.astype("float") / 255.0) ** (1.0 / gamma)
+            ) * 255.0
+        ).astype("uint8")
 
         n_frames = image_paths.shape[-1]
 
@@ -92,12 +105,19 @@ def img_seq_to_vid(
 
         durations = [frame_duration] * len(image_paths)
 
+    if quality == "high":
+        gif_quality = "99"
+        ffmpeg_quality = ["-b", "5000k"]
+    else:
+        gif_quality = "85"
+        ffmpeg_quality = []
+
     if not isinstance(vid_extensions, collections.Iterable):
         vid_extensions = [vid_extensions]
 
     if not all(
         [
-            vid_ext in ["mp4", "ogg", "webm"]
+            vid_ext in ["mp4", "ogg", "webm", "gif"]
             for vid_ext in vid_extensions
         ]
     ):
@@ -111,6 +131,11 @@ def img_seq_to_vid(
         delete=False
     )
 
+    filename_list_txt = tempfile.NamedTemporaryFile(
+        suffix=".txt",
+        delete=False
+    )
+
     try:
 
         for (image_path, frame_duration) in zip(image_paths, durations):
@@ -120,11 +145,15 @@ def img_seq_to_vid(
                 "duration {d:.8f}\n".format(d=frame_duration)
             )
 
+            filename_list_txt.write(image_path + "\n")
+
         # need to specify the last image by itself, with no duration, in order
         # to show the last frame
         image_list_txt.write("file '" + image_paths[-1] + "'")
 
         image_list_txt.close()
+
+        filename_list_txt.close()
 
         base_cmd = [
             ffmpeg_cmd,
@@ -148,6 +177,14 @@ def img_seq_to_vid(
 
         if overwrite:
             base_cmd.append("-y")
+
+        gif_cmd = [
+            "convert",
+            "-delay", "{f:d}".format(f=int(1.0 / fps * 100.0)),
+            "-loop", "0",
+            "-quality", gif_quality,
+            "@" + filename_list_txt.name
+        ]
 
         for vid_extension in vid_extensions:
 
@@ -175,13 +212,21 @@ def img_seq_to_vid(
                     "-f", "webm"
                 ]
 
-            cmd += extra_ffmpeg_args
+            elif vid_extension == "gif":
 
-            out_path = ".".join([vid_stem, vid_extension])
+                cmd = gif_cmd + [".".join([vid_stem, vid_extension])]
 
-            cmd.extend(["-r", str(fps)])
+            if vid_extension != "gif":
 
-            cmd.append(out_path)
+                cmd += extra_ffmpeg_args
+
+                cmd += ffmpeg_quality
+
+                out_path = ".".join([vid_stem, vid_extension])
+
+                cmd.extend(["-r", str(fps)])
+
+                cmd.append(out_path)
 
             out = subprocess.check_output(
                 cmd,
@@ -198,3 +243,4 @@ def img_seq_to_vid(
 
     finally:
         os.remove(image_list_txt.name)
+        os.remove(filename_list_txt.name)
