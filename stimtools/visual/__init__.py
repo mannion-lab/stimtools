@@ -7,6 +7,7 @@ from .fixation import Fixation
 from .fusion_lock import FusionLock
 from .arrow import Arrow
 from .rep_tex import rep_tex
+from .noise import noise_image
 
 __all__ = [
     "DisplayPlusPlus",
@@ -16,5 +17,6 @@ __all__ = [
     "Fixation",
     "FusionLock",
     "Arrow",
-    "rep_tex"
+    "rep_tex",
+    "noise_image"
 ]
