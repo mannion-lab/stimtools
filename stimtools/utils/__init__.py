@@ -19,6 +19,7 @@ from .wav_env import apply_hanning
 from .transforms import img_polar_to_cart
 from .sf_slope import sf_slope
 from .scramble import scramble_image
+from .ar_face import ar_expressions, ar_img_read, ar_read
 
 __all__ = [
     "pad_image",
@@ -42,5 +43,8 @@ __all__ = [
     "apply_hanning",
     "img_polar_to_cart",
     "sf_slope",
-    "scramble_image"
+    "scramble_image",
+    "ar_expressions",
+    "ar_img_read",
+    "ar_read"
 ]
