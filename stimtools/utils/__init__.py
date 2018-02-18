@@ -20,6 +20,7 @@ from .transforms import img_polar_to_cart
 from .sf_slope import sf_slope
 from .scramble import scramble_image
 from .ar_face import ar_expressions, ar_img_read, ar_read
+from .ply import create_ply
 
 __all__ = [
     "pad_image",
@@ -46,5 +47,6 @@ __all__ = [
     "scramble_image",
     "ar_expressions",
     "ar_img_read",
-    "ar_read"
+    "ar_read",
+    "create_ply",
 ]
