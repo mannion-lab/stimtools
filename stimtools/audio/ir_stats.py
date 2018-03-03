@@ -5,8 +5,14 @@ import scipy.stats
 
 import soundfile
 
+try:
+    import brian
+    import brian.hears
+except ImportError:
+    pass
 
-def load_ir(wav_path, channel=0, from_onset=False, n_pre=440, n_win=100):
+
+def load_ir(wav_path, channel=0, split=False):
     """Load an IR from a wav file.
 
     Parameters
@@ -15,19 +21,13 @@ def load_ir(wav_path, channel=0, from_onset=False, n_pre=440, n_win=100):
         Location of the wav file.
     channel: int, optional
         Which channel to load.
-    from_onset: bool, optional
-        Whether to chop initial silence.
-    n_pre: int
-        The number of samples to return before argmax, if `from_onset` is
-        `True`.
-    n_win: int
-        The number of samples in a Hanning window to apply at the start, if
-        `from_onset` is True.
+    split: bool, optional
+        Whether to split into 'direct' and 'diffuse' components.
 
     Returns
     -------
-    wav: array of floats
-        Waveform
+    wav: array of floats or list thereof.
+        Waveform.
     sr: int
         Sample rate.
 
@@ -37,27 +37,15 @@ def load_ir(wav_path, channel=0, from_onset=False, n_pre=440, n_win=100):
 
     wav = wav[:, channel]
 
-    if from_onset:
+    if split:
+        (_, i_x, _) = calc_t_gauss(ir=wav, sr=sr)
 
-        i_peak = np.argmax(wav)
+        wav = (wav[:i_x], wav[i_x:])
 
-        i_start = i_peak - n_pre
-
-        if i_start < 0:
-            raise ValueError("Peak is closer than window")
-
-        wav = wav[i_start:]
-
-        win = np.hanning(n_win * 2)[:n_win]
-
-        wav[:n_win] *= win
-
-    return wav
+    return (wav, sr)
 
 
-
-
-def calc_t_gauss(ir, sr, win_ms=10, thresh=None):
+def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
     """Calcuate the 'time to Gaussianity'
 
     Parameters
@@ -70,6 +58,8 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None):
         Size of the window, in ms.
     thresh: number or None, optional
         The kurtosis value below which are Gaussian.
+    peak_rel: bool, optional
+        Whether `t_gauss` is relative to the time of the peak signal.
 
     Returns
     -------
@@ -124,6 +114,14 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None):
 
     t_gauss = (crossover / float(sr)) * 1000.0
 
+    if peak_rel:
+
+        i_peak_sample = np.argmax(ir)
+
+        peak_ms = (i_peak_sample / float(sr)) * 1000.0
+
+        t_gauss -= peak_ms
+
     return (kurtosis, crossover, t_gauss)
 
 
@@ -138,4 +136,67 @@ def get_kurtosis_threshold(win_size, n_boot=10000):
     thresh = scipy.stats.scoreatpercentile(ks, 97.5)
 
     return thresh
+
+
+def get_filter_centres(low=20, high=16000, n=33):
+
+    return brian.hears.erbspace(
+        low * brian.Hz,
+        high * brian.Hz,
+        n
+    )
+
+
+def get_filter_output(ir, sr, cf=None, dB=False):
+
+    if cf is None:
+        cf = get_filter_centres()
+
+    bs = brian.hears.Sound(data=ir, samplerate=sr * brian.Hz)
+
+    bank = brian.hears.Gammatone(source=bs, cf=cf)
+
+    output = bank.process()
+
+    output = np.abs(output)
+
+    if dB:
+        output = 20 * np.log10(output)
+
+    return output
+
+
+def fit_filter_output(filt_out, sr):
+
+    n_k = filt_out.shape[1]
+
+    params = np.full((n_k, 2), np.nan)
+
+    for i_k in range(n_k):
+        params[i_k, :] = fit_decay(filt_out[:, i_k], sr)
+
+    t60 = -(60.0 / params[:, 0])
+
+    t60_bb = np.median(t60)
+
+    return (params, t60, t60_bb)
+
+
+def fit_decay(filt_response, sr):
+
+    t = np.arange(len(filt_response)) / float(sr)
+
+    def err_func(params):
+        return M(x=t, params=params) - filt_response
+
+    (p, _) = scipy.optimize.leastsq(err_func, [-250, 50])
+
+    return p
+
+
+def M(x, params):
+
+    (phi, drr) = params
+
+    return 10 ** (((phi * x) - drr) / 20.0)
 
