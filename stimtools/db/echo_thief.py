@@ -37,6 +37,14 @@ name_to_img_lut = {
     "FortalezaDeSanCarlosDeLaCabana ": "FortalezaDeSanCarlosDeLaCabana.JPG",
 }
 
+# those without proper panoramas
+bad_locs = [
+    "BatteryQuarles",
+    "StorageTankNo7",
+    "TunnelToHeaven",
+    "TunnelToHell"
+]
+
 
 def get_db_info():
 
@@ -50,7 +58,7 @@ def get_db_info():
 
             (file_name, file_ext) = os.path.splitext(curr_file)
 
-            if file_ext != ".wav":
+            if file_ext != ".wav" or file_name in bad_locs:
                 continue
 
             jpg_name = file_name
