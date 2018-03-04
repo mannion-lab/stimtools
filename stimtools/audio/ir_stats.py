@@ -81,8 +81,6 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
 
     kurtosis = np.full(n, np.nan)
 
-    diffuse = np.zeros(n, dtype=np.bool)
-
     for i_sample in range(n):
 
         if (
@@ -199,4 +197,3 @@ def M(x, params):
     (phi, drr) = params
 
     return 10 ** (((phi * x) - drr) / 20.0)
-

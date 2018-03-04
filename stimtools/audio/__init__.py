@@ -5,6 +5,7 @@ from ._hardware import (
     AudioFileParallel, AudioFileSerial, write_playlist, check_audiofile,
     AudioFileParallelUsingD0
 )
+from ._ops import convolve
 
 __all__ = [
     "pure_tone",
@@ -14,5 +15,6 @@ __all__ = [
     "AudioFileParallelUsingD0",
     "AudioFileSerial",
     "write_playlist",
-    "check_audiofile"
+    "check_audiofile",
+    "convolve"
 ]

@@ -5,7 +5,7 @@ try:
     import psychopy.misc
 except ImportError:
     pass
-except:
+except:  # noqa
     pass
 
 
