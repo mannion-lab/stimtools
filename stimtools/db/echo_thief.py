@@ -2,6 +2,15 @@ import os
 
 import soundfile
 
+import imageio
+
+try:
+    import panorama_image_cropper
+except ImportError:
+    pano_avail = False
+else:
+    pano_avail = True
+
 
 try:
     base_path = os.environ["ECHO_THIEF_PATH"]
@@ -79,6 +88,15 @@ def get_db_info():
     # no image is assigned to two different locations
     assert len(unique_images) == len(set(unique_images))
 
+    if len(locations) == 0:
+        raise ValueError(
+            """
+Database not found at {d:s}.
+
+Try setting the ECHO_THIEF_PATH shell environment variable.
+            """.format(d=base_path)
+        )
+
     return locations
 
 
@@ -90,3 +108,31 @@ def load_ir(loc_name, db_info=None):
     (ir, ir_sr) = soundfile.read(file=db_info[loc_name]["wav_path"])
 
     return (ir, ir_sr)
+
+
+def load_img(loc_name, res, fov, theta, db_info=None):
+
+    if db_info is None:
+        db_info = get_db_info()
+
+    if not pano_avail:
+
+        msg = """
+The panorama image extractor is not available.
+
+Run:
+    git clone https://github.com/daerduoCarey/PanoramaImageViewer
+
+and then add it to the python path
+        """
+
+        raise ImportError(msg)
+
+    img = imageio.imread(db_info[loc_name]["jpg_path"])
+
+    # convert into a roughly non-panoramic image
+    img = panorama_image_cropper.crop_panorama_image(
+        img, res_x=res[0], res_y=res[1], fov=fov, theta=theta
+    )
+
+    return img
