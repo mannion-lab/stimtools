@@ -4,6 +4,8 @@ import soundfile
 
 import imageio
 
+import skimage.transform
+
 try:
     import panorama_image_cropper
 except ImportError:
@@ -110,7 +112,7 @@ def load_ir(loc_name, db_info=None):
     return (ir, ir_sr)
 
 
-def load_img(loc_name, res, fov, theta, db_info=None):
+def load_img(loc_name, res, fov, theta, db_info=None, resize=True):
 
     if db_info is None:
         db_info = get_db_info()
@@ -129,6 +131,16 @@ and then add it to the python path
         raise ImportError(msg)
 
     img = imageio.imread(db_info[loc_name]["jpg_path"])
+
+    if resize:
+        new_dim = (2048, 4096)
+
+        img = skimage.transform.resize(
+            img,
+            new_dim,
+            mode="reflect",
+            preserve_range=True
+        ).astype("uint8")
 
     # convert into a roughly non-panoramic image
     img = panorama_image_cropper.crop_panorama_image(
