@@ -17,7 +17,7 @@ try:
 
 except ImportError:
     pass
-except:
+except:  # noqa
     pass
 
 
