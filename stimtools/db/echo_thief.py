@@ -1,4 +1,5 @@
 import os
+import collections
 
 import soundfile
 
@@ -107,6 +108,11 @@ Try setting the ECHO_THIEF_PATH shell environment variable.
             """.format(d=base_path)
         )
 
+    # sort by key
+    locations = collections.OrderedDict(
+        sorted(locations.items(), key=lambda x: x[0])
+    )
+
     return locations
 
 
@@ -146,6 +152,7 @@ and then add it to the python path
         img = skimage.transform.resize(
             img,
             new_dim,
+            order=3,
             mode="reflect",
             preserve_range=True
         ).astype("uint8")
