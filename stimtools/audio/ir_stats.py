@@ -106,7 +106,13 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
             else:
                 n_gauss += 1
 
-        if n_gauss > 0 and n_nongauss > 0 and n_gauss > n_nongauss:
+        if (
+            (n_gauss > 0) and
+            (n_nongauss > 0) and
+            (n_gauss > n_nongauss) and
+            (i_sample > np.argmax(ir))
+        ):
+
             crossover = i_sample
             break
 
@@ -170,14 +176,17 @@ def fit_filter_output(filt_out, sr):
 
     params = np.full((n_k, 2), np.nan)
 
+    fit_flags = np.full(n_k, np.nan)
+
     for i_k in range(n_k):
-        params[i_k, :] = fit_decay(filt_out[:, i_k], sr)
+        fit_out = fit_decay(filt_out[:, i_k], sr)
+        (params[i_k, :], fit_flags[i_k]) = fit_out
 
     t60 = -(60.0 / params[:, 0])
 
     t60_bb = np.median(t60)
 
-    return (params, t60, t60_bb)
+    return (params, fit_flags, t60, t60_bb)
 
 
 def fit_decay(filt_response, sr):
@@ -187,13 +196,22 @@ def fit_decay(filt_response, sr):
     def err_func(params):
         return M(x=t, params=params) - filt_response
 
-    (p, _) = scipy.optimize.leastsq(err_func, [-250, 50])
+    (p, _, _, _, ier) = scipy.optimize.leastsq(
+        func=err_func,
+        x0=[-250, 50],
+        full_output=True
+    )
 
-    return p
+    return (p, ier)
 
 
 def M(x, params):
 
     (phi, drr) = params
 
-    return 10 ** (((phi * x) - drr) / 20.0)
+    if -(60.0 / phi) < 0:
+        return np.Inf
+
+    y = 10 ** (((phi * x) - drr) / 20.0)
+
+    return y
