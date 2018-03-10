@@ -109,8 +109,7 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
         if (
             (n_gauss > 0) and
             (n_nongauss > 0) and
-            (n_gauss > n_nongauss) and
-            (i_sample > np.argmax(ir))
+            (n_gauss > n_nongauss)
         ):
 
             crossover = i_sample
@@ -201,6 +200,11 @@ def fit_decay(filt_response, sr):
         x0=[-250, 50],
         full_output=True
     )
+
+    # 2 The relative error between two consecutive iterates is at most ...
+    # 5 Number of calls to function has reached maxfev
+    # 3 Both actual and predicted relative reductions in the sum of squares
+    #   are at most ...
 
     return (p, ier)
 
