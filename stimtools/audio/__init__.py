@@ -7,6 +7,7 @@ from ._hardware import (
 )
 from ._ops import convolve
 from ._nb import nb_player
+from ._stats import rms_over_time
 
 __all__ = [
     "pure_tone",
@@ -19,4 +20,5 @@ __all__ = [
     "check_audiofile",
     "convolve",
     "nb_player",
+    "rms_over_time",
 ]
