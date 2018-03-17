@@ -8,6 +8,7 @@ from ._hardware import (
 from ._ops import convolve
 from ._nb import nb_player
 from ._stats import rms_over_time
+from ._io import save
 
 __all__ = [
     "pure_tone",
@@ -21,4 +22,5 @@ __all__ = [
     "convolve",
     "nb_player",
     "rms_over_time",
+    "save",
 ]
