@@ -42,6 +42,8 @@ class AudioFileParallelUsingD0(object):
 
         self._device = parallel.Parallel(port=port)
 
+        self.play = trigger
+
     def _track_to_pins(self, track_num, set_trigger=False):
         """Converts a desired track number and trigger status to the pin
         settings for the 'data' and 'strobe' lines.
@@ -97,14 +99,14 @@ class AudioFileParallelUsingD0(object):
         self._device.setData(data_val)
         self._device.setDataStrobe(strobe_val)
 
-    def play(self):
-        self.trigger()
-
     def trigger(self):
         """Triggers sound playback and resets all pins."""
 
         self._device.setDataStrobe(0)
         self._device.setData(128)
+
+    def close(self):
+        pass
 
 
 class AudioFileParallel(object):
@@ -126,6 +128,8 @@ class AudioFileParallel(object):
             port = 0
 
         self._device = parallel.Parallel(port=port)
+
+        self.play = trigger
 
     def cue(self, track_num):
         """Prepares a track for presentation.
@@ -160,6 +164,9 @@ class AudioFileParallel(object):
         """
 
         self._device.setData(trigger_val)
+
+    def close(self):
+        pass
 
 
 class AudioFileSerial(object):
