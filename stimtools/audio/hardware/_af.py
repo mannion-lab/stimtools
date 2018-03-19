@@ -97,6 +97,9 @@ class AudioFileParallelUsingD0(object):
         self._device.setData(data_val)
         self._device.setDataStrobe(strobe_val)
 
+    def play(self):
+        self.trigger()
+
     def trigger(self):
         """Triggers sound playback and resets all pins."""
 
