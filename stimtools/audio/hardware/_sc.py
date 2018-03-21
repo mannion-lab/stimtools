@@ -25,7 +25,13 @@ class SoundCard(object):
         self.close()
 
     def _callback(indata, outdata, frames, time, status):
-        outdata[:] = (np.random.uniform(-1,1,outdata.shape).astype("float32"))
+
+        if len(self._cued_waveform) == 0:
+            outdata.fill(0.0)
+
+        else:
+            outdata[:] = self._cued_waveform[:frames, :]
+            self._cued_waveform = self._cued_waveform[frames:, :]
 
     def cue(self, waveform):
         self._cued_waveform = waveform
