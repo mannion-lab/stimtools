@@ -14,24 +14,26 @@ from ._sc import SoundCard
 
 class Player(object):
 
-    def __init__(self, device, **device_args):
+    def __init__(self, interface, **interface_args):
 
-        device_table = {
+        interface_table = {
             "af_parallel": AudioFileParallel,
             "af_parallel_d0": AudioFileParallelUsingD0,
             "af_serial": AudioFileSerial,
             "sc": SoundCard,
         }
 
-        self._device_str = device
-        self._device_args = device_args
+        self._interface_str = interface
+        self._interface_args = interface_args
 
-        self.device = device_table[self._device_str](**device_args)
+        self.interface = (
+            interface_table[self._interface_str](**interface_args)
+        )
 
-        self.play = self.device.play
-        self.stop = self.device.stop
-        self.cue = self.device.cue
-        self.close = self.device.close
+        self.play = self.interface.play
+        self.stop = self.interface.stop
+        self.cue = self.interface.cue
+        self.close = self.interface.close
 
     def __enter__(self):
         return self
