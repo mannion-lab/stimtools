@@ -5,8 +5,6 @@ from ._af import (
     AudioFileParallel,
     AudioFileParallelUsingD0,
     AudioFileSerial,
-    write_playlist,
-    check_audiofile
 )
 
 from ._sc import SoundCard
