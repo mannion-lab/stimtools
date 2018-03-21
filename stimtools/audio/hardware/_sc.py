@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import numpy as np
 
 import sounddevice
@@ -27,7 +29,7 @@ class SoundCard(object):
             print(status)
 
         if len(self._waveform) == 0:
-           outdata.fill(0.0)
+            outdata.fill(0.0)
 
         else:
 
@@ -64,7 +66,6 @@ class SoundCard(object):
     def play(self):
 
         self._waveform = self._cued_waveform
-
 
     def stop(self):
         self._stream.stop()

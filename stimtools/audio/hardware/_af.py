@@ -42,7 +42,7 @@ class AudioFileParallelUsingD0(object):
 
         self._device = parallel.Parallel(port=port)
 
-        self.play = trigger
+        self.play = self.trigger
 
     def _track_to_pins(self, track_num, set_trigger=False):
         """Converts a desired track number and trigger status to the pin
@@ -129,7 +129,7 @@ class AudioFileParallel(object):
 
         self._device = parallel.Parallel(port=port)
 
-        self.play = trigger
+        self.play = self.trigger
 
     def cue(self, track_num):
         """Prepares a track for presentation.
