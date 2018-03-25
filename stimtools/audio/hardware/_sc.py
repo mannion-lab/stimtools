@@ -5,6 +5,8 @@ import numpy as np
 
 import sounddevice
 
+import alsaaudio
+
 
 class SoundCard(object):
 
@@ -55,7 +57,8 @@ class SoundCard(object):
         if waveform.ndim != 2:
             waveform = np.repeat(
                 waveform[:, np.newaxis],
-                (1, 2)
+                2,
+                axis=1
             )
 
         if waveform.dtype != np.float32:
