@@ -58,12 +58,10 @@ def read_frames(vid_path, frames=None, convert_colour=True):
         (read_ok, frame) = vid.read()
 
         if not read_ok:
-            warnings.warn(
-                "Unable to read past frame {n:d} of {t:d}.".format(
-                    n=(frame_num - 1), t=n_frames
-                ) +
-                " Returning readable portion."
+            warning = "Unable to read past frame {n:d} of {t:d}".format(
+                n=(frame_num - 1), t=n_frames
             )
+            warnings.warn(warning)
             n_frames = frame_num
             break
 
