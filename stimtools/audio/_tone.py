@@ -49,7 +49,10 @@ def pure_tone(
 
     """
 
-    if not isinstance(amplitude, collections.Sequence):
+    if (
+        (not isinstance(amplitude, collections.Sequence)) and
+        (type(amplitude) is not np.ndarray)
+    ):
         amplitude = [amplitude] * 2
 
     amplitude = np.array(amplitude)
