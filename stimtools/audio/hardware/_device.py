@@ -1,7 +1,7 @@
 
 from __future__ import absolute_import, print_function, division
 
-from ._af import (
+from .af import (
     AudioFileParallel,
     AudioFileParallelUsingD0,
     AudioFileSerial,
