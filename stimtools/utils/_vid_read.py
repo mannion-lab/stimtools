@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function, division
 
 import numbers
+import warnings
 
 import numpy as np
 
@@ -57,12 +58,21 @@ def read_frames(vid_path, frames=None, convert_colour=True):
         (read_ok, frame) = vid.read()
 
         if not read_ok:
-            raise OSError()
+            warnings.warn(
+                "Unable to read past frame {n:d} of {t:d}.".format(
+                    n=(frame_num - 1), t=n_frames
+                ) +
+                " Returning readable portion."
+            )
+            n_frames = frame_num
+            break
 
         if convert_colour:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         caps[i_frame, ...] = frame
+
+    caps = caps[:n_frames, ...]
 
     assert np.sum(np.isnan(caps)) == 0
 
