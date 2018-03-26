@@ -5,6 +5,7 @@ from ._ops import (convolve, amp_to_rms, rms_to_amp)
 from ._nb import nb_player
 from ._stats import rms_over_time
 from ._io import save
+from ._calib import (fit_rms_db_measurements, rms_to_db, db_to_rms)
 
 __all__ = [
     "pure_tone",
@@ -16,4 +17,7 @@ __all__ = [
     "nb_player",
     "rms_over_time",
     "save",
+    "fit_rms_db_measurements",
+    "rms_to_db",
+    "db_to_rms",
 ]

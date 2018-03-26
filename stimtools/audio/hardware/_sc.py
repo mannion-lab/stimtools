@@ -5,8 +5,6 @@ import numpy as np
 
 import sounddevice
 
-import alsaaudio
-
 
 class SoundCard(object):
 
