@@ -2,6 +2,7 @@
 from ._dpp import DisplayPlusPlus
 from ._polar_grating import polar_grating
 from ._sfm_boundary import SFMBoundary
+from ._sfm_cylinder import SFMCylinder
 from ._glass_pattern import GlassPattern
 from ._fixation import Fixation
 from ._fusion_lock import FusionLock
@@ -13,6 +14,7 @@ __all__ = [
     "DisplayPlusPlus",
     "polar_grating",
     "SFMBoundary",
+    "SFMCylinder",
     "GlassPattern",
     "Fixation",
     "FusionLock",
