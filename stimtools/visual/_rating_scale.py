@@ -14,6 +14,7 @@ class RatingScale(object):
         intervals=(-1, 1),
         initial=0.5,
         scale_width=200,
+        scale_height=10,
         scale_colour=(-0.5, ) * 3,
         marker_diam=24,
         marker_colour=(0.5, ) * 3,
@@ -25,13 +26,14 @@ class RatingScale(object):
         self._win = win
         self._intervals = intervals
         self._scale_width = scale_width
+        self._scale_height = scale_height
         self._marker_diam = marker_diam
         self._marker_colour = marker_colour
         self._marker_opacity = marker_opacity
         self._pos = pos
         self._scale_colour = scale_colour
 
-        self._scale_height = self._scale_width * 0.05
+        self._initial_value = initial
 
         self._h_extents = (
             self._pos[0] - self._scale_width / 2.0,
@@ -67,6 +69,11 @@ class RatingScale(object):
 
         self.value = initial
         self._marker.pos = self.val_to_pos(initial)
+
+    def reset(self):
+
+        self.value = self._initial_value
+        self._marker.pos = self.val_to_pos(self.value)
 
     def val_to_pos(self, val):
 
