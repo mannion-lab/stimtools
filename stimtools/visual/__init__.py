@@ -9,6 +9,7 @@ from ._fusion_lock import FusionLock
 from ._arrow import Arrow
 from ._rep_tex import rep_tex
 from ._noise import noise_image
+from ._rating_scale import RatingScale
 
 __all__ = [
     "DisplayPlusPlus",
@@ -20,5 +21,6 @@ __all__ = [
     "FusionLock",
     "Arrow",
     "rep_tex",
-    "noise_image"
+    "noise_image",
+    "RatingScale",
 ]
