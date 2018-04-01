@@ -150,7 +150,7 @@ def get_filter_centres(low=20, high=16000, n=33):
     )
 
 
-def get_filter_output(ir, sr, cf=None, dB=False):
+def get_filter_output(ir, sr, cf=None, dB=False, abs_conv=True):
 
     if cf is None:
         cf = get_filter_centres()
@@ -161,7 +161,8 @@ def get_filter_output(ir, sr, cf=None, dB=False):
 
     output = bank.process()
 
-    output = np.abs(output)
+    if abs_conv:
+        output = np.abs(output)
 
     if dB:
         output = 20 * np.log10(output)
