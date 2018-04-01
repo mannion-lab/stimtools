@@ -12,7 +12,7 @@ from ._conversions import (
 )
 from ._circ_dist import circ_dist
 from ._psi import Psi, logistic, weibull
-from ._vids import img_seq_to_vid
+from ._vids import img_seq_to_vid, combine_vids
 from ._exr import write_exr, read_exr
 from ._vid_read import read_frames
 from ._wav_env import apply_hanning
@@ -49,4 +49,5 @@ __all__ = [
     "ar_img_read",
     "ar_read",
     "create_ply",
+    "combine_vids",
 ]

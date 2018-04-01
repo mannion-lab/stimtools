@@ -40,7 +40,7 @@ class SFMBoundary(object):
 
             dot_loc = np.vstack(
                 [
-                    np.random.uniform(
+                    np.random.randint(
                         low=0,
                         high=bg_dim_size_pix,
                         size=self._bg_n_dots
@@ -155,3 +155,7 @@ def demo():
     win.saveMovieFrames("sfm_boundary.png")
 
     win.close()
+
+
+if __name__ == "__main__":
+    demo()
