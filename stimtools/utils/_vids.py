@@ -244,3 +244,49 @@ def img_seq_to_vid(
     finally:
         os.remove(image_list_txt.name)
         os.remove(filename_list_txt.name)
+
+
+def combine_vids(output_path, vid_paths, print_output=False):
+
+    vid_list_txt = tempfile.NamedTemporaryFile(
+        suffix=".txt",
+        delete=False
+    )
+
+    vid_list_txt.write(
+        "\n".join(
+            [
+                "file '" + vid_path + "'"
+                for vid_path in vid_paths
+            ]
+        )
+    )
+
+    vid_list_txt.close()
+
+    cmd = [
+        "ffmpeg",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", vid_list_txt.name,
+        "-c", "copy",
+        output_path
+    ]
+
+    try:
+
+        out = subprocess.check_output(
+            cmd,
+            stderr=subprocess.STDOUT
+        )
+
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        raise
+
+    else:
+        if print_output:
+            print(out)
+
+    finally:
+        os.remove(vid_list_txt.name)

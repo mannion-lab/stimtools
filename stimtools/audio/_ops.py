@@ -32,3 +32,23 @@ def convolve(source, ir):
     y = np.squeeze(y)
 
     return y
+
+
+def amp_to_rms(amp):
+
+    amp = np.array(amp) * (1.0 / np.sqrt(2))
+
+    if amp.size == 1:
+        amp = amp[0]
+
+    return amp
+
+
+def rms_to_amp(rms):
+
+    rms = np.array(rms) * np.sqrt(2)
+
+    if rms.size == 1:
+        rms = rms[0]
+
+    return rms
