@@ -165,6 +165,9 @@ class AudioFileParallel(object):
 
         self._device.setData(trigger_val)
 
+    def stop(self):
+        pass
+
     def close(self):
         pass
 
