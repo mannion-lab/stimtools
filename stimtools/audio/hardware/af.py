@@ -106,7 +106,7 @@ class AudioFileParallelUsingD0(object):
         self._device.setData(128)
 
     def close(self):
-        pass
+        del self._device
 
 
 class AudioFileParallel(object):
@@ -169,7 +169,7 @@ class AudioFileParallel(object):
         pass
 
     def close(self):
-        pass
+        del self._device
 
 
 class AudioFileSerial(object):
