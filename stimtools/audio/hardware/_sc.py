@@ -65,11 +65,13 @@ class SoundCard(object):
         self._cued_waveform = waveform
 
     def play(self):
-
         self._waveform = self._cued_waveform
 
     def stop(self):
         self._stream.stop()
+
+    def start(self):
+        self._stream.start()
 
     def close(self):
         self._stream.close()
