@@ -32,6 +32,7 @@ class Player(object):
         self.stop = self.interface.stop
         self.cue = self.interface.cue
         self.close = self.interface.close
+        self.start = self.interface.start
 
     def __enter__(self):
         return self

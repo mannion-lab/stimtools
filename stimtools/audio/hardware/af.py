@@ -43,6 +43,8 @@ class AudioFileParallelUsingD0(object):
         self._device = parallel.Parallel(port=port)
 
         self.play = self.trigger
+        self.start = None
+        self.stop = None
 
     def _track_to_pins(self, track_num, set_trigger=False):
         """Converts a desired track number and trigger status to the pin
@@ -130,6 +132,8 @@ class AudioFileParallel(object):
         self._device = parallel.Parallel(port=port)
 
         self.play = self.trigger
+        self.start = None
+        self.stop = None
 
     def cue(self, track_num):
         """Prepares a track for presentation.
@@ -193,6 +197,8 @@ class AudioFileSerial(object):
 
         if self._product_type != "AudioFile":
             raise OSError("Device doesn't seem to be an AudioFile")
+
+        self.start = None
 
     def __enter__(self):
         return self
