@@ -21,12 +21,16 @@ class SoundCard(object):
             **extra_settings
         )
 
+        self._status = None
+
         self._stream.start()
 
     def _callback(self, outdata, frames, time, status):
 
-        if status:
-            print(status)
+        self._status = status
+
+        if self._status:
+            self.errors += 1
 
         if len(self._waveform) == 0:
             outdata.fill(0.0)
@@ -71,6 +75,7 @@ class SoundCard(object):
         self._stream.stop()
 
     def start(self):
+        self.errors = 0
         self._stream.start()
 
     def close(self):
