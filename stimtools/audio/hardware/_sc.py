@@ -23,6 +23,8 @@ class SoundCard(object):
 
         self._status = None
 
+        self.errors = 0
+
         self._stream.start()
 
     def _callback(self, outdata, frames, time, status):
