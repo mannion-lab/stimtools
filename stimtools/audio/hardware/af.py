@@ -200,6 +200,8 @@ class AudioFileSerial(object):
 
         self.start = None
 
+        self.cue = None
+
     def __enter__(self):
         return self
 
