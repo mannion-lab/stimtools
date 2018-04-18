@@ -1,3 +1,4 @@
+import gc
 
 import numpy as np
 
@@ -42,11 +43,17 @@ def scramble_image(img, scramble="phase", axes=(0, 1), seed=None):
         out_phase = np.angle(img_freq)
         out_amp = np.tile(np.abs(noise_freq), tile_k)
 
+    del img_freq
+    del noise_freq
+
     # combine the image's amplitude spectrum with the random phase
     img_scrambled_freq = (
         out_amp * np.cos(out_phase) +
         1j * (out_amp * np.sin(out_phase))
     )
+
+    del out_amp
+    del out_phase
 
     # convert back into image space
     img_scrambled = np.real(
