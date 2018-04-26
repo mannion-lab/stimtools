@@ -101,11 +101,19 @@ class AudioFileParallelUsingD0(object):
         self._device.setData(data_val)
         self._device.setDataStrobe(strobe_val)
 
-    def trigger(self):
-        """Triggers sound playback and resets all pins."""
+    def trigger(self, trigger_val=129):
+        """Triggers sound playback.
 
+        Parameters
+        ----------
+        trigger_val: int, [128, 255], optional
+            The trigger is set by any value greater than 128. By specifying an
+            appropriate value here, the next track to deliver can be
+            automatically cued. The default resets it to track number 1.
+
+        """
         self._device.setDataStrobe(0)
-        self._device.setData(128)
+        self._device.setData(trigger_val)
 
     def close(self):
         del self._device
