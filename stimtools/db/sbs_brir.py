@@ -7,39 +7,10 @@ import soundfile
 import resampy
 
 
-def sbs_brir_convolve(
-    source_wave,
-    h_pos,
-    d_pos,
-    angle,
-    db_path,
-    wav_path=None,
-    head_rotation=0,
-    sample_rate=44100
-):
-    """Convolve a source waveform with the BRIR from the SBS dataset.
+def load_brir(h_pos, d_pos, angle, db_path=None, head_rotation=0):
 
-    Parameters
-    ----------
-    source_wave: numpy array (1D)
-        Source waveform. This is assumed to be at the BRIR sample rate (48kHz).
-    h_pos: float, {-1.0, -0.5, 0.0}
-        Horizontal position of the loudspeaker.
-    d_pos: float, {-1.0, -0.5, 0.0, 0.5, 1.0}
-        Depth position of the loudspeaker.
-    angle: int, {0, 30, 45, 90, 110, 135, 180, 225, 250, 270, 315, 330}
-        Angular position of the loudspeaker, in degrees.
-    db_path: string
-        Path to the SBS BRIR database.
-    wav_path: string or None, optional
-        Path to write the convolved waveform to a WAV file.
-    head_rotation: int, (0, 360], optional
-        Rotation of the dummy head, in degrees. Note that the recordings were
-        in 2 degree increments.
-    sample_rate: int, optional
-        Sample rate of the convolved waveform.
-
-    """
+    if db_path is None:
+        db_path = "/home/damien/science/db/sbs_brir"
 
     assert os.path.isdir(db_path)
 
@@ -82,6 +53,44 @@ def sbs_brir_convolve(
     i_brir_channels = slice(i_brir_channel_l, i_brir_channel_r + 1)
 
     brir = brir[:, i_brir_channels]
+
+    return brir
+
+
+def sbs_brir_convolve(
+    source_wave,
+    h_pos,
+    d_pos,
+    angle,
+    db_path,
+    wav_path=None,
+    sample_rate=44100
+):
+    """Convolve a source waveform with the BRIR from the SBS dataset.
+
+    Parameters
+    ----------
+    source_wave: numpy array (1D)
+        Source waveform. This is assumed to be at the BRIR sample rate (48kHz).
+    h_pos: float, {-1.0, -0.5, 0.0}
+        Horizontal position of the loudspeaker.
+    d_pos: float, {-1.0, -0.5, 0.0, 0.5, 1.0}
+        Depth position of the loudspeaker.
+    angle: int, {0, 30, 45, 90, 110, 135, 180, 225, 250, 270, 315, 330}
+        Angular position of the loudspeaker, in degrees.
+    db_path: string
+        Path to the SBS BRIR database.
+    wav_path: string or None, optional
+        Path to write the convolved waveform to a WAV file.
+    head_rotation: int, (0, 360], optional
+        Rotation of the dummy head, in degrees. Note that the recordings were
+        in 2 degree increments.
+    sample_rate: int, optional
+        Sample rate of the convolved waveform.
+
+    """
+
+    brir = load_brir(h_pos, d_pos, angle, db_path)
 
     wave = np.concatenate(
         [

@@ -16,33 +16,13 @@ class SoundCard(object):
         self._waveform = np.zeros(0)
 
         self._stream = sounddevice.OutputStream(
-            callback=self._callback,
             channels=2,
             **extra_settings
         )
 
+        self._status = None
+
         self._stream.start()
-
-    def _callback(self, outdata, frames, time, status):
-
-        if status:
-            print(status)
-
-        if len(self._waveform) == 0:
-            outdata.fill(0.0)
-
-        else:
-
-            if self._waveform.shape[0] < frames:
-                waveform = np.zeros(
-                    (frames, 2),
-                    dtype=self._waveform.dtype
-                )
-                waveform[:self._waveform.shape[0], :] = self._waveform
-                self._waveform = waveform
-
-            outdata[:] = self._waveform[:frames, :]
-            self._waveform = self._waveform[frames:, :]
 
     def __enter__(self):
         return self
@@ -64,12 +44,25 @@ class SoundCard(object):
 
         self._cued_waveform = waveform
 
-    def play(self):
+    def play(self, waveform=None, decue=True):
 
-        self._waveform = self._cued_waveform
+        if waveform is not None:
+            self.cue(waveform=waveform)
+
+        if self._cued_waveform is None:
+            raise ValueError("Haven't cued a waveform")
+
+        self._stream.write(data=self._cued_waveform)
+
+        if decue:
+            self._cued_waveform = None
 
     def stop(self):
         self._stream.stop()
+
+    def start(self):
+        self.errors = 0
+        self._stream.start()
 
     def close(self):
         self._stream.close()
