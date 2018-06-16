@@ -12,6 +12,52 @@ except ImportError:
     pass
 
 
+def get_ir_stats(ir_filename, t_gauss_thresh=None, filt_centres=None):
+
+    (ir, sr) = soundfile.read(ir_filename)
+
+    # 1) T_gauss
+    (_, i_crossover, t_gauss) = calc_t_gauss(
+        ir=ir,
+        sr=sr,
+        thresh=t_gauss_thresh
+    )
+
+    # use to split indirect component
+    ir = ir[i_crossover:]
+
+    filt_out = get_filter_output(
+        ir=ir,
+        sr=sr,
+        cf=filt_centres
+    )
+
+    fit_out = fit_filter_output(
+        filt_out=filt_out,
+        sr=sr
+    )
+
+    (params, fit_flags, t60_by_freq, t60_broadband) = fit_out
+
+    drr_by_freq = params[:, 1]
+
+    ok = (
+        (t_gauss > 0) and
+        (np.all(fit_flags == 1)) and
+        (np.all(t60_by_freq < 15.0))
+    )
+
+    return (
+        i_crossover,
+        t_gauss,
+        t60_by_freq,
+        t60_broadband,
+        drr_by_freq,
+        fit_flags,
+        ok
+    )
+
+
 def load_ir(wav_path, channel=0, split=False):
     """Load an IR from a wav file.
 
@@ -150,7 +196,7 @@ def get_filter_centres(low=20, high=16000, n=33):
     )
 
 
-def get_filter_output(ir, sr, cf=None, dB=False):
+def get_filter_output(ir, sr, cf=None, dB=False, abs_conv=True):
 
     if cf is None:
         cf = get_filter_centres()
@@ -161,7 +207,8 @@ def get_filter_output(ir, sr, cf=None, dB=False):
 
     output = bank.process()
 
-    output = np.abs(output)
+    if abs_conv:
+        output = np.abs(output)
 
     if dB:
         output = 20 * np.log10(output)
