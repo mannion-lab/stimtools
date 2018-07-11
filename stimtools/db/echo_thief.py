@@ -2,6 +2,7 @@ import os
 import collections
 
 import soundfile
+import librosa
 
 import imageio
 
@@ -116,12 +117,21 @@ Try setting the ECHO_THIEF_PATH shell environment variable.
     return locations
 
 
-def load_ir(loc_name, db_info=None):
+def load_ir(loc_name, db_info=None, new_sr=None):
 
     if db_info is None:
         db_info = get_db_info()
 
-    (ir, ir_sr) = soundfile.read(file=db_info[loc_name]["wav_path"])
+    if new_sr is None:
+        (ir, ir_sr) = soundfile.read(file=db_info[loc_name]["wav_path"])
+    else:
+        (ir, ir_sr) = librosa.load(
+            path=db_info[loc_name]["wav_path"],
+            sr=new_sr,
+            mono=False
+        )
+
+        ir = ir.T
 
     return (ir, ir_sr)
 
