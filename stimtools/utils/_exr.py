@@ -26,16 +26,16 @@ def read_exr(exr_path, squeeze=True, channel_order=None):
 
     exr_file = OpenEXR.InputFile(exr_path)
 
-    channels = exr_file.header()["channels"].keys()
+    header = exr_file.header()
 
-    data_window = exr_file.header()["dataWindow"]
+    channels = header["channels"].keys()
+
+    data_window = header["dataWindow"]
 
     img_size = (
         data_window.max.x - data_window.min.x + 1,
         data_window.max.y - data_window.min.y + 1
     )
-
-    pixel_type = Imath.PixelType(Imath.PixelType.FLOAT)
 
     if channel_order is None:
 
@@ -46,11 +46,23 @@ def read_exr(exr_path, squeeze=True, channel_order=None):
         else:
             channel_order = channels
 
-    img = np.full((img_size[1], img_size[0], len(channels)), np.nan)
+    type_lut = {"HALF": np.float16, "FLOAT": np.float32}
+
+    img = np.full(
+        (img_size[1], img_size[0], len(channels)),
+        np.nan,
+        dtype=type_lut[str(header["channels"][channel_order[0]].type)]
+    )
 
     for (i_channel, curr_channel) in enumerate(channel_order):
+
+        pixel_type = header["channels"][curr_channel].type
+
         channel_str = exr_file.channel(curr_channel, pixel_type)
-        channel_img = np.fromstring(channel_str, dtype=np.float32)
+        channel_img = np.fromstring(
+            channel_str,
+            dtype=type_lut[str(pixel_type)]
+        )
         channel_img.shape = (img_size[1], img_size[0])
         img[..., i_channel] = channel_img
 
