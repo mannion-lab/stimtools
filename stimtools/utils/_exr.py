@@ -10,7 +10,7 @@ except ImportError:
     pass
 
 
-def read_exr(exr_path, squeeze=True):
+def read_exr(exr_path, squeeze=True, channel_order=None):
     """Read an EXR file and return a numpy array.
 
     Parameters
@@ -19,6 +19,8 @@ def read_exr(exr_path, squeeze=True):
         Path to the EXR file to read.
     squeeze: boolean, optional
         Whether to remove single channel dimensions.
+    channel_order: collection of strings, optional
+        Explicitly specify the channel name ordering.
 
     """
 
@@ -35,12 +37,14 @@ def read_exr(exr_path, squeeze=True):
 
     pixel_type = Imath.PixelType(Imath.PixelType.FLOAT)
 
-    if all([k in channels for k in ["Y", "A"]]):
-        channel_order = ["Y", "A"]
-    elif all([k in channels for k in ["R", "G", "B"]]):
-        channel_order = ["R", "G", "B"]
-    else:
-        channel_order = channels
+    if channel_order is None:
+
+        if all([k in channels for k in ["Y", "A"]]):
+            channel_order = ["Y", "A"]
+        elif all([k in channels for k in ["R", "G", "B"]]):
+            channel_order = ["R", "G", "B"]
+        else:
+            channel_order = channels
 
     img = np.full((img_size[1], img_size[0], len(channels)), np.nan)
 
