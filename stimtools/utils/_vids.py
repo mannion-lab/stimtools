@@ -128,11 +128,13 @@ def img_seq_to_vid(
 
     image_list_txt = tempfile.NamedTemporaryFile(
         suffix=".txt",
+        mode="w",
         delete=False
     )
 
     filename_list_txt = tempfile.NamedTemporaryFile(
         suffix=".txt",
+        mode="w",
         delete=False
     )
 
