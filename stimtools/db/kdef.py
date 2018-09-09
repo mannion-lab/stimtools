@@ -64,6 +64,6 @@ def load_image(
     img = imageio.imread(img_path)
 
     if pow2_pad:
-        img = stim.utils.pad_image(img)
+        img = stimtools.utils.pad_image(img)
 
     return img
