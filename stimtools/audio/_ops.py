@@ -52,3 +52,7 @@ def rms_to_amp(rms):
         rms = rms[0]
 
     return rms
+
+
+def rms_to_db(rms, ref_rms):
+    return 20.0 * np.log10(rms / ref_rms)

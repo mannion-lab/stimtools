@@ -25,7 +25,7 @@ def fit_rms_db_measurements(rms, db):
     return coefs
 
 
-def rms_to_db(rms, coefs):
+def rms_to_db_from_coefs(rms, coefs):
     """Convert an RMS level to dB, given a set of calibration coefficients.
 
     Parameters
@@ -45,7 +45,7 @@ def rms_to_db(rms, coefs):
     return np.polyval(coefs, np.log10(rms))
 
 
-def db_to_rms(db, coefs):
+def db_to_rms_from_coefs(db, coefs):
     """Convert an dB level to RMS, given a set of calibration coefficients.
 
     Parameters
