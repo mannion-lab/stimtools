@@ -1,8 +1,11 @@
 
 import numpy as np
 
-import psychopy.visual
-import psychopy.event
+try:
+    import psychopy.visual
+    import psychopy.event
+except ImportError:
+    pass
 
 import stimtools.utils
 
@@ -81,7 +84,7 @@ def save_vid(vid_stem, fps=30, loops=5):
 
             caps[..., i_frame] = cap
 
-            cyl.update(1.0 / fps)
+            cyl.update(update_inc)
 
     stimtools.utils.img_seq_to_vid(
         image_paths=caps,
@@ -312,58 +315,8 @@ class SFMCylinder(object):
             len(i_update)
         )
 
-        for (i, c) in zip(i_update, new_colours):
-            self._colours[i, :] = c
-
-    def _gen_phases(self, n_to_gen, gen_meth):
-
-        phases = np.empty((n_to_gen, 2))
-        phases.fill(np.NAN)
-
-        phases[:, 0] = np.random.uniform(low=-1.0, high=1.0, size=n_to_gen)
-
-        # if generation method is by phase, its simple
-        if gen_meth == "phase":
-            phases[:, 1] = np.random.uniform(
-                low=0.0,
-                high=2 * np.pi,
-                size=n_to_gen
-            )
-
-        # if by surface, its only slightly less simple
-        elif gen_meth == "surface":
-
-            dir_n = n_to_gen / 2.0
-
-            # this is only useful when ``n_to_gen`` is odd, but doesn't hurt in
-            # the case where it is even
-            dir_n = [np.ceil(dir_n), np.floor(dir_n)]
-
-            dir_phases = []
-
-            for (n, phase_offset) in zip(dir_n, (0, np.pi)):
-
-                n = int(n)
-
-                surf_pos = np.random.uniform(low=-1.0, high=+1.0, size=n)
-
-                dir_phase = np.arccos(surf_pos)
-
-                dir_phase += phase_offset
-
-                dir_phases.append(dir_phase)
-
-            phases[:, 1] = np.hstack(dir_phases)
-
-            # shuffle to get rid of the structure
-            phases[:, 1] = phases[np.random.permutation(phases.shape[0]), 1]
-
-        else:
-            raise ValueError("Unknown generation method " + gen_meth)
-
-        assert np.sum(np.isnan(phases)) == 0
-
-        return phases
+        for (i_dot, c) in zip(i_update, new_colours):
+            self._colours[i_dot, :] = c
 
     def _get_xform(self, rotation=None):
 
@@ -384,6 +337,56 @@ class SFMCylinder(object):
         )
 
         return xform
+
+def gen_phases(n_to_gen, gen_meth):
+
+    phases = np.empty((n_to_gen, 2))
+    phases.fill(np.NAN)
+
+    phases[:, 0] = np.random.uniform(low=-1.0, high=1.0, size=n_to_gen)
+
+    # if generation method is by phase, its simple
+    if gen_meth == "phase":
+        phases[:, 1] = np.random.uniform(
+            low=0.0,
+            high=2 * np.pi,
+            size=n_to_gen
+        )
+
+    # if by surface, its only slightly less simple
+    elif gen_meth == "surface":
+
+        dir_n = n_to_gen / 2.0
+
+        # this is only useful when ``n_to_gen`` is odd, but doesn't hurt in
+        # the case where it is even
+        dir_n = [np.ceil(dir_n), np.floor(dir_n)]
+
+        dir_phases = []
+
+        for (n, phase_offset) in zip(dir_n, (0, np.pi)):
+
+            n = int(n)
+
+            surf_pos = np.random.uniform(low=-1.0, high=+1.0, size=n)
+
+            dir_phase = np.arccos(surf_pos)
+
+            dir_phase += phase_offset
+
+            dir_phases.append(dir_phase)
+
+        phases[:, 1] = np.hstack(dir_phases)
+
+        # shuffle to get rid of the structure
+        phases[:, 1] = phases[np.random.permutation(phases.shape[0]), 1]
+
+    else:
+        raise ValueError("Unknown generation method " + gen_meth)
+
+    assert np.sum(np.isnan(phases)) == 0
+
+    return phases
 
 
 if __name__ == "__main__":

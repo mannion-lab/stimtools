@@ -51,6 +51,9 @@ def rep_tex(
     else:
         close_at_end = False
 
+    if extra_args is None:
+        extra_args = {}
+
     rand = np.random.RandomState(random_seed)
 
     dot_positions = rand.rand(n_dots, 2)
@@ -90,7 +93,8 @@ def rep_tex(
         contrs=contrasts,
         xys=xy,
         elementMask=dot_shape,
-        elementTex=np.ones([4, 4])
+        elementTex=np.ones([4, 4]),
+        **extra_args
     )
 
     if close_at_end:

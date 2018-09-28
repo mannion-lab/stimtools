@@ -1,7 +1,11 @@
 
 import numpy as np
 
-import psychopy.visual
+try:
+    import psychopy.visual
+    import psychopy.event
+except ImportError:
+    pass
 
 import stimtools.utils
 
@@ -122,8 +126,6 @@ class RatingScale(object):
 
 def demo():
 
-    import psychopy.event
-
     with psychopy.visual.Window((400, 400), fullscr=False, units="pix") as win:
 
         mouse = psychopy.event.Mouse(win=win)
@@ -139,7 +141,7 @@ def demo():
 
             keys = psychopy.event.getKeys()
 
-            keep_going = len(keys) == 0
+            keep_going = bool(keys)
 
             if any(mouse.getPressed()):
                 rs.update(mouse.getPos())

@@ -8,8 +8,8 @@ def rms_over_time(waveform, bin_samples):
 
     rms = np.array(
         [
-            np.std(waveform[(i - half_bin):(i + half_bin)])
-            for i in range(half_bin, len(waveform) - half_bin)
+            np.std(waveform[(i_curr - half_bin):(i_curr + half_bin)])
+            for i_curr in range(half_bin, len(waveform) - half_bin)
         ]
     )
 

@@ -22,6 +22,8 @@ def sf_slope(img, return_values=False):
     (slope, _) = np.polyfit(x=log_freqs, y=log_amps, deg=1)
 
     if return_values:
-        return (slope, log_freqs, log_amps)
+        to_return = (slope, log_freqs, log_amps)
     else:
-        return slope
+        to_return = slope
+
+    return to_return
