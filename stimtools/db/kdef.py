@@ -1,11 +1,6 @@
 import os
-import collections
-
-import numpy as np
 
 import imageio
-
-import skimage.color
 
 import stimtools.utils
 
@@ -31,7 +26,7 @@ poses = {
     "half-left": "HL",
     "straight": "S",
     "half-right": "HR",
-    "half-left": "HL"
+    "full-right": "FR"
 }
 
 

@@ -70,7 +70,7 @@ def save_vid(vid_stem, fps=30, loops=5):
             gen_meth="surface"
         )
 
-        for i_frame in xrange(n_frames):
+        for i_frame in range(n_frames):
 
             cyl.draw()
             win.flip()
@@ -266,7 +266,7 @@ class SFMCylinder(object):
         xy = norm_xy * (self._size / 2.0)
 
         if self._xform.ndim == 3:
-            for i_d in xrange(self._n_dots):
+            for i_d in range(self._n_dots):
                 xy[i_d, :] = np.dot(xy[i_d, :], self._xform[..., i_d])
         else:
             xy = np.dot(xy, self._xform)
