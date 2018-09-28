@@ -7,9 +7,7 @@ import scipy.ndimage
 try:
     import psychopy.visual
     import psychopy.event
-except ImportError:
-    pass
-except:  # noqa
+except (ImportError, TypeError):
     pass
 
 import stimtools.utils
