@@ -81,11 +81,11 @@ class Psi(object):
 
         assert np.sum(np.isnan(self._p_lut)) == 0
 
-        self._curr_stim_index = None
+        self.curr_stim_index = None
 
     def get_curr_stim_level(self):
 
-        return self._stim_levels[self._curr_stim_index]
+        return self._stim_levels[self.curr_stim_index]
 
     def get_estimates(self):
 
@@ -99,7 +99,7 @@ class Psi(object):
         if new_level is None:
             new_level = np.random.choice(self._n_stim_levels)
 
-        self._curr_stim_index = new_level
+        self.curr_stim_index = new_level
 
     def step(self):
 
@@ -157,7 +157,7 @@ class Psi(object):
                 h[1, i_stim] * p_r_x[1, i_stim]
             )
 
-        self._curr_stim_index = np.argmin(e_h)
+        self.curr_stim_index = np.argmin(e_h)
 
         self._posterior = posterior
 
@@ -167,7 +167,7 @@ class Psi(object):
 
         self._prior = self._posterior[
             trial_success,
-            self._curr_stim_index,
+            self.curr_stim_index,
             ...
         ]
 
@@ -252,7 +252,7 @@ def psi_demo(n_trials=150, fixed_seed=False):
     for i_trial in range(n_trials):
 
         resp_prob = psych_func(
-            stim_levels[psi._curr_stim_index],
+            stim_levels[psi.curr_stim_index],
             true_alpha,
             true_beta
         )

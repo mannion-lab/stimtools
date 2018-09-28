@@ -100,7 +100,7 @@ def get_db_info():
     # no image is assigned to two different locations
     assert len(unique_images) == len(set(unique_images))
 
-    if len(locations) == 0:
+    if not locations:
         raise ValueError(
             """
 Database not found at {d:s}.

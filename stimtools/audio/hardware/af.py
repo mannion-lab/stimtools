@@ -46,41 +46,6 @@ class AudioFileParallelUsingD0(object):
         self.start = None
         self.stop = None
 
-    def _track_to_pins(self, track_num, set_trigger=False):
-        """Converts a desired track number and trigger status to the pin
-        settings for the 'data' and 'strobe' lines.
-
-        Parameters
-        ----------
-        track_num: integer, [1, 256]
-            Track number, according to the 'Playlist.xml' register on the
-            device.
-        set_trigger: bool, optional
-            Whether the trigger bit should be set or not.
-
-        Returns
-        -------
-        (data_val, strobe_val): integers
-            Values to send to the data and strobe lines.
-
-        """
-
-        if not (0 <= track_num <= 256):
-            raise ValueError("Incorrect track number")
-
-        track_binary = "{n:08b}".format(n=track_num)
-
-        data_line = (
-            str(int(set_trigger)) +  # trigger bit
-            track_binary[:-1]
-        )
-
-        data_val = int(data_line, 2)
-
-        strobe_val = int(track_binary[-1])
-
-        return (data_val, strobe_val)
-
     def cue(self, track_num):
         """Prepares a track for presentation.
 
@@ -96,7 +61,7 @@ class AudioFileParallelUsingD0(object):
 
         """
 
-        (data_val, strobe_val) = self._track_to_pins(track_num=track_num)
+        (data_val, strobe_val) = track_to_pins(track_num=track_num)
 
         self._device.setData(data_val)
         self._device.setDataStrobe(strobe_val)
@@ -176,9 +141,6 @@ class AudioFileParallel(object):
         """
 
         self._device.setData(trigger_val)
-
-    def stop(self):
-        pass
 
     def close(self):
         del self._device
@@ -393,3 +355,39 @@ def check_audiofile(mount_expected):
 
     if mounted and (not mount_expected):
         raise ValueError("AudioFile mounted")
+
+
+def track_to_pins(track_num, set_trigger=False):
+    """Converts a desired track number and trigger status to the pin
+    settings for the 'data' and 'strobe' lines.
+
+    Parameters
+    ----------
+    track_num: integer, [1, 256]
+    Track number, according to the 'Playlist.xml' register on the
+    device.
+    set_trigger: bool, optional
+    Whether the trigger bit should be set or not.
+
+    Returns
+    -------
+    (data_val, strobe_val): integers
+    Values to send to the data and strobe lines.
+
+    """
+
+    if not (0 <= track_num <= 256):
+        raise ValueError("Incorrect track number")
+
+    track_binary = "{n:08b}".format(n=track_num)
+
+    data_line = (
+        str(int(set_trigger)) +  # trigger bit
+        track_binary[:-1]
+    )
+
+    data_val = int(data_line, 2)
+
+    strobe_val = int(track_binary[-1])
+
+    return (data_val, strobe_val)

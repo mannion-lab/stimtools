@@ -58,7 +58,7 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     else:
 
-        if type(to) not in [list, tuple, np.ndarray]:
+        if not isinstance(to, (list, tuple, np.ndarray)):
             new_size = [to] * 2
 
         else:
@@ -89,6 +89,8 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
     pad_img = np.squeeze(pad_img)
 
     if calc_mask:
-        return (pad_img, mask_img)
+        to_return = (pad_img, mask_img)
     else:
-        return pad_img
+        to_return = pad_img
+
+    return to_return

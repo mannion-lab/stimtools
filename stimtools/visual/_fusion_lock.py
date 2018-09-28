@@ -6,8 +6,6 @@ try:
     import psychopy.visual
 except ImportError:
     pass
-except:  # noqa
-    pass
 
 import stimtools.utils
 
