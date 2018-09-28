@@ -1,21 +1,35 @@
 
-import pyglet.gl
+from __future__ import print_function
 
-import psychopy.visual
-import psychopy.hardware.crs
+import pyglet.canvas
+
+try:
+
+    import pyglet.gl
+
+    import psychopy.visual
+    import psychopy.hardware.crs
+
+except (ImportError, pyglet.canvas.xlib.NoSuchDisplayException):
+    pass
 
 
-class DisplayPlusPlus(psychopy.visual.Window):
+try:
+    parent = psychopy.visual.Window
+except NameError:
+    parent = object
+
+
+class DisplayPlusPlus(parent):
 
     def __init__(
         self,
         dpp_mode="mono++",
         dpp_port="/dev/dpp",
-        *args,
         **kwargs
     ):
 
-        super(DisplayPlusPlus, self).__init__(*args, **kwargs)
+        super(DisplayPlusPlus, self).__init__(**kwargs)
 
         self._win_close = super(DisplayPlusPlus, self).close
 
@@ -23,7 +37,7 @@ class DisplayPlusPlus(psychopy.visual.Window):
             win=self,
             mode="mono++",
             gamma="hardware",
-            portName="/dev/dpp"
+            portName=dpp_port
         )
 
         if not hasattr(self._bits, "info"):

@@ -17,8 +17,6 @@ try:
 
 except ImportError:
     pass
-except:  # noqa
-    pass
 
 
 import stimtools.utils

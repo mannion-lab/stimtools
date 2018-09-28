@@ -233,8 +233,8 @@ def img_seq_to_vid(
                 stderr=subprocess.STDOUT
             )
 
-    except subprocess.CalledProcessError as e:
-        print(e.output)
+    except subprocess.CalledProcessError as err:
+        print(err.output)
         raise
 
     else:
@@ -280,8 +280,8 @@ def combine_vids(output_path, vid_paths, print_output=False):
             stderr=subprocess.STDOUT
         )
 
-    except subprocess.CalledProcessError as e:
-        print(e.output)
+    except subprocess.CalledProcessError as err:
+        print(err.output)
         raise
 
     else:

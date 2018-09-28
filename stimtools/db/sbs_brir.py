@@ -92,6 +92,8 @@ def sbs_brir_convolve(
 
     brir = load_brir(h_pos, d_pos, angle, db_path)
 
+    brir_sr = 48000
+
     wave = np.concatenate(
         [
             np.convolve(source_wave, brir[:, i_lr])[:, np.newaxis]
