@@ -152,12 +152,7 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
             else:
                 n_gauss += 1
 
-        if (
-            (n_gauss > 0) and
-            (n_nongauss > 0) and
-            (n_gauss > n_nongauss)
-        ):
-
+        if n_gauss > n_nongauss > 0:
             crossover = i_sample
             break
 
