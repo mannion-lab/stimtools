@@ -5,6 +5,8 @@ import itertools
 import numpy as np
 import numpy.testing as npt
 
+import scipy.stats
+
 
 class Psi(object):
 
@@ -214,6 +216,30 @@ def weibull(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
     """
 
     y = 1 - np.exp(-(x / alpha) ** beta)
+
+    y *= 1 - guess_rate - lapse_rate
+
+    y += guess_rate
+
+    return y
+
+
+def cnorm(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
+    """Cumulative normal psychometric function.
+
+    Parameters
+    ----------
+    x: float or vector of floats
+        Point to evaluate the function
+    alpha: float
+        Threshold (point where function output is ~0.5)
+    beta: float, > 0
+        Slope of the function
+    guess_rate, lapse_rate: float, [0, 1]
+        How often the subject guesses or lapses
+    """
+
+    y = scipy.stats.distributions.norm.cdf(x=x, loc=alpha, scale=beta)
 
     y *= 1 - guess_rate - lapse_rate
 
