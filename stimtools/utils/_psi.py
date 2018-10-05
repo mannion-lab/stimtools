@@ -248,6 +248,36 @@ def cnorm(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
     return y
 
 
+def cnorm_alt(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
+    """Alternative cumulative normal psychometric function. Note that this
+    works via the logistic function, so is not actually a cumulative normal.
+    However, the slope parameter is transformed such that it is pretty close.
+
+    Parameters
+    ----------
+    x: float or vector of floats
+        Point to evaluate the function
+    alpha: float
+        Threshold (point where function output is ~0.5)
+    beta: float
+        Slope of the function
+    guess_rate, lapse_rate: float, [0, 1]
+        How often the subject guesses or lapses
+    """
+
+    transformed_beta = 1.0 / (beta * (np.sqrt(3.0) / np.pi))
+
+    y = logistic(
+        x=x,
+        alpha=alpha,
+        beta=transformed_beta,
+        guess_rate=guess_rate,
+        lapse_rate=lapse_rate
+    )
+
+    return y
+
+
 def psi_demo(n_trials=150, fixed_seed=False):
     "Demo of the operation of the psi function"
 
