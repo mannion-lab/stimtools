@@ -11,7 +11,7 @@ from ._conversions import (
     rgb_to_grey
 )
 from ._circ_dist import circ_dist
-from ._psi import Psi, logistic, weibull, cnorm
+from ._psi import Psi, logistic, weibull, cnorm, cnorm_alt
 from ._vids import img_seq_to_vid, combine_vids
 from ._exr import write_exr, read_exr
 from ._vid_read import read_frames
@@ -51,4 +51,5 @@ __all__ = [
     "create_ply",
     "combine_vids",
     "cnorm",
+    "cnorm_alt",
 ]
