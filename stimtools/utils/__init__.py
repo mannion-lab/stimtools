@@ -21,6 +21,7 @@ from ._sf_slope import sf_slope
 from ._scramble import scramble_image
 from ._ar_face import ar_expressions, ar_img_read, ar_read
 from ._ply import create_ply
+from ._data_files import get_subj_ids_from_data_files
 
 __all__ = [
     "pad_image",
@@ -52,4 +53,5 @@ __all__ = [
     "combine_vids",
     "cnorm",
     "cnorm_alt",
+    "get_subj_ids_from_data_files",
 ]
