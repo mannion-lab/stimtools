@@ -29,16 +29,23 @@ class DisplayPlusPlus(parent):
         **kwargs
     ):
 
+        kwargs["useFBO"] = True
+
         super(DisplayPlusPlus, self).__init__(**kwargs)
 
         self._win_close = super(DisplayPlusPlus, self).close
 
-        self._bits = psychopy.hardware.crs.BitsSharp(
-            win=self,
-            mode="mono++",
-            gamma="hardware",
-            portName=dpp_port
-        )
+        try:
+            self._bits = psychopy.hardware.crs.BitsSharp(
+                win=self,
+                mode="mono++",
+                gamma="hardware",
+                portName=dpp_port
+            )
+
+        except (pyglet.gl.GLException, IndexError):
+            self.close()
+            raise
 
         if not hasattr(self._bits, "info"):
             self._win_close()
@@ -51,7 +58,8 @@ class DisplayPlusPlus(parent):
 
     def close(self):
 
-        self._bits.mode = "auto++"
-        self._bits.com.close()
+        if hasattr(self, "_bits"):
+            self._bits.mode = "auto++"
+            self._bits.com.close()
 
         self._win_close()
