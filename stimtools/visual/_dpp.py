@@ -29,6 +29,7 @@ class DisplayPlusPlus(parent):
         **kwargs
     ):
 
+        # requires FBO
         kwargs["useFBO"] = True
 
         super(DisplayPlusPlus, self).__init__(**kwargs)
@@ -51,10 +52,11 @@ class DisplayPlusPlus(parent):
             self._win_close()
             raise ValueError("Cannot communicate with the DPP")
 
-        self._bits.temporalDithering = False
-
-        if dpp_mode == "mono++":
-            pyglet.gl.glColorMask(1, 1, 0, 1)
+        # using self._bits.temporalDithering leaves the serial device in a bad
+        # state
+        self._bits.sendMessage("TemporalDithering=[OFF]\r")
+        self._bits.pause()
+        self._bits.getResponse()
 
     def close(self):
 
