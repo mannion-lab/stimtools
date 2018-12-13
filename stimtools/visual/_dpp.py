@@ -31,6 +31,8 @@ class DisplayPlusPlus(parent):
 
         # requires FBO
         kwargs["useFBO"] = True
+        # needed to get correct refresh
+        kwargs["waitBlanking"] = False
 
         super(DisplayPlusPlus, self).__init__(**kwargs)
 
