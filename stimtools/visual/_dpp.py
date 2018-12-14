@@ -33,6 +33,8 @@ class DisplayPlusPlus(parent):
         kwargs["useFBO"] = True
         # needed to get correct refresh
         kwargs["waitBlanking"] = False
+        # gamma is always 1.0
+        kwargs["gamma"] = 1.0
 
         super(DisplayPlusPlus, self).__init__(**kwargs)
 
