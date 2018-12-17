@@ -85,6 +85,15 @@ class Psi(object):
 
         self.curr_stim_index = None
 
+    def __repr__(self):
+
+        (alpha_hat, beta_hat) = self.get_estimates()
+
+        return "Alpha: {alpha:.05f}, Beta: {beta:.05f}".format(
+            alpha=alpha_hat,
+            beta=beta_hat
+        )
+
     def get_curr_stim_level(self):
 
         return self._stim_levels[self.curr_stim_index]
@@ -278,7 +287,7 @@ def cnorm_alt(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
     return y
 
 
-def psi_demo(n_trials=150, fixed_seed=False):
+def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
     "Demo of the operation of the psi function"
 
     true_alpha = 5.0
@@ -324,12 +333,19 @@ def psi_demo(n_trials=150, fixed_seed=False):
 
         psi.step()
 
-        print(
-            "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
-                t=i_trial + 1,
-                a=est_alpha,
-                b=est_beta
+        if verbose:
+            print(
+                "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
+                    t=i_trial + 1,
+                    a=est_alpha,
+                    b=est_beta
+                )
             )
-        )
+
+    print(psi)
 
     return psi
+
+
+if __name__ == "__main__":
+    psi_demo(n_trials=60, fixed_seed=True)
