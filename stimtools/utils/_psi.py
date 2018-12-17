@@ -1,21 +1,29 @@
 from __future__ import absolute_import, print_function, division
 
 import itertools
+import pickle
 
 import numpy as np
-import numpy.testing as npt
 
 import scipy.stats
 
 
 class Psi(object):
 
+    @staticmethod
+    def from_file(filename):
+        with open(filename, "rb") as file_handle:
+            psi = pickle.load(file=file_handle)
+
+        return psi
+
     def __init__(
         self,
         alpha_levels,
         beta_levels,
         stim_levels,
-        psych_func
+        psych_func,
+        focus="both"
     ):
         """Psi adaptive estimation method.
 
@@ -31,6 +39,9 @@ class Psi(object):
             Psychometric function. This should accept (at least) three named
             parameters; x, alpha, and beta. To allow other to be specified
             (lapse rate, etc.) use `functools.partial`.
+        focus: string, optional, {"alpha", "beta", "both"}
+            Whether to focus on estimation of the alpha or beta parameter, or
+            both. This is the 'psi-marginal' method.
 
         Notes
         -----
@@ -43,6 +54,7 @@ class Psi(object):
         self._beta_levels = beta_levels
         self._stim_levels = stim_levels
         self._psych_func = psych_func
+        self._focus = focus
 
         self._n_alpha_levels = len(alpha_levels)
         self._n_beta_levels = len(beta_levels)
@@ -52,17 +64,15 @@ class Psi(object):
         self._prior = np.ones((self._n_alpha_levels, self._n_beta_levels))
         self._prior /= (self._n_alpha_levels * self._n_beta_levels)
 
-        npt.assert_approx_equal(np.sum(self._prior), 1.0)
-
-        self._p_lut = np.empty(
+        self._p_lut = np.full(
             (
                 2,  # response
                 self._n_stim_levels,  # x
                 self._n_alpha_levels,  # alpha
                 self._n_beta_levels  # beta
-            )
+            ),
+            np.nan
         )
-        self._p_lut.fill(np.NAN)
 
         # populate using the supplied psychometric function
         for ((i_alpha, alpha), (i_beta, beta)) in itertools.product(
@@ -80,8 +90,6 @@ class Psi(object):
             self._p_lut[0, :, i_alpha, i_beta] = 1.0 - est
             # success
             self._p_lut[1, :, i_alpha, i_beta] = est
-
-        assert np.sum(np.isnan(self._p_lut)) == 0
 
         self.curr_stim_index = None
 
@@ -114,59 +122,34 @@ class Psi(object):
 
     def step(self):
 
-        p_r_x = np.empty((2, self._n_stim_levels))
-        p_r_x.fill(np.NAN)
+        p_r_x = np.sum(
+            self._prior[np.newaxis, np.newaxis, ...] * self._p_lut,
+            axis=(2, 3)
+        )
 
-        for (i_resp, i_stim) in itertools.product(
-            range(2),
-            range(self._n_stim_levels)
-        ):
+        posterior = (
+            (self._prior[np.newaxis, np.newaxis, ...] * self._p_lut) /
+            p_r_x[..., np.newaxis, np.newaxis]
+        )
 
-            p_r_x[i_resp, i_stim] = np.sum(
-                self._p_lut[i_resp, i_stim, ...] * self._prior
-            )
+        if self._focus == "both":
+            marginal = posterior
+            h_sum_ax = (2, 3)
+        elif self._focus == "alpha":
+            # sum over beta
+            marginal = np.sum(posterior, axis=-1)
+            h_sum_ax = -1
+        elif self._focus == "beta":
+            # sum over alpha
+            marginal = np.sum(posterior, axis=-2)
+            h_sum_ax = -1
 
-        assert np.sum(np.isnan(p_r_x)) == 0
+        h = -1 * np.sum(
+            marginal * np.log(marginal + 1e-10),
+            axis=h_sum_ax
+        )
 
-        posterior = np.empty(self._p_lut.shape)
-        posterior.fill(np.NAN)
-
-        for (i_resp, i_stim) in itertools.product(
-            range(2),
-            range(self._n_stim_levels)
-        ):
-
-            posterior[i_resp, i_stim, ...] = (
-                (
-                    self._prior * self._p_lut[i_resp, i_stim, ...]
-                ) /
-                p_r_x[i_resp, i_stim]
-            )
-
-        h = np.empty((2, self._n_stim_levels))
-        h.fill(np.NAN)
-
-        for (i_resp, i_stim) in itertools.product(
-            range(2),
-            range(self._n_stim_levels)
-        ):
-
-            h[i_resp, i_stim] = -1 * np.sum(
-                posterior[i_resp, i_stim, ...] *
-                np.log(posterior[i_resp, i_stim, ...] + 1e-10)
-            )
-
-        assert np.sum(np.isnan(h)) == 0
-
-        e_h = np.empty((self._n_stim_levels))
-        e_h.fill(np.NAN)
-
-        for i_stim in range(self._n_stim_levels):
-
-            e_h[i_stim] = (
-                h[0, i_stim] * p_r_x[0, i_stim] +
-                h[1, i_stim] * p_r_x[1, i_stim]
-            )
+        e_h = np.sum(h * p_r_x, axis=0)
 
         self.curr_stim_index = np.argmin(e_h)
 
@@ -176,11 +159,19 @@ class Psi(object):
 
         trial_success = int(trial_success)
 
+        assert trial_success in [0, 1]
+
         self._prior = self._posterior[
             trial_success,
             self.curr_stim_index,
             ...
         ]
+
+    def save(self, filename):
+
+        with open(filename, "wb") as file_handle:
+            pickle.dump(obj=self, file=file_handle)
+
 
 
 def logistic(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
@@ -291,17 +282,21 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
     "Demo of the operation of the psi function"
 
     true_alpha = 5.0
-    true_beta = 5.0
+    true_beta = 1.0
 
     n_res = 100
 
-    alpha_levels = np.linspace(0, 10, n_res)
+    stim_levels = np.linspace(0, 10, n_res)
     beta_levels = np.linspace(0, 10, n_res)[1:]
-    stim_levels = alpha_levels
+    alpha_levels = np.linspace(4, 6, n_res)
 
     # useful for checking that the output doesn't change with refactoring
     if fixed_seed:
-        np.random.seed(28513)
+        seed = 28513
+    else:
+        seed = np.random.randint(low=0, high=2 ** 32 - 1)
+
+    rand = np.random.RandomState(seed=seed)
 
     psych_func = logistic
 
@@ -309,7 +304,8 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
         alpha_levels=alpha_levels,
         beta_levels=beta_levels,
         stim_levels=stim_levels,
-        psych_func=psych_func
+        psych_func=psych_func,
+        focus="both",
     )
 
     psi.step()
@@ -322,7 +318,7 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
             true_beta
         )
 
-        resp = np.random.choice(
+        resp = rand.choice(
             [0, 1],
             p=[1 - resp_prob, resp_prob]
         )
