@@ -4,7 +4,7 @@ import numpy as np
 
 def rms_over_time(waveform, bin_samples):
 
-    half_bin = int(bin_samples) / 2
+    half_bin = int(bin_samples / 2)
 
     rms = np.array(
         [
