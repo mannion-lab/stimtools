@@ -10,6 +10,7 @@ from ._calib import (
     rms_to_db_from_coefs,
     db_to_rms_from_coefs
 )
+from ._tvl import compute_tvl
 
 __all__ = [
     "pure_tone",
@@ -25,4 +26,5 @@ __all__ = [
     "rms_to_db_from_coefs",
     "db_to_rms_from_coefs",
     "rms_to_db",
+    "compute_tvl",
 ]
