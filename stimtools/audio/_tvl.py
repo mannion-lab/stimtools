@@ -10,6 +10,24 @@ import resampy
 
 
 def compute_tvl(wav_path, db_max, fir_type="midear"):
+    """Computes the 'time-varying loudness' of a waveform, using the binary
+    provided at https://www.psychol.cam.ac.uk/hearing.
+
+    Parameters
+    ----------
+    wav_path: string
+        Path to the wav file. Will be resampled if not 32Khz.
+    db_max: number
+        The level (dB SPL) produced by a full-scale sinusoid.
+    fir_type: string, {"midear", df", "ff"}
+        See the program README for details on what this does.
+
+    Returns
+    -------
+    output: (3, 2) array of floats
+        The first axis is ("instantaneous", "short-term average", "long-term
+        average"), and the second axis is ("sones", "phons").
+    """
 
     try:
         tvl_path = os.environ["TVL_PATH"]
