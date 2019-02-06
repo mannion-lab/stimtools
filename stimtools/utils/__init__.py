@@ -22,7 +22,6 @@ from ._scramble import scramble_image
 from ._ar_face import ar_expressions, ar_img_read, ar_read
 from ._ply import create_ply
 from ._data_files import get_subj_ids_from_data_files
-from ._mlds import gen_mlds_items
 
 __all__ = [
     "pad_image",
@@ -55,5 +54,4 @@ __all__ = [
     "cnorm",
     "cnorm_alt",
     "get_subj_ids_from_data_files",
-    "gen_mlds_items"
 ]
