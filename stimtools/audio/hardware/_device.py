@@ -1,6 +1,4 @@
 
-from __future__ import absolute_import, print_function, division
-
 from .af import (
     AudioFileParallel,
     AudioFileParallelUsingD0,
@@ -10,7 +8,7 @@ from .af import (
 from ._sc import SoundCard
 
 
-class Player(object):
+class Player():
 
     def __init__(self, interface, **interface_args):
 
@@ -19,6 +17,7 @@ class Player(object):
             "af_parallel_d0": AudioFileParallelUsingD0,
             "af_serial": AudioFileSerial,
             "sc": SoundCard,
+            "dummy": Dummy,
         }
 
         self._interface_str = interface
@@ -39,3 +38,16 @@ class Player(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+
+class Dummy():
+
+    def __init__(self):
+
+        self.start = self.close = self.play = self.stop
+
+    def cue(self, track_num):
+        pass
+
+    def stop(self):
+        pass
