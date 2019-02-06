@@ -1,8 +1,10 @@
 
 from ._mlds import (
-    gen_items
+    gen_items,
+    prob,
 )
 
-__all__ == (
+__all__ = [
     gen_items,
-)
+    prob,
+]
