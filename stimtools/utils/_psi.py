@@ -151,11 +151,6 @@ class Psi(object):
 
         e_h = np.sum(h * p_r_x, axis=0)
 
-        self._prx = p_r_x
-        self._pp = posterior
-        self.h = h
-        self.e_h = e_h
-
         self.curr_stim_index = np.argmin(e_h)
 
         self._posterior = posterior
@@ -314,8 +309,6 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
     )
 
     psi.step()
-
-    return psi
 
     for i_trial in range(n_trials):
 
