@@ -16,12 +16,13 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
 
     params = {
         "alpha": {
-            "levels": np.linspace(4, 6, n_res),
+            "levels": np.linspace(2.5, 7.5, n_res),
             "prior": scipy.stats.distributions.uniform.pdf(
-                np.linspace(3, 7, n_res),
-                loc=3.0,
-                scale=4.0
-            )
+                np.linspace(2.5, 7.5, n_res),
+                loc=2.5,
+                scale=5.0
+            ),
+            "marginalise": False
         },
         "beta": {
             "levels": np.linspace(0, 10, n_res)[1:],
@@ -32,8 +33,9 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
                     np.linspace(0, 10, n_res)[-1] -
                     np.linspace(0, 10, n_res)[1]
                 )
-            )
-        }
+            ),
+            "marginalise": True
+        },
     }
 
     stim_levels = np.linspace(0, 10, n_res)
@@ -71,7 +73,7 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
 
         psi.update(resp)
 
-        #(est_alpha, est_beta) = psi.get_estimates()
+        estimates = psi.get_estimates()
 
         psi.step()
 
@@ -79,12 +81,11 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
             print(
                 "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
                     t=i_trial + 1,
-                    a=est_alpha,
-                    b=est_beta
+                    a=estimates["alpha"],
+                    b=estimates["beta"]
                 )
             )
 
-    print(psi)
+    print(psi.get_estimates())
 
     return psi
-
