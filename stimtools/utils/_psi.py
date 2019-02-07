@@ -151,6 +151,11 @@ class Psi(object):
 
         e_h = np.sum(h * p_r_x, axis=0)
 
+        self._prx = p_r_x
+        self._pp = posterior
+        self.h = h
+        self.e_h = e_h
+
         self.curr_stim_index = np.argmin(e_h)
 
         self._posterior = posterior
@@ -183,7 +188,7 @@ def logistic(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
         Point to evaluate the function
     alpha: float
         Threshold (point where function output is 0.5)
-    beta: float, > 0
+    betae float, > 0
         Slope of the function
     guess_rate, lapse_rate: float, [0,1]
         How often the subject guesses or lapses.
@@ -309,6 +314,8 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False):
     )
 
     psi.step()
+
+    return psi
 
     for i_trial in range(n_trials):
 
