@@ -40,6 +40,9 @@ class Psi():
 
         for (i_param, param) in enumerate(self._params.values()):
 
+            if "marginalise" not in param:
+                param["marginalise"] = False
+
             full_prior = np.reshape(
                 param["prior"],
                 (len(param["prior"]), ) + (1, ) * (self._n_params - 1)
