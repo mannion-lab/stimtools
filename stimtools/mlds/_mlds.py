@@ -54,14 +54,20 @@ def prob(levels, sigma):
     if levels.ndim == 1:
         levels = levels[:, np.newaxis]
 
+    (n_levels, *_) = levels.shape
+
     # triad
-    if levels.shape[0] == 3:
+    if n_levels == 3:
         (a, b, c) = levels
         mu = np.abs(c - b) - np.abs(b - a)
 
-    elif len(levels) == 4:
+    elif n_levels == 4:
         (a, b, c, d) = levels
         mu = np.abs(d - c) - np.abs(b - a)
+    else:
+        raise ValueError(
+            f"Unexpected levels length ({n_levels:d})"
+        )
 
     p = 1.0 - scipy.stats.distributions.norm.cdf(x=0.0, loc=mu, scale=sigma)
 
