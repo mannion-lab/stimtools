@@ -181,9 +181,16 @@ class Psi():
     def get_estimates(self):
         """Returns a dict with the current estimates for each parameter."""
 
+        posterior_peak = np.argmax(self._prior)
+
+        i_peak = np.unravel_index(posterior_peak, self._prior.shape)
+
         estimates = {
-            param_name: np.sum(param["full_levels"] * self._prior)
-            for (param_name, param) in self._params.items()
+            param_name: param["levels"][i_param_peak]
+            for ((param_name, param), i_param_peak) in zip(
+                self._params.items(),
+                i_peak
+            )
         }
 
         return estimates
