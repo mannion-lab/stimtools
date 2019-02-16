@@ -236,12 +236,12 @@ def img_seq_to_vid(
             )
 
     except subprocess.CalledProcessError as err:
-        print(err.output)
+        print(err.output.decode("utf8"))
         raise
 
     else:
         if print_output:
-            print(out)
+            print(out.decode("utf8"))
 
     finally:
         os.remove(image_list_txt.name)
