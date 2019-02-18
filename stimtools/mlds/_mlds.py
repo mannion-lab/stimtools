@@ -74,7 +74,6 @@ def prob(levels, sigma):
     return p
 
 def prob_scaled(levels, sigma):
-    variance = sigma ** 2
-    sigma_scaled = np.sqrt(np.mean(levels) * variance)
+    sigma_scaled = sigma * np.sqrt(np.mean(levels ** 2))
     p = prob(levels, sigma_scaled)
     return p
