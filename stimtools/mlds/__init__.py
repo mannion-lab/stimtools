@@ -2,6 +2,7 @@
 from ._mlds import (
     gen_items,
     prob,
+    prob_scaled
 )
 
 __all__ = [

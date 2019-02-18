@@ -72,3 +72,9 @@ def prob(levels, sigma):
     p = 1.0 - scipy.stats.distributions.norm.cdf(x=0.0, loc=mu, scale=sigma)
 
     return p
+
+def prob_scaled(levels, sigma):
+    variance = sigma ** 2
+    sigma_scaled = np.sqrt(np.mean(levels) * variance)
+    p = prob(levels, sigma_scaled)
+    return p
