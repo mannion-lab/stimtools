@@ -77,3 +77,20 @@ def prob_scaled(levels, sigma):
     sigma_scaled = sigma * np.sqrt(np.mean(levels ** 2))
     p = prob(levels, sigma_scaled)
     return p
+
+def prob_scaled_delta(levels, sigma):
+    if n_levels == 3:
+        (a, b, c) = levels
+        Lab = np.abs(b - a)
+        Lcd = np.abs(c - b)
+    elif n_levels == 4:
+        (a, b, c, d) = levels
+        Lab = np.abs(b - a)
+        Lcd = np.abs(d - c)
+    else:
+        raise ValueError(
+            f"Unexpected levels length ({n_levels:d})"
+        )
+    sigma_scaled = sigma * np.sqrt((Lab ** 2 + Lcd **2) / 2)
+    p = prob(levels, sigma_scaled)
+    return p
