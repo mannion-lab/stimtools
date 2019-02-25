@@ -110,7 +110,7 @@ class Psi():
 
         self.curr_stim_index = None
 
-    def step(self):
+    def step(self, strict=True, ratio=0.05):
         """Steps the Psi handler forward. Inspect `curr_stim_index` and
         `curr_stim_level` to get the info on the stimulus for the next trial.
         """
@@ -134,8 +134,22 @@ class Psi():
         )
 
         e_h = np.sum(h * p_r_x, axis=0)
+        min_e_h_index = np.argmin(e_h)
 
-        self.curr_stim_index = np.argmin(e_h)
+        if strict:
+            new_index = min_e_h_index
+        else:
+            min_e_h = e_h[min_e_h_index]
+            cutoff_value = ratio * min_e_h
+            possible_stim_index = np.transpose(
+                                    np.where(
+                                        np.abs(e_h - min_e_h) <= cutoff_value
+                                    )
+            )
+            new_index = possible_stim_index[np.random.choice(possible_stim_index.shape[0])]
+
+
+        self.curr_stim_index = new_index
         self.curr_stim_level = self._stim_levels[self.curr_stim_index]
 
         self._posterior = posterior
@@ -194,7 +208,6 @@ class Psi():
         }
 
         return estimates
-
 
 def from_file(filename):
 
