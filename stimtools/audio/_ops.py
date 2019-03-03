@@ -56,3 +56,11 @@ def rms_to_amp(rms):
 
 def rms_to_db(rms, ref_rms):
     return 20.0 * np.log10(rms / ref_rms)
+
+
+def phon_to_sone(phon):
+    return (10 ** ((phon - 40.0) / 10.0)) ** 0.30103
+
+
+def sone_to_phon(sone):
+    return 40 + 10 * np.log2(sone)
