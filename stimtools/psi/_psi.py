@@ -6,7 +6,7 @@ import numpy as np
 
 class Psi():
 
-    def __init__(self, params, stim_levels, pf):
+    def __init__(self, params, stim_levels, pf, seed=None):
         """Initialise a Psi adaptive staircase handler.
 
         Parameters
@@ -22,6 +22,9 @@ class Psi():
         pf: function
             Psychometric function. Needs to accept at least `x`, and also the
             parameters named in `params`.
+        seed: int or None, optional
+            Seed for random number generation. Used in `update` when `strict`
+            is False.
 
         """
 
@@ -29,6 +32,8 @@ class Psi():
         self._stim_levels = stim_levels
         self._n_stim_levels = len(stim_levels)
         self._pf = pf
+
+        self._rand = np.random.RandomState(seed=seed)
 
         self._param_names = self._params.keys()
         self._n_params = len(self._params)
@@ -113,6 +118,17 @@ class Psi():
     def step(self, strict=True, ratio=0.05):
         """Steps the Psi handler forward. Inspect `curr_stim_index` and
         `curr_stim_level` to get the info on the stimulus for the next trial.
+
+        Parameters
+        ----------
+        strict: bool, optional
+            If True, set the stimulus to the index with the minumum expected
+            entropy. If False, randomly choose from those stimuli with indices
+            within `ratio` of the minimum expected entropy.
+        ratio: float, optional
+            When `strict` is False, sets the range of potential stimulus
+            indices as those within `ratio` of the minimum expected entropy.
+
         """
 
         self._prior /= self._prior.sum()
@@ -138,16 +154,14 @@ class Psi():
 
         if strict:
             new_index = min_e_h_index
+
         else:
             min_e_h = e_h[min_e_h_index]
             cutoff_value = ratio * min_e_h
-            possible_stim_index = np.transpose(
-                                    np.where(
-                                        np.abs(e_h - min_e_h) <= cutoff_value
-                                    )
+            i_potential = np.flatnonzero(
+                np.abs(e_h - min_e_h) <= cutoff_value
             )
-            new_index = possible_stim_index[np.random.choice(possible_stim_index.shape[0])]
-
+            new_index = self._rand.choice(i_potential)
 
         self.curr_stim_index = new_index
         self.curr_stim_level = self._stim_levels[self.curr_stim_index]
@@ -208,6 +222,7 @@ class Psi():
         }
 
         return estimates
+
 
 def from_file(filename):
 
