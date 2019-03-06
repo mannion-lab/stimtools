@@ -12,9 +12,15 @@ except ImportError:
     pass
 
 
-def get_ir_stats(ir_filename, t_gauss_thresh=None, filt_centres=None):
+def get_ir_stats(ir, t_gauss_thresh=None, filt_centres=None, sr=None):
 
-    (ir, sr) = soundfile.read(ir_filename)
+    if type(ir) != np.ndarray:
+        (ir, sr) = soundfile.read(ir)
+    else:
+        if sr is None:
+            raise ValueError(
+                "Need to provide the sample rate if passing array"
+            )
 
     # 1) T_gauss
     (_, i_crossover, t_gauss) = calc_t_gauss(
@@ -118,7 +124,7 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
 
     """
 
-    win_size = (sr / 1000) * win_ms
+    win_size = int((sr / 1000) * win_ms)
 
     if thresh is None:
         thresh = get_kurtosis_threshold(win_size=win_size)
@@ -135,7 +141,7 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
         ):
             continue
 
-        win_data = ir[(i_sample - win_size / 2):(i_sample + win_size / 2)]
+        win_data = ir[(i_sample - win_size // 2):(i_sample + win_size // 2)]
 
         kurtosis[i_sample] = scipy.stats.kurtosis(win_data)
 
@@ -184,11 +190,7 @@ def get_kurtosis_threshold(win_size, n_boot=10000):
 
 def get_filter_centres(low=20, high=16000, n=33):
 
-    return brian.hears.erbspace(
-        low * brian.Hz,
-        high * brian.Hz,
-        n
-    )
+    return erbspace(low, high, n)
 
 
 def get_filter_output(ir, sr, cf=None, dB=False, abs_conv=True):
@@ -261,3 +263,29 @@ def M(x, params):
     y = 10 ** (((phi * x) - drr) / 20.0)
 
     return y
+
+
+def erbspace(low, high, N, earQ=9.26449, minBW=24.7, order=1):
+    """
+    This is from brian.hears
+    """
+
+    low = float(low)
+
+    high = float(high)
+
+    cf = (
+        -(earQ * minBW) +
+        np.exp(
+            np.arange(N) *
+            (
+                -np.log(high + earQ * minBW) +
+                np.log(low + earQ * minBW)
+            ) /
+            (N-1)
+        ) * (high + earQ * minBW)
+    )
+
+    cf = cf[::-1]
+
+    return cf
