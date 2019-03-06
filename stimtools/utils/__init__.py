@@ -14,7 +14,7 @@ from ._circ_dist import circ_dist
 from ._psi import Psi, logistic, weibull, cnorm, cnorm_alt
 from ._vids import img_seq_to_vid, combine_vids
 from ._exr import write_exr, read_exr
-from ._vid_read import read_frames
+from ._vid_read import read_frames, read_vid_audio
 from ._wav_env import apply_hanning
 from ._transforms import img_polar_to_cart
 from ._sf_slope import sf_slope
@@ -54,4 +54,5 @@ __all__ = [
     "cnorm",
     "cnorm_alt",
     "get_subj_ids_from_data_files",
+    "read_vid_audio",
 ]

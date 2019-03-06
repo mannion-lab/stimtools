@@ -11,6 +11,11 @@ try:
 except ImportError:
     pass
 
+try:
+    import moviepy.editor
+except ImportError:
+    pass
+
 
 def read_frames(vid_path, frames=None, convert_colour=True):
     """Read images from video files (requires OpenCV).
@@ -75,3 +80,28 @@ def read_frames(vid_path, frames=None, convert_colour=True):
     assert np.sum(np.isnan(caps)) == 0
 
     return caps
+
+
+def read_vid_audio(vid_path, sr=44100):
+    """Read audio from video files (requires moviepy).
+
+    Parameters
+    ----------
+    vid_path: string
+        Path of the video file.
+    sr: int
+        Desired sample rate.
+
+    Returns
+    -------
+    audio: 2D numpy array of floats, [-1, +1]
+        Auditory waveform.
+
+    """
+
+    vid = moviepy.editor.VideoFileClip(
+        filename=vid_path,
+        audio_fps=sr
+    )
+
+    return vid.audio.to_soundarray()
