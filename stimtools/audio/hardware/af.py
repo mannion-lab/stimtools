@@ -268,6 +268,36 @@ class AudioFileSerial(object):
             print("Error playing track; response was " + reply)
 
 
+def write_config(config_path, volume):
+    """Writes an audiofile XML config file.
+
+    Parameters
+    ----------
+    config_path: string
+        Location to write the config. Should end with "Firmware/Config.xml"
+    volume: int, [0, 100]
+        Device volume.
+
+    """
+
+    base = etree.Element("AUDIOFILE_CFG")
+
+    etree.SubElement(base, "Entry", DeviceType="AUDIOFile")
+    etree.SubElement(base, "Entry", USB_MSDEnable="1")
+    etree.SubElement(base, "Entry", USB_CDCEnable="1")
+    etree.SubElement(base, "Entry", Volume=f"{volume:d}")
+    etree.SubElement(base, "Entry", USBTriggerThreshold="0")
+    etree.SubElement(base, "Entry", USBTriggerDelay="0")
+
+    rough_string = etree.tostring(base)
+    reparsed = xml.dom.minidom.parseString(rough_string)
+
+    reparsed_pretty = reparsed.toprettyxml(indent=" " * 4)
+
+    with open(config_path, "w") as config_file:
+        config_file.write(reparsed_pretty)
+
+
 def write_playlist(
     playlist_path,
     wav_folder,
