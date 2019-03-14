@@ -43,7 +43,7 @@ class DisplayPlusPlus(parent):
         try:
             self._bits = psychopy.hardware.crs.BitsSharp(
                 win=self,
-                mode="mono++",
+                mode=dpp_mode,
                 gamma="hardware",
                 portName=dpp_port
             )
