@@ -137,10 +137,11 @@ class Psi():
 
         p_r_x = np.sum(
             p_r_x_full,
-            axis=tuple(range(2, self._p_lut.ndim))
+            axis=tuple(range(2, self._p_lut.ndim)),
+            keepdims=True
         )
 
-        posterior = p_r_x_full / p_r_x[..., np.newaxis, np.newaxis]
+        posterior = p_r_x_full / p_r_x
 
         marginal = np.sum(posterior, axis=self._marginal_sum_axes)
 
@@ -149,7 +150,7 @@ class Psi():
             axis=tuple(range(2, marginal.ndim))
         )
 
-        e_h = np.sum(h * p_r_x, axis=0)
+        e_h = np.sum(h * np.squeeze(p_r_x), axis=0)
         min_e_h_index = np.argmin(e_h)
 
         if strict:
