@@ -11,7 +11,7 @@ from ._conversions import (
     rgb_to_grey
 )
 from ._circ_dist import circ_dist
-from ._psi import Psi, logistic, weibull, cnorm, cnorm_alt
+from ._pf import logistic, weibull, cnorm, cnorm_alt, cnorm_wrap
 from ._vids import img_seq_to_vid, combine_vids
 from ._exr import write_exr, read_exr
 from ._vid_read import read_frames, read_vid_audio
@@ -35,7 +35,6 @@ __all__ = [
     "cart_to_sph",
     "rgb_to_grey",
     "circ_dist",
-    "Psi",
     "logistic",
     "weibull",
     "img_seq_to_vid",
@@ -53,6 +52,7 @@ __all__ = [
     "combine_vids",
     "cnorm",
     "cnorm_alt",
+    "cnorm_wrap",
     "get_subj_ids_from_data_files",
     "read_vid_audio",
 ]
