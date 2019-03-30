@@ -130,12 +130,10 @@ def cnorm_wrap(theta, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
 
     def _low_wrap(beta):
 
-        beta_sq = beta ** 2
-
         return (
-            cnorm(x=theta, alpha=0.0, beta=beta_sq) -
-            cnorm(x=theta - np.pi, alpha=0.0, beta=beta_sq) +
-            (1.0 - cnorm(x=theta + np.pi, alpha=0, beta=beta_sq))
+            cnorm(x=theta, alpha=0.0, beta=beta) -
+            cnorm(x=theta - np.pi, alpha=0.0, beta=beta) +
+            (1.0 - cnorm(x=theta + np.pi, alpha=0, beta=beta))
         )
 
     def _high_wrap(beta):
@@ -145,7 +143,7 @@ def cnorm_wrap(theta, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
             x=beta
         )
 
-        return cnorm(x=np.sin(theta), alpha=0.0, beta=beta ** 2)
+        return cnorm(x=np.sin(theta), alpha=0.0, beta=beta)
 
     p = np.where(beta < 1.4, _low_wrap(beta), _high_wrap(beta))
 
