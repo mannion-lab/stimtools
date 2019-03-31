@@ -13,7 +13,7 @@ except ImportError:
 
 try:
     import moviepy.editor
-except ImportError:
+except (ImportError, RuntimeError):
     pass
 
 
