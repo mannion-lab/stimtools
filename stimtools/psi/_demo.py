@@ -6,7 +6,7 @@ import stimtools.utils
 import stimtools.psi
 
 
-def psi_demo(n_trials=150, fixed_seed=False, verbose=False, strict=True):
+def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0):
     "Demo of the operation of the psi function"
 
     true_alpha = 5.0
@@ -76,7 +76,7 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False, strict=True):
 
         estimates = psi.get_estimates()
 
-        psi.step(strict=strict)
+        psi.step(ratio=ratio)
 
         if verbose:
             print(
@@ -90,3 +90,7 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False, strict=True):
     print(psi.get_estimates())
 
     return psi
+
+
+if __name__ == "__main__":
+    psi_demo(fixed_seed=True)

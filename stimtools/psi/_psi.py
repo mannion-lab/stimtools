@@ -23,8 +23,7 @@ class Psi():
             Psychometric function. Needs to accept at least `x`, and also the
             parameters named in `params`.
         seed: int or None, optional
-            Seed for random number generation. Used in `update` when `strict`
-            is False.
+            Seed for random number generation. Used in `update`.
 
         """
 
@@ -115,19 +114,15 @@ class Psi():
 
         self.curr_stim_index = None
 
-    def step(self, strict=True, ratio=0.05):
+    def step(self, ratio=0.0):
         """Steps the Psi handler forward. Inspect `curr_stim_index` and
         `curr_stim_level` to get the info on the stimulus for the next trial.
 
         Parameters
         ----------
-        strict: bool, optional
-            If True, set the stimulus to the index with the minumum expected
-            entropy. If False, randomly choose from those stimuli with indices
-            within `ratio` of the minimum expected entropy.
         ratio: float, optional
-            When `strict` is False, sets the range of potential stimulus
-            indices as those within `ratio` of the minimum expected entropy.
+            Sets the range of potential stimulus indices as those within
+            `ratio` of the minimum expected entropy.
 
         """
 
@@ -151,18 +146,16 @@ class Psi():
         )
 
         e_h = np.sum(h * np.squeeze(p_r_x), axis=0)
-        min_e_h_index = np.argmin(e_h)
 
-        if strict:
-            new_index = min_e_h_index
+        min_e_h = np.min(e_h)
 
-        else:
-            min_e_h = e_h[min_e_h_index]
-            cutoff_value = ratio * min_e_h
-            i_potential = np.flatnonzero(
-                np.abs(e_h - min_e_h) <= cutoff_value
-            )
-            new_index = self._rand.choice(i_potential)
+        cutoff_value = ratio * min_e_h
+
+        i_potential = np.flatnonzero(
+            np.abs(e_h - min_e_h) <= cutoff_value
+        )
+
+        new_index = self._rand.choice(i_potential)
 
         self.curr_stim_index = new_index
         self.curr_stim_level = self._stim_levels[self.curr_stim_index]
