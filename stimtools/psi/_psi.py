@@ -147,6 +147,8 @@ class Psi():
 
         e_h = np.sum(h * np.squeeze(p_r_x), axis=0)
 
+        e_h[np.isnan(e_h)] = np.Inf
+
         min_e_h = np.min(e_h)
 
         cutoff_value = ratio * min_e_h
