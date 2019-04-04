@@ -172,7 +172,7 @@ class Psi():
     def override_stim_level(self, new_level):
 
         self.curr_stim_level = new_level
-        (self.curr_stim_index, ) = np.nonzero(
+        (self.curr_stim_index, ) = np.flatnonzero(
             self._stim_levels == new_level
         )
 
