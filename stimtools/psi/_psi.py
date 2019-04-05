@@ -149,6 +149,8 @@ class Psi():
 
         e_h[np.isnan(e_h)] = np.Inf
 
+        self._e_h = e_h
+
         min_e_h = np.min(e_h)
 
         cutoff_value = ratio * min_e_h
