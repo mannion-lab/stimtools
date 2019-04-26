@@ -10,8 +10,9 @@ try:
     import psychopy.visual
     import psychopy.hardware.crs
 
-except (ImportError, pyglet.canvas.xlib.NoSuchDisplayException):
+except pyglet.canvas.xlib.NoSuchDisplayException:
     pass
+
 
 
 try:
