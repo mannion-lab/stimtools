@@ -9,18 +9,20 @@ import soundfile
 import resampy
 
 
-def compute_tvl(wav_path, db_max, fir_type="midear"):
+def compute_tvl(wav, db_max, fir_type="midear", sr_orig=None):
     """Computes the 'time-varying loudness' of a waveform, using the binary
     provided at https://www.psychol.cam.ac.uk/hearing.
 
     Parameters
     ----------
-    wav_path: string
-        Path to the wav file. Will be resampled if not 32Khz.
+    wav: string or numpy array.
+        Path to the wav file or the waveform. Will be resampled if not 32Khz.
     db_max: number
         The level (dB SPL) produced by a full-scale sinusoid.
-    fir_type: string, {"midear", df", "ff"}
+    fir_type: string, {"midear", "df", "ff"}
         See the program README for details on what this does.
+    sr_orig: int
+        Sample rate of `wav`. Only used if `wav` is an array.
 
     Returns
     -------
@@ -40,12 +42,15 @@ def compute_tvl(wav_path, db_max, fir_type="midear"):
     # sample rate expected by the tvl calculator
     sr_tvl = 32_000
 
-    (waveform, sr_orig) = soundfile.read(wav_path)
+    if not isinstance(wav, np.ndarray):
+        (wav, sr_orig) = soundfile.read(wav_path)
+    else:
+        assert sr_orig is not None
 
     if sr_orig != sr_tvl:
 
-        waveform = resampy.resample(
-            x=waveform,
+        wav = resampy.resample(
+            x=wav,
             sr_orig=sr_orig,
             sr_new=sr_tvl,
             axis=0
@@ -59,7 +64,7 @@ def compute_tvl(wav_path, db_max, fir_type="midear"):
     try:
         soundfile.write(
             temp_wav_path,
-            waveform,
+            wav,
             samplerate=sr_tvl,
             subtype="PCM_16"
         )
