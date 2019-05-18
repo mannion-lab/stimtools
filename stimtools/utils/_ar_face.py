@@ -1,4 +1,3 @@
-
 import os
 
 import numpy as np
@@ -26,7 +25,7 @@ def ar_expressions(session):
         "sunnies_right_lit": 10 + session_offset,
         "scarf": 11 + session_offset,
         "scarf_left_lit": 12 + session_offset,
-        "scarf_right_lit": 13 + session_offset
+        "scarf_right_lit": 13 + session_offset,
     }
 
     return expressions
@@ -59,9 +58,7 @@ def ar_read(sex, person_id, session, expression="neutral", db_path=""):
 
     exp_num = exp[expression]
 
-    filename = "{s:s}-{p_id:03d}-{e:n}.raw".format(
-        s=sex, p_id=person_id, e=exp_num
-    )
+    filename = "{s:s}-{p_id:03d}-{e:n}.raw".format(s=sex, p_id=person_id, e=exp_num)
 
     img_path = os.path.join(db_path, filename)
 
@@ -74,9 +71,7 @@ def ar_img_read(img_path):
     """Read an image from the AR face database, given a filename."""
 
     if img_path.endswith(".Z"):
-        raise ValueError(
-            "Compressed images not supported. Use 'uncompress' first"
-        )
+        raise ValueError("Compressed images not supported. Use 'uncompress' first")
 
     channels = 3
     width = 576
@@ -86,10 +81,6 @@ def ar_img_read(img_path):
 
     img = np.reshape(img_flat, (channels, width, height))
 
-    img = np.moveaxis(
-        a=img,
-        source=(0, 1, 2),
-        destination=(2, 0, 1)
-    )
+    img = np.moveaxis(a=img, source=(0, 1, 2), destination=(2, 0, 1))
 
     return img

@@ -1,4 +1,3 @@
-
 import numpy as np
 
 
@@ -12,7 +11,7 @@ def rms_over_time(waveform, bin_samples):
 
     i_bins = i_slice[np.newaxis, :] + np.arange(n_samples)[:, np.newaxis]
 
-    i_bins = i_bins[half_bin:-(half_bin - 1), :]
+    i_bins = i_bins[half_bin : -(half_bin - 1), :]
 
     rms = np.sqrt(np.mean(waveform[i_bins, :] ** 2, axis=(1, 2)))
 

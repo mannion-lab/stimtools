@@ -19,7 +19,7 @@ def white_noise(
     window_samples=220,
     post_pad_samples=0,
     out_of_range="error",
-    rand=None
+    rand=None,
 ):
     """Generates a 'white noise' waveform (Gaussian noise).
 
@@ -75,10 +75,7 @@ def white_noise(
 
     if out_of_range in ("warn", "error"):
 
-        clip_req = np.logical_or(
-            np.any(y < -1),
-            np.any(y > +1)
-        )
+        clip_req = np.logical_or(np.any(y < -1), np.any(y > +1))
 
         if clip_req:
 
@@ -86,9 +83,7 @@ def white_noise(
                 warnings.warn("Clipping required")
             else:
                 rms_str = ",".join(map(str, rms))
-                raise ValueError(
-                    "Clipping would be required for an RMS of " + rms_str
-                )
+                raise ValueError("Clipping would be required for an RMS of " + rms_str)
 
     y = np.clip(y, a_min=-1, a_max=1)
 
@@ -97,11 +92,7 @@ def white_noise(
     if filename is not None:
 
         soundfile.write(
-            file=filename,
-            data=y,
-            samplerate=rate,
-            format="wav",
-            subtype="PCM_16"
+            file=filename, data=y, samplerate=rate, format="wav", subtype="PCM_16"
         )
 
     return y
@@ -115,7 +106,7 @@ def pink_noise(
     window_samples=220,
     post_pad_samples=10000,
     out_of_range=None,
-    seed=None
+    seed=None,
 ):
     """Generates a 'pink noise' (1/f) waveform, within the range for 20Hz to
     20kHz.
@@ -161,10 +152,7 @@ def pink_noise(
 
     amps[np.isinf(amps)] = 0.0
 
-    i_audible = np.logical_and(
-        freqs >= 20,
-        freqs <= 20000
-    )
+    i_audible = np.logical_and(freqs >= 20, freqs <= 20000)
 
     amps[np.logical_not(i_audible)] = 0.0
 
@@ -181,7 +169,7 @@ def pink_noise(
     if window_samples > 0:
         y = stimtools.utils.apply_hanning(y, window_samples)
 
-    y = ((y - np.mean(y)) / np.std(y))
+    y = (y - np.mean(y)) / np.std(y)
 
     # convert to stereo
     y = np.tile(y[:, np.newaxis], (1, 2))
@@ -190,10 +178,7 @@ def pink_noise(
 
     if out_of_range in ("warn", "error"):
 
-        clip_req = np.logical_or(
-            np.any(y < -1),
-            np.any(y > +1)
-        )
+        clip_req = np.logical_or(np.any(y < -1), np.any(y > +1))
 
         if clip_req:
 
@@ -209,11 +194,7 @@ def pink_noise(
     if filename is not None:
 
         soundfile.write(
-            file=filename,
-            data=y,
-            samplerate=rate,
-            format="wav",
-            subtype="PCM_16"
+            file=filename, data=y, samplerate=rate, format="wav", subtype="PCM_16"
         )
 
     return y

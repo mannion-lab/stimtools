@@ -20,14 +20,11 @@ def noise_image(img_size, slope_alpha=1.0, phase_src_img=None, rescale=True):
 
     """
 
-    (x, y) = np.mgrid[
-        -img_size / 2: +img_size / 2,
-        -img_size / 2: +img_size / 2
-    ]
+    (x, y) = np.mgrid[-img_size / 2 : +img_size / 2, -img_size / 2 : +img_size / 2]
 
     dist_mat = np.sqrt(x ** 2 + y ** 2)
 
-    dist_mat /= (img_size / 2)
+    dist_mat /= img_size / 2
 
     # yep, i know
     old_settings = np.seterr(divide="ignore")
@@ -39,22 +36,11 @@ def noise_image(img_size, slope_alpha=1.0, phase_src_img=None, rescale=True):
     if phase_src_img is None:
         phase_src_img = np.random.rand(img_size, img_size)
 
-    phase_mat = np.angle(
-        np.fft.fftshift(
-            np.fft.fft2(
-                phase_src_img
-            )
-        )
-    )
+    phase_mat = np.angle(np.fft.fftshift(np.fft.fft2(phase_src_img)))
 
-    img_freq = (
-        amp_mat * np.cos(phase_mat) +
-        1j * (amp_mat * np.sin(phase_mat))
-    )
+    img_freq = amp_mat * np.cos(phase_mat) + 1j * (amp_mat * np.sin(phase_mat))
 
-    img = np.real(
-        np.fft.ifft2(np.fft.fftshift(img_freq))
-    )
+    img = np.real(np.fft.ifft2(np.fft.fftshift(img_freq)))
 
     if rescale:
         img += np.abs(img.min())

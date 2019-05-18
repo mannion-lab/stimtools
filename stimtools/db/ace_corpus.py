@@ -18,9 +18,7 @@ def get_db_info():
     db = {}
 
     filenames = [
-        filename
-        for filename in os.listdir(base_path)
-        if filename.endswith("wav")
+        filename for filename in os.listdir(base_path) if filename.endswith("wav")
     ]
 
     for filename in filenames:
@@ -47,9 +45,6 @@ def load(filename, new_sr=None):
     if new_sr is None:
         (w, sr) = soundfile.read(file=filename)
     else:
-        (w, sr) = librosa.load(
-            path=filename,
-            sr=new_sr
-        )
+        (w, sr) = librosa.load(path=filename, sr=new_sr)
 
     return (w, sr)

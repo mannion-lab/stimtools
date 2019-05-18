@@ -69,12 +69,7 @@ def db_to_rms_from_coefs(db, coefs):
     except TypeError:
         db = [db]
 
-    rms = np.array(
-        [
-            10 ** ((p - curr_db).roots[0])
-            for curr_db in db
-        ]
-    )
+    rms = np.array([10 ** ((p - curr_db).roots[0]) for curr_db in db])
 
     if rms.size == 1:
         rms = rms[0]

@@ -19,24 +19,19 @@ expressions = {
     "happy": "HA",
     "neutral": "NE",
     "sad": "SA",
-    "surprised": "SU"
+    "surprised": "SU",
 }
 poses = {
     "full-left": "FL",
     "half-left": "HL",
     "straight": "S",
     "half-right": "HR",
-    "full-right": "FR"
+    "full-right": "FR",
 }
 
 
 def load_image(
-    identity,
-    gender,
-    session=1,
-    expression="neutral",
-    pose="straight",
-    pow2_pad=False,
+    identity, gender, session=1, expression="neutral", pose="straight", pow2_pad=False
 ):
 
     filename = "{session:s}{gender:s}{fid:02d}{exp:s}{pose:s}.JPG".format(
@@ -44,17 +39,12 @@ def load_image(
         gender=genders[gender],
         fid=identity,
         exp=expressions[expression],
-        pose=poses[pose]
+        pose=poses[pose],
     )
 
     directory = filename[:4]
 
-    img_path = os.path.join(
-        base_path,
-        "KDEF",
-        directory,
-        filename
-    )
+    img_path = os.path.join(base_path, "KDEF", directory, filename)
 
     img = imageio.imread(img_path)
 

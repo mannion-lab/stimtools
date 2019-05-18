@@ -16,9 +16,7 @@ except KeyError:
 def get_db_info():
 
     filenames = [
-        filename
-        for filename in os.listdir(base_path)
-        if filename.endswith("wav")
+        filename for filename in os.listdir(base_path) if filename.endswith("wav")
     ]
 
     filenames = sorted(filenames)
@@ -33,9 +31,6 @@ def load_ir(ir_filename, new_sr=None):
     if new_sr is None:
         (ir, ir_sr) = soundfile.read(file=ir_path)
     else:
-        (ir, ir_sr) = librosa.load(
-            path=ir_path,
-            sr=new_sr
-        )
+        (ir, ir_sr) = librosa.load(path=ir_path, sr=new_sr)
 
     return (ir, ir_sr)

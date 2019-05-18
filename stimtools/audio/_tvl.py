@@ -1,4 +1,3 @@
-
 import subprocess
 import tempfile
 import os
@@ -35,53 +34,39 @@ def compute_tvl(wav, db_max, fir_type="midear", sr_orig=None):
         tvl_path = os.environ["TVL_PATH"]
     except KeyError:
         raise ValueError(
-            "The location of TVLBIN.exe was not known. Set the TVL_PATH " +
-            "environment variable"
+            "The location of TVLBIN.exe was not known. Set the TVL_PATH "
+            + "environment variable"
         )
 
     # sample rate expected by the tvl calculator
     sr_tvl = 32_000
 
     if not isinstance(wav, np.ndarray):
-        (wav, sr_orig) = soundfile.read(wav_path)
+        (wav, sr_orig) = soundfile.read(wav)
     else:
         assert sr_orig is not None
 
     if sr_orig != sr_tvl:
 
-        wav = resampy.resample(
-            x=wav,
-            sr_orig=sr_orig,
-            sr_new=sr_tvl,
-            axis=0
-        )
+        wav = resampy.resample(x=wav, sr_orig=sr_orig, sr_new=sr_tvl, axis=0)
 
-    temp_wav_path = tempfile.NamedTemporaryFile(
-        suffix=".wav",
-        delete=False
-    ).name
+    temp_wav_path = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
 
     try:
-        soundfile.write(
-            temp_wav_path,
-            wav,
-            samplerate=sr_tvl,
-            subtype="PCM_16"
-        )
+        soundfile.write(temp_wav_path, wav, samplerate=sr_tvl, subtype="PCM_16")
 
         cmd = [
             "wine",
             "TVLBIN.exe",
-            "-i", temp_wav_path,
-            "-c", "(" + ",".join([f"{db_max:.0f}"] * 2) + ")",
-            "-F", "(" + ",".join([f"{fir_type:s}1.32k"] * 2) + ")"
+            "-i",
+            temp_wav_path,
+            "-c",
+            "(" + ",".join([f"{db_max:.0f}"] * 2) + ")",
+            "-F",
+            "(" + ",".join([f"{fir_type:s}1.32k"] * 2) + ")",
         ]
 
-        cmd_out = subprocess.check_output(
-            cmd,
-            cwd=tvl_path,
-            stderr=subprocess.DEVNULL
-        )
+        cmd_out = subprocess.check_output(cmd, cwd=tvl_path, stderr=subprocess.DEVNULL)
 
     finally:
         os.remove(temp_wav_path)
@@ -106,12 +91,7 @@ def parse_tvl_output(output):
         if row_raw.replace(" ", "") == "|" * 2:
             break
 
-        row = list(
-            map(
-                float,
-                row_raw.replace(":", "").replace("|", "").split()
-            )
-        )
+        row = list(map(float, row_raw.replace(":", "").replace("|", "").split()))
 
         row_array = np.full((3, 2), np.nan)
 

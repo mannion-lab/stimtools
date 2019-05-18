@@ -1,4 +1,3 @@
-from __future__ import absolute_import, print_function, division
 
 try:
     import psychopy.visual
@@ -7,8 +6,7 @@ except ImportError:
     pass
 
 
-class Fixation(object):
-
+class Fixation():
     def __init__(
         self,
         win,
@@ -17,7 +15,7 @@ class Fixation(object):
         bg_colour=(-1, -1, -1),
         line_colour=(+1, +1, +1),
         spot_colour=(-1, -1, -1),
-        circle_edges=128
+        circle_edges=128,
     ):
         """
         Constructs a fixation target like what is recommended by Thaler et al.
@@ -54,7 +52,7 @@ class Fixation(object):
             units="pix",
             lineColor=bg_colour,
             fillColor=bg_colour,
-            edges=self._circle_edges
+            edges=self._circle_edges,
         )
 
         self._stim["h_line"] = psychopy.visual.Line(
@@ -63,7 +61,7 @@ class Fixation(object):
             end=[+self._outer_diam_pix / 2.0, 0],
             lineColor=line_colour,
             units="pix",
-            lineWidth=self._inner_diam_pix
+            lineWidth=self._inner_diam_pix,
         )
         self._stim["v_line"] = psychopy.visual.Line(
             win=self._win,
@@ -71,7 +69,7 @@ class Fixation(object):
             end=[0, +self._outer_diam_pix / 2.0],
             lineColor=line_colour,
             units="pix",
-            lineWidth=self._inner_diam_pix
+            lineWidth=self._inner_diam_pix,
         )
 
         self._stim["spot"] = psychopy.visual.Circle(
@@ -80,7 +78,7 @@ class Fixation(object):
             units="pix",
             lineColor=spot_colour,
             fillColor=spot_colour,
-            edges=self._circle_edges
+            edges=self._circle_edges,
         )
 
         self.bg_colour = bg_colour
@@ -126,7 +124,7 @@ class Fixation(object):
             ("bg", -contrast),
             ("h_line", contrast),
             ("v_line", contrast),
-            ("spot", -contrast)
+            ("spot", -contrast),
         )
 
         for (stim_type, stim_contrast) in stim_c:

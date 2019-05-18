@@ -1,4 +1,3 @@
-
 import numpy as np
 
 try:
@@ -23,7 +22,7 @@ def demo():
             dot_size=4,
             dot_shape="square",
             lifetime=1.0,
-            gen_meth="surface"
+            gen_meth="surface",
         )
 
         keep_going = True
@@ -33,7 +32,7 @@ def demo():
             cyl.draw()
             win.flip()
 
-            cyl.update(1/60.0)
+            cyl.update(1 / 60.0)
 
             keys = psychopy.event.getKeys()
 
@@ -67,7 +66,7 @@ def save_vid(vid_stem, fps=30, loops=5):
             speed=0.125,
             dot_size=8,
             lifetime=1.0,
-            gen_meth="surface"
+            gen_meth="surface",
         )
 
         for i_frame in range(n_frames):
@@ -91,12 +90,11 @@ def save_vid(vid_stem, fps=30, loops=5):
         vid_stem=vid_stem,
         vid_extensions=["mp4"],
         fps=fps,
-        overwrite=True
+        overwrite=True,
     )
 
 
-class SFMCylinder(object):
-
+class SFMCylinder():
     def __init__(
         self,
         win,
@@ -112,7 +110,7 @@ class SFMCylinder(object):
         centre=(0.0, 0.0),
         dot_shape="gauss",
         colour_mask=(1, 1, 1),
-        extra_args=None
+        extra_args=None,
     ):
         """Structure-from-motion stimulus.
 
@@ -174,9 +172,7 @@ class SFMCylinder(object):
         # seed with some initial lifetimes
         if np.isfinite(self._lifetime):
             self._dot_ages = np.random.uniform(
-                low=0.0,
-                high=self._lifetime,
-                size=self._n_dots
+                low=0.0, high=self._lifetime, size=self._n_dots
             )
         else:
             self._dot_ages = np.zeros(self._n_dots)
@@ -203,10 +199,7 @@ class SFMCylinder(object):
             **self._extra_args
         )
 
-        self._phases = self._gen_phases(
-            n_to_gen=self._n_dots,
-            gen_meth=self._gen_meth
-        )
+        self._phases = self._gen_phases(n_to_gen=self._n_dots, gen_meth=self._gen_meth)
 
         self._draw_order = np.random.permutation(self._n_dots)
 
@@ -227,25 +220,17 @@ class SFMCylinder(object):
         if self._update_count >= 2:
             self._dot_ages += delta_t
 
-        dot_is_dead = (self._dot_ages > self._lifetime)
+        dot_is_dead = self._dot_ages > self._lifetime
 
         n_dead_dots = np.sum(dot_is_dead)
 
-        new_phases = self._gen_phases(
-            n_to_gen=n_dead_dots,
-            gen_meth=self._gen_meth
-        )
+        new_phases = self._gen_phases(n_to_gen=n_dead_dots, gen_meth=self._gen_meth)
 
         self._dot_ages[dot_is_dead] = 0
 
         self._phases[dot_is_dead, :] = new_phases
 
-        norm_xy = np.vstack(
-            [
-                self._phases[:, 0],
-                np.cos(self._phases[:, 1])
-            ]
-        ).T
+        norm_xy = np.vstack([self._phases[:, 0], np.cos(self._phases[:, 1])]).T
 
         # those with a colour update required
         colour_update = dot_is_dead
@@ -310,10 +295,7 @@ class SFMCylinder(object):
 
         i_update = np.where(colour_update)[0]
 
-        new_colours = np.random.choice(
-            self._dot_polarities,
-            len(i_update)
-        )
+        new_colours = np.random.choice(self._dot_polarities, len(i_update))
 
         for (i_dot, c) in zip(i_update, new_colours):
             self._colours[i_dot, :] = c
@@ -325,18 +307,13 @@ class SFMCylinder(object):
 
         xform = np.array(
             [
-                [
-                    +np.cos(np.radians(rotation)),
-                    -np.sin(np.radians(rotation))
-                ],
-                [
-                    +np.sin(np.radians(rotation)),
-                    +np.cos(np.radians(rotation))
-                ]
+                [+np.cos(np.radians(rotation)), -np.sin(np.radians(rotation))],
+                [+np.sin(np.radians(rotation)), +np.cos(np.radians(rotation))],
             ]
         )
 
         return xform
+
 
 def gen_phases(n_to_gen, gen_meth):
 
@@ -347,11 +324,7 @@ def gen_phases(n_to_gen, gen_meth):
 
     # if generation method is by phase, its simple
     if gen_meth == "phase":
-        phases[:, 1] = np.random.uniform(
-            low=0.0,
-            high=2 * np.pi,
-            size=n_to_gen
-        )
+        phases[:, 1] = np.random.uniform(low=0.0, high=2 * np.pi, size=n_to_gen)
 
     # if by surface, its only slightly less simple
     elif gen_meth == "surface":

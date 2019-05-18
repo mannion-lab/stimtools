@@ -1,4 +1,3 @@
-
 import os
 
 import numpy as np
@@ -15,28 +14,16 @@ def load_brir(h_pos, d_pos, angle, db_path=None, head_rotation=0):
     assert os.path.isdir(db_path)
 
     # potential depth values
-    d_lut = {
-        -1.0: "-1",
-        -0.5: "-0pt5",
-        +0.0: "0",
-        +0.5: "0pt5",
-        +1.0: "1"
-    }
+    d_lut = {-1.0: "-1", -0.5: "-0pt5", +0.0: "0", +0.5: "0pt5", +1.0: "1"}
 
     # potential horizontal values
-    h_lut = {
-        -1.0: "-1",
-        -0.5: "-0pt5",
-        +0.0: "0",
-    }
+    h_lut = {-1.0: "-1", -0.5: "-0pt5", +0.0: "0"}
 
     brir_path = os.path.join(
         db_path,
         "SBSBRIR_x{d:s}y{h:s}_LS{r:d}deg.wav".format(
-            d=d_lut[d_pos],
-            h=h_lut[h_pos],
-            r=angle
-        )
+            d=d_lut[d_pos], h=h_lut[h_pos], r=angle
+        ),
     )
 
     (brir, brir_sr) = soundfile.read(brir_path)
@@ -58,13 +45,7 @@ def load_brir(h_pos, d_pos, angle, db_path=None, head_rotation=0):
 
 
 def sbs_brir_convolve(
-    source_wave,
-    h_pos,
-    d_pos,
-    angle,
-    db_path,
-    wav_path=None,
-    sample_rate=44100
+    source_wave, h_pos, d_pos, angle, db_path, wav_path=None, sample_rate=44100
 ):
     """Convolve a source waveform with the BRIR from the SBS dataset.
 
@@ -95,20 +76,12 @@ def sbs_brir_convolve(
     brir_sr = 48000
 
     wave = np.concatenate(
-        [
-            np.convolve(source_wave, brir[:, i_lr])[:, np.newaxis]
-            for i_lr in range(2)
-        ],
-        axis=1
+        [np.convolve(source_wave, brir[:, i_lr])[:, np.newaxis] for i_lr in range(2)],
+        axis=1,
     )
 
     # now to resample
-    wave = resampy.resample(
-        x=wave,
-        sr_orig=brir_sr,
-        sr_new=sample_rate,
-        axis=0
-    )
+    wave = resampy.resample(x=wave, sr_orig=brir_sr, sr_new=sample_rate, axis=0)
 
     if wav_path is not None:
 
@@ -120,7 +93,7 @@ def sbs_brir_convolve(
             data=wave,
             samplerate=sample_rate,
             format="WAV",
-            subtype="PCM_16"
+            subtype="PCM_16",
         )
 
     return wave

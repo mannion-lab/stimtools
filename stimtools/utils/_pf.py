@@ -1,4 +1,3 @@
-
 import numpy as np
 
 import scipy.stats
@@ -102,7 +101,7 @@ def cnorm_alt(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
         alpha=alpha,
         beta=transformed_beta,
         guess_rate=guess_rate,
-        lapse_rate=lapse_rate
+        lapse_rate=lapse_rate,
     )
 
     return y
@@ -131,16 +130,15 @@ def cnorm_wrap(theta, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
     def _low_wrap(beta):
 
         return (
-            cnorm(x=theta, alpha=0.0, beta=beta) -
-            cnorm(x=theta - np.pi, alpha=0.0, beta=beta) +
-            (1.0 - cnorm(x=theta + np.pi, alpha=0, beta=beta))
+            cnorm(x=theta, alpha=0.0, beta=beta)
+            - cnorm(x=theta - np.pi, alpha=0.0, beta=beta)
+            + (1.0 - cnorm(x=theta + np.pi, alpha=0, beta=beta))
         )
 
     def _high_wrap(beta):
 
         beta = np.polyval(
-            p=[-3.546, 39.131, -158.724, 309.646, -292.966, 109.1288],
-            x=beta
+            p=[-3.546, 39.131, -158.724, 309.646, -292.966, 109.1288], x=beta
         )
 
         return cnorm(x=np.sin(theta), alpha=0.0, beta=beta)

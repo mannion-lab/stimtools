@@ -18,7 +18,7 @@ def pure_tone(
     filename=None,
     rate=44100,
     window_samples=220,
-    post_pad_samples=0
+    post_pad_samples=0,
 ):
     """Generates a pure tone waveform.
 
@@ -79,11 +79,7 @@ def pure_tone(
     if filename is not None:
 
         soundfile.write(
-            file=filename,
-            data=y,
-            samplerate=rate,
-            format="WAV",
-            subtype="PCM_16"
+            file=filename, data=y, samplerate=rate, format="WAV", subtype="PCM_16"
         )
 
     return y

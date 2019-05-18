@@ -1,13 +1,13 @@
 
-from __future__ import absolute_import, print_function, division
-
 import numpy as np
 
 try:
     import psychopy.visual
     import psychopy.misc
+
     try:
         import psychopy.visual.filters as f
+
         psychopy.filters = f
         del f
     except ImportError:
@@ -22,8 +22,7 @@ except ImportError:
 import stimtools.utils
 
 
-class GlassPattern(object):
-
+class GlassPattern():
     def __init__(
         self,
         win,
@@ -42,7 +41,7 @@ class GlassPattern(object):
         mask_ramp_prop=(0.1, 0.1),
         contrast=1.0,
         single_dot_draw=False,
-        units="pix"
+        units="pix",
     ):
         """
         Glass patterns.
@@ -101,7 +100,7 @@ class GlassPattern(object):
             autoLog=False,
             elementTex=None,
             nElements=self._n_dots,
-            units=self._units
+            units=self._units,
         )
 
         self.size = int(size)
@@ -155,10 +154,10 @@ class GlassPattern(object):
     @property
     def _update_req(self):
         return (
-            self._distribute_dp_req or
-            self._distribute_dots_req or
-            self._contrast_req or
-            self._mask_req
+            self._distribute_dp_req
+            or self._distribute_dots_req
+            or self._contrast_req
+            or self._mask_req
         )
 
     @property
@@ -224,10 +223,7 @@ class GlassPattern(object):
     def col_set(self, col_set):
         self._col_set = col_set
 
-        self._dot_cols = np.repeat(
-            self._col_set,
-            self._n_dots / len(self._col_set)
-        )
+        self._dot_cols = np.repeat(self._col_set, self._n_dots / len(self._col_set))
 
         self._contrast_req = True
 
@@ -301,7 +297,7 @@ class GlassPattern(object):
     @contrast.setter
     def contrast(self, contrast):
         self._contrast = contrast
-        self._stim.contrs = (self._contrast * self._dot_cols)
+        self._stim.contrs = self._contrast * self._dot_cols
 
     def set_mask(self):
 
@@ -310,7 +306,7 @@ class GlassPattern(object):
             size=[self.size] * 2,
             tex=np.zeros((2, 2)),
             mask="raisedCos",
-            units=self._units
+            units=self._units,
         )
 
         dummy_mask._calcSizeRendered()
@@ -332,7 +328,7 @@ class GlassPattern(object):
                     shape="raisedCosine",
                     radius=self._mask_prop[1],
                     fringeWidth=self.mask_ramp_prop[1],
-                    range=[0, 1]
+                    range=[0, 1],
                 )
 
             else:
@@ -341,9 +337,7 @@ class GlassPattern(object):
                     matrixSize=size_pix[0]
                 )
 
-                outer_mask_tex = (
-                    (outer_mask_tex < self._mask_prop[1]).astype("int")
-                )
+                outer_mask_tex = (outer_mask_tex < self._mask_prop[1]).astype("int")
 
             mask_tex += outer_mask_tex
 
@@ -356,7 +350,7 @@ class GlassPattern(object):
                     shape="raisedCosine",
                     radius=self._mask_prop[0],
                     fringeWidth=self._mask_ramp_prop[0],
-                    range=[0, 1]
+                    range=[0, 1],
                 )
 
             else:
@@ -365,9 +359,7 @@ class GlassPattern(object):
                     matrixSize=size_pix[0]
                 )
 
-                inner_mask_tex = (
-                    (inner_mask_tex < self._mask_prop[0]).astype("int")
-                )
+                inner_mask_tex = (inner_mask_tex < self._mask_prop[0]).astype("int")
 
             mask_tex -= inner_mask_tex
 
@@ -378,11 +370,7 @@ class GlassPattern(object):
 
         self._mask_tex = mask_tex
 
-        new_mask_tex = stimtools.utils.pad_image(
-            mask_tex,
-            pad_value=-1,
-            to="pow2+"
-        )
+        new_mask_tex = stimtools.utils.pad_image(mask_tex, pad_value=-1, to="pow2+")
 
         new_size = new_mask_tex.shape[0]
 
@@ -391,7 +379,7 @@ class GlassPattern(object):
             size=[new_size] * 2,
             tex=np.zeros((2, 2)),
             mask=new_mask_tex,
-            units="pix"
+            units="pix",
         )
 
         self._mask_req = False
@@ -404,9 +392,7 @@ class GlassPattern(object):
     def distribute_dipoles(self):
 
         self._dipole_xy = np.random.uniform(
-            low=-self._half_size,
-            high=+self._half_size,
-            size=(self._n_dipoles, 2)
+            low=-self._half_size, high=+self._half_size, size=(self._n_dipoles, 2)
         )
 
         self._distribute_dp_req = False
@@ -414,33 +400,21 @@ class GlassPattern(object):
     def distribute_dots(self):
 
         if self._distribute_dp_req:
-            raise ValueError(
-                "Trying to generate dots, but dipoles need updating"
-            )
+            raise ValueError("Trying to generate dots, but dipoles need updating")
 
         if self.ori_sigma_deg is not None:
             signal_oris = np.random.normal(
-                loc=self.ori_deg,
-                scale=self.ori_sigma_deg,
-                size=self._n_signal_dipoles
+                loc=self.ori_deg, scale=self.ori_sigma_deg, size=self._n_signal_dipoles
             )
         else:
-            signal_oris = np.repeat(
-                self.ori_deg,
-                repeats=self._n_signal_dipoles
-            )
+            signal_oris = np.repeat(self.ori_deg, repeats=self._n_signal_dipoles)
 
-        noise_oris = np.random.uniform(
-            low=0.0,
-            high=180.0,
-            size=self._n_noise_dipoles
-        )
+        noise_oris = np.random.uniform(low=0.0, high=180.0, size=self._n_noise_dipoles)
 
         dipole_oris = np.concatenate((signal_oris, noise_oris))
 
         pole_dist = np.tile(
-            (-self._dipole_centre_sep, +self._dipole_centre_sep),
-            self._n_dipoles
+            (-self._dipole_centre_sep, +self._dipole_centre_sep), self._n_dipoles
         )
 
         if self.ori_type == "trans":
@@ -450,8 +424,7 @@ class GlassPattern(object):
         elif self.ori_type == "polar":
 
             (theta, _) = psychopy.misc.cart2pol(
-                self._dipole_xy[:, 0],
-                self._dipole_xy[:, 1]
+                self._dipole_xy[:, 0], self._dipole_xy[:, 1]
             )
 
             theta += dipole_oris
@@ -461,14 +434,11 @@ class GlassPattern(object):
         else:
             raise ValueError("Unknown ori_type " + self._ori_type)
 
-        (x_offset, y_offset) = psychopy.misc.pol2cart(
-            pole_ori,
-            pole_dist
-        )
+        (x_offset, y_offset) = psychopy.misc.pol2cart(pole_ori, pole_dist)
 
         self._dot_xy = (
-            np.repeat(self._dipole_xy, repeats=2, axis=0) +
-            np.vstack((x_offset, y_offset)).T
+            np.repeat(self._dipole_xy, repeats=2, axis=0)
+            + np.vstack((x_offset, y_offset)).T
         )
 
         self._stim.xys = self._dot_xy
@@ -486,20 +456,14 @@ class GlassPattern(object):
             print(self._mask_req)
             print(self._contrast_req)
             raise ValueError(
-                "Trying to draw a Glass pattern without creating a new " +
-                "instance after a setting change"
+                "Trying to draw a Glass pattern without creating a new "
+                + "instance after a setting change"
             )
 
         self._stim.draw()
 
-        pyglet.gl.glBlendFunc(
-            pyglet.gl.GL_ONE_MINUS_SRC_ALPHA,
-            pyglet.gl.GL_SRC_ALPHA
-        )
+        pyglet.gl.glBlendFunc(pyglet.gl.GL_ONE_MINUS_SRC_ALPHA, pyglet.gl.GL_SRC_ALPHA)
 
         self._mask.draw()
 
-        pyglet.gl.glBlendFunc(
-            pyglet.gl.GL_SRC_ALPHA,
-            pyglet.gl.GL_ONE_MINUS_SRC_ALPHA
-        )
+        pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)

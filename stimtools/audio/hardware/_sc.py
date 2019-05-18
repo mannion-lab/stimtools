@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 import numpy as np
@@ -6,19 +5,12 @@ import numpy as np
 import sounddevice
 
 
-class SoundCard(object):
-
-    def __init__(
-        self,
-        **extra_settings
-    ):
+class SoundCard():
+    def __init__(self, **extra_settings):
 
         self._waveform = np.zeros(0)
 
-        self._stream = sounddevice.OutputStream(
-            channels=2,
-            **extra_settings
-        )
+        self._stream = sounddevice.OutputStream(channels=2, **extra_settings)
 
         self._status = None
 
@@ -33,11 +25,7 @@ class SoundCard(object):
     def cue(self, waveform):
 
         if waveform.ndim != 2:
-            waveform = np.repeat(
-                waveform[:, np.newaxis],
-                2,
-                axis=1
-            )
+            waveform = np.repeat(waveform[:, np.newaxis], 2, axis=1)
 
         if waveform.dtype != np.float32:
             waveform = waveform.astype("float32")

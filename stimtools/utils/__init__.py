@@ -1,4 +1,3 @@
-
 from ._pad_image import pad_image, nearest_pow2
 from ._mask import polar_mask
 from ._conversions import (
@@ -8,7 +7,7 @@ from ._conversions import (
     pol_to_cart,
     sph_to_cart,
     cart_to_sph,
-    rgb_to_grey
+    rgb_to_grey,
 )
 from ._circ_dist import circ_dist
 from ._pf import logistic, weibull, cnorm, cnorm_alt, cnorm_wrap

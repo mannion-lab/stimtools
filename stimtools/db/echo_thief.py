@@ -40,12 +40,7 @@ name_to_img_lut = {
 }
 
 # those without proper panoramas
-bad_locs = [
-    "BatteryQuarles",
-    "StorageTankNo7",
-    "TunnelToHeaven",
-    "TunnelToHell"
-]
+bad_locs = ["BatteryQuarles", "StorageTankNo7", "TunnelToHeaven", "TunnelToHell"]
 
 
 def get_db_info():
@@ -75,10 +70,7 @@ def get_db_info():
 
             if not os.path.exists(jpg_path):
                 try:
-                    jpg_path = os.path.join(
-                        base_img_path,
-                        name_to_img_lut[file_name]
-                    )
+                    jpg_path = os.path.join(base_img_path, name_to_img_lut[file_name])
                 except KeyError:
                     continue
 
@@ -88,14 +80,11 @@ def get_db_info():
                 "category": category,
                 "wav_name": file_name,
                 "wav_path": os.path.join(dir_path, curr_file),
-                "jpg_path": jpg_path
+                "jpg_path": jpg_path,
             }
 
     # do some checks
-    unique_images = [
-        loc_info["jpg_path"]
-        for loc_info in locations.values()
-    ]
+    unique_images = [loc_info["jpg_path"] for loc_info in locations.values()]
 
     # no image is assigned to two different locations
     assert len(unique_images) == len(set(unique_images))
@@ -106,13 +95,13 @@ def get_db_info():
 Database not found at {d:s}.
 
 Try setting the ECHO_THIEF_PATH shell environment variable.
-            """.format(d=base_path)
+            """.format(
+                d=base_path
+            )
         )
 
     # sort by key
-    locations = collections.OrderedDict(
-        sorted(locations.items(), key=lambda x: x[0])
-    )
+    locations = collections.OrderedDict(sorted(locations.items(), key=lambda x: x[0]))
 
     return locations
 
@@ -126,9 +115,7 @@ def load_ir(loc_name, db_info=None, new_sr=None):
         (ir, ir_sr) = soundfile.read(file=db_info[loc_name]["wav_path"])
     else:
         (ir, ir_sr) = librosa.load(
-            path=db_info[loc_name]["wav_path"],
-            sr=new_sr,
-            mono=False
+            path=db_info[loc_name]["wav_path"], sr=new_sr, mono=False
         )
 
         ir = ir.T
@@ -160,11 +147,7 @@ and then add it to the python path
         new_dim = (2048, 4096)
 
         img = skimage.transform.resize(
-            img,
-            new_dim,
-            order=3,
-            mode="reflect",
-            preserve_range=True
+            img, new_dim, order=3, mode="reflect", preserve_range=True
         ).astype("uint8")
 
     # convert into a roughly non-panoramic image

@@ -1,4 +1,3 @@
-
 import numpy as np
 
 try:
@@ -10,8 +9,7 @@ except ImportError:
 import stimtools.utils
 
 
-class RatingScale(object):
-
+class RatingScale():
     def __init__(
         self,
         win,
@@ -19,12 +17,12 @@ class RatingScale(object):
         initial=0.5,
         scale_width=200,
         scale_height=10,
-        scale_colour=(-0.5, ) * 3,
+        scale_colour=(-0.5,) * 3,
         marker_diam=24,
-        marker_colour=(0.5, ) * 3,
+        marker_colour=(0.5,) * 3,
         marker_opacity=0.5,
         pos=(0, 0),
-        units="pix"
+        units="pix",
     ):
 
         self._win = win
@@ -41,12 +39,12 @@ class RatingScale(object):
 
         self._h_extents = (
             self._pos[0] - self._scale_width / 2.0,
-            self._pos[0] + self._scale_width / 2.0
+            self._pos[0] + self._scale_width / 2.0,
         )
 
         self._v_extents = (
             self._pos[1] - self._marker_diam / 2.0,
-            self._pos[1] + self._marker_diam / 2.0
+            self._pos[1] + self._marker_diam / 2.0,
         )
 
         self._marker_value = initial
@@ -59,7 +57,7 @@ class RatingScale(object):
             height=self._scale_height,
             units=units,
             pos=pos,
-            autoLog=False
+            autoLog=False,
         )
 
         self._marker = psychopy.visual.Circle(
@@ -68,7 +66,7 @@ class RatingScale(object):
             fillColor=self._marker_colour,
             lineColor=None,
             opacity=self._marker_opacity,
-            units=units
+            units=units,
         )
 
         self.value = initial
@@ -81,11 +79,7 @@ class RatingScale(object):
 
     def val_to_pos(self, val):
 
-        prop = stimtools.utils.interval_convert(
-            val,
-            self._intervals,
-            [0.0, 1.0]
-        )
+        prop = stimtools.utils.interval_convert(val, self._intervals, [0.0, 1.0])
 
         h_offset = prop * self._scale_width
 
@@ -95,11 +89,7 @@ class RatingScale(object):
 
     def pos_to_val(self, pos):
 
-        val = stimtools.utils.interval_convert(
-            pos[0],
-            self._h_extents,
-            self._intervals
-        )
+        val = stimtools.utils.interval_convert(pos[0], self._h_extents, self._intervals)
 
         val = np.clip(val, *self._intervals)
 
@@ -110,9 +100,7 @@ class RatingScale(object):
         if self._v_extents[0] < mouse_pos[1] < self._v_extents[1]:
             mouse_pos[1] = self._pos[1]
             mouse_pos[0] = np.clip(
-                mouse_pos[0],
-                a_min=self._h_extents[0],
-                a_max=self._h_extents[1]
+                mouse_pos[0], a_min=self._h_extents[0], a_max=self._h_extents[1]
             )
             self._marker.pos = mouse_pos
 

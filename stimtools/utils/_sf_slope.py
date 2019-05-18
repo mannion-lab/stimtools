@@ -1,4 +1,3 @@
-
 import numpy as np
 
 
@@ -14,7 +13,7 @@ def sf_slope(img, return_values=False):
 
     f = np.sqrt(fy[:, np.newaxis] ** 2 + fx[np.newaxis, :] ** 2)
 
-    i_valid = (f > 0)
+    i_valid = f > 0
 
     log_freqs = np.log(f[i_valid]).flatten()
     log_amps = np.log(amp[i_valid]).flatten()

@@ -1,5 +1,3 @@
-
-
 import itertools
 
 import numpy as np
@@ -72,9 +70,7 @@ def get_delta(levels):
     elif n_levels == 4:
         (a, b, c, d) = levels
     else:
-        raise ValueError(
-            f"Unexpected levels length ({n_levels:d})"
-        )
+        raise ValueError(f"Unexpected levels length ({n_levels:d})")
 
     delta_1 = np.abs(d - c)
     delta_2 = np.abs(b - a)
@@ -97,9 +93,7 @@ def prob_scaled_delta(levels, sigma):
 
     (_, delta_1, delta_2) = get_delta(levels=levels)
 
-    sigma_scaled = sigma * np.sqrt(
-        (delta_1 ** 2 + delta_2 ** 2) / 2
-    )
+    sigma_scaled = sigma * np.sqrt((delta_1 ** 2 + delta_2 ** 2) / 2)
 
     p = prob(levels=levels, sigma=sigma_scaled)
 

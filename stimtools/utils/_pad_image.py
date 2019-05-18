@@ -69,10 +69,10 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
     pad_img = np.full(
         shape=(n_frames, new_size[0], new_size[1], n_channels),
         fill_value=pad_value,
-        dtype=img.dtype
+        dtype=img.dtype,
     )
 
-    pad_img[:, :img.shape[1], :img.shape[2], :] = img
+    pad_img[:, : img.shape[1], : img.shape[2], :] = img
 
     row_roll_k = int(np.floor((new_size[0] - img.shape[1]) / 2.0))
     col_roll_k = int(np.floor((new_size[1] - img.shape[2]) / 2.0))
@@ -82,7 +82,7 @@ def pad_image(img, calc_mask=False, pad_value=0.0, to="pow2"):
 
     if calc_mask:
         mask_img = np.ones(new_size) * -1
-        mask_img[:img.shape[1], :img.shape[2]] = 1
+        mask_img[: img.shape[1], : img.shape[2]] = 1
         mask_img = np.roll(mask_img, row_roll_k, axis=0)
         mask_img = np.roll(mask_img, col_roll_k, axis=1)
 

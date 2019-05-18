@@ -1,4 +1,3 @@
-from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
@@ -13,7 +12,4 @@ def circ_dist(a, b):
 
     """
 
-    return np.angle(
-        np.exp(a * 1j) /
-        np.exp(b * 1j)
-    )
+    return np.angle(np.exp(a * 1j) / np.exp(b * 1j))
