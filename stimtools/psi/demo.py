@@ -1,4 +1,3 @@
-
 import numpy as np
 import scipy.stats
 
@@ -18,23 +17,18 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0):
         "alpha": {
             "levels": np.linspace(2.5, 7.5, n_res),
             "prior": scipy.stats.distributions.uniform.pdf(
-                np.linspace(2.5, 7.5, n_res),
-                loc=2.5,
-                scale=5.0
+                np.linspace(2.5, 7.5, n_res), loc=2.5, scale=5.0
             ),
-            "marginalise": False
+            "marginalise": False,
         },
         "beta": {
             "levels": np.linspace(0, 10, n_res)[1:],
             "prior": scipy.stats.distributions.uniform.pdf(
                 np.linspace(0, 10, n_res)[1:],
                 loc=np.linspace(0, 10, n_res)[1],
-                scale=(
-                    np.linspace(0, 10, n_res)[-1] -
-                    np.linspace(0, 10, n_res)[1]
-                )
+                scale=(np.linspace(0, 10, n_res)[-1] - np.linspace(0, 10, n_res)[1]),
             ),
-            "marginalise": True
+            "marginalise": True,
         },
     }
 
@@ -51,26 +45,16 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0):
     psych_func = stimtools.utils.logistic
 
     psi = stimtools.psi.Psi(
-        params=params,
-        stim_levels=stim_levels,
-        pf=psych_func,
-        seed=seed
+        params=params, stim_levels=stim_levels, pf=psych_func, seed=seed
     )
 
     psi.step()
 
     for i_trial in range(n_trials):
 
-        resp_prob = psych_func(
-            stim_levels[psi.curr_stim_index],
-            true_alpha,
-            true_beta
-        )
+        resp_prob = psych_func(stim_levels[psi.curr_stim_index], true_alpha, true_beta)
 
-        resp = rand.choice(
-            [0, 1],
-            p=[1 - resp_prob, resp_prob]
-        )
+        resp = rand.choice([0, 1], p=[1 - resp_prob, resp_prob])
 
         psi.update(resp)
 
@@ -81,9 +65,7 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0):
         if verbose:
             print(
                 "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
-                    t=i_trial + 1,
-                    a=estimates["alpha"],
-                    b=estimates["beta"]
+                    t=i_trial + 1, a=estimates["alpha"], b=estimates["beta"]
                 )
             )
 

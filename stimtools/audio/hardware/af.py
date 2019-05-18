@@ -20,8 +20,7 @@ else:
     serial_imported = True
 
 
-class AudioFileParallelUsingD0(object):
-
+class AudioFileParallelUsingD0():
     def __init__(self, port=None):
         """Interface to the CRS 'AudioFile' device, when the option in the
         playlist file ''UseDigitalInputD0'' is set to TRUE. This allows for
@@ -84,8 +83,7 @@ class AudioFileParallelUsingD0(object):
         del self._device
 
 
-class AudioFileParallel(object):
-
+class AudioFileParallel():
     def __init__(self, port=None):
         """Interface to the CRS 'AudioFile' device.
 
@@ -146,8 +144,7 @@ class AudioFileParallel(object):
         del self._device
 
 
-class AudioFileSerial(object):
-
+class AudioFileSerial():
     def __init__(self, port="/dev/audiofile"):
         """Interface to the CRS 'AudioFile' device.
 
@@ -213,10 +210,7 @@ class AudioFileSerial(object):
     @property
     def playlist(self):
 
-        return self._send_msg(
-            message_str="$playlist",
-            delay=0.1
-        )
+        return self._send_msg(message_str="$playlist", delay=0.1)
 
     @playlist.setter
     def playlist(self, new_playlist):
@@ -226,7 +220,7 @@ class AudioFileSerial(object):
         if not new_playlist.endswith(".xml"):
             raise ValueError("Playlist needs to end in .xml")
 
-        if (self.playlist != new_playlist):
+        if self.playlist != new_playlist:
 
             start_time = time.clock()
 
@@ -234,7 +228,7 @@ class AudioFileSerial(object):
 
             reply = self._send_msg(message_str=message, delay=1.0)
 
-            status_ok = (reply == new_playlist)
+            status_ok = reply == new_playlist
 
             while (not status_ok) and (time.clock() - start_time) < max_wait:
 
@@ -299,11 +293,7 @@ def write_config(config_path, volume):
 
 
 def write_playlist(
-    playlist_path,
-    wav_folder,
-    entries,
-    swap_channels=False,
-    use_D0=True
+    playlist_path, wav_folder, entries, swap_channels=False, use_D0=True
 ):
     """Writes an audiofile XML playlist file.
 
@@ -337,11 +327,7 @@ def write_playlist(
 
         key_code = "Code{n:03d}".format(n=key)
 
-        etree.SubElement(
-            playlist,
-            "Entry",
-            **{key_code: entries[key]}
-        )
+        etree.SubElement(playlist, "Entry", **{key_code: entries[key]})
 
     system = etree.SubElement(base, "SYSTEM")
 
@@ -374,9 +360,7 @@ def check_audiofile(mount_expected):
     try:
         audiofile_path = os.environ["AUDIOFILE_PATH"]
     except KeyError:
-        raise ValueError(
-            "The environmental variable AUDIOFILE_PATH has not been set"
-        )
+        raise ValueError("The environmental variable AUDIOFILE_PATH has not been set")
 
     mounted = os.path.ismount(audiofile_path)
 
@@ -411,10 +395,7 @@ def track_to_pins(track_num, set_trigger=False):
 
     track_binary = "{n:08b}".format(n=track_num)
 
-    data_line = (
-        str(int(set_trigger)) +  # trigger bit
-        track_binary[:-1]
-    )
+    data_line = str(int(set_trigger)) + track_binary[:-1]  # trigger bit
 
     data_val = int(data_line, 2)
 

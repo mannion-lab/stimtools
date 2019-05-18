@@ -7,11 +7,7 @@ import stimtools.utils
 
 
 def polar_grating(
-    size_pix=512,
-    n_cycles=10,
-    amplitude=1.0,
-    wave_type="square",
-    phase_radians=0.0
+    size_pix=512, n_cycles=10, amplitude=1.0, wave_type="square", phase_radians=0.0
 ):
     """Generates a polar grating array.
 
@@ -52,9 +48,9 @@ def polar_grating(
     elif wave_type == "quartic":
 
         img = (
-            (np.pi / 2.0) ** -4.0 *
-            (np.mod(theta, np.pi) - (np.pi / 2.0)) ** 4 *
-            np.sign(np.pi - np.mod(theta, np.pi * 2))
+            (np.pi / 2.0) ** -4.0
+            * (np.mod(theta, np.pi) - (np.pi / 2.0)) ** 4
+            * np.sign(np.pi - np.mod(theta, np.pi * 2))
         )
 
     else:

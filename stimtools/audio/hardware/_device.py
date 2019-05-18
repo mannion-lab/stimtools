@@ -1,15 +1,9 @@
-
-from .af import (
-    AudioFileParallel,
-    AudioFileParallelUsingD0,
-    AudioFileSerial,
-)
+from .af import AudioFileParallel, AudioFileParallelUsingD0, AudioFileSerial
 
 from ._sc import SoundCard
 
 
-class Player():
-
+class Player:
     def __init__(self, interface, **interface_args):
 
         interface_table = {
@@ -23,9 +17,7 @@ class Player():
         self._interface_str = interface
         self._interface_args = interface_args
 
-        self.interface = (
-            interface_table[self._interface_str](**interface_args)
-        )
+        self.interface = interface_table[self._interface_str](**interface_args)
 
         self.play = self.interface.play
         self.stop = self.interface.stop
@@ -40,8 +32,7 @@ class Player():
         self.close()
 
 
-class Dummy():
-
+class Dummy:
     def __init__(self):
 
         self.start = self.close = self.play = self.stop

@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 import pyglet.canvas
@@ -14,7 +13,6 @@ except pyglet.canvas.xlib.NoSuchDisplayException:
     pass
 
 
-
 try:
     parent = psychopy.visual.Window
 except NameError:
@@ -22,13 +20,7 @@ except NameError:
 
 
 class DisplayPlusPlus(parent):
-
-    def __init__(
-        self,
-        dpp_mode="mono++",
-        dpp_port="/dev/dpp",
-        **kwargs
-    ):
+    def __init__(self, dpp_mode="mono++", dpp_port="/dev/dpp", **kwargs):
 
         # requires FBO
         kwargs["useFBO"] = True
@@ -43,10 +35,7 @@ class DisplayPlusPlus(parent):
 
         try:
             self._bits = psychopy.hardware.crs.BitsSharp(
-                win=self,
-                mode=dpp_mode,
-                gamma="hardware",
-                portName=dpp_port
+                win=self, mode=dpp_mode, gamma="hardware", portName=dpp_port
             )
 
         except (pyglet.gl.GLException, IndexError):

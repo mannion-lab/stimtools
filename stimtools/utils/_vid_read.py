@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import, print_function, division
 
 import numbers
@@ -99,9 +98,6 @@ def read_vid_audio(vid_path, sr=44100):
 
     """
 
-    vid = moviepy.editor.VideoFileClip(
-        filename=vid_path,
-        audio_fps=sr
-    )
+    vid = moviepy.editor.VideoFileClip(filename=vid_path, audio_fps=sr)
 
     return vid.audio.to_soundarray()

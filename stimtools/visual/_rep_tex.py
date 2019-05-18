@@ -17,7 +17,7 @@ def rep_tex(
     random_seed=None,
     random_polarity=False,
     dot_shape="gauss",
-    return_alpha=False
+    return_alpha=False,
 ):
     """Generate a repeatable texture from randomly-positioned dots.
 
@@ -60,7 +60,7 @@ def rep_tex(
 
     for (i_dim, dim_size) in enumerate(img_size):
         dot_positions[:, i_dim] *= dim_size
-        dot_positions[:, i_dim] -= (dim_size / 2)
+        dot_positions[:, i_dim] -= dim_size / 2
 
     if random_polarity:
         dot_contrasts = np.random.choice([-1, +1], n_dots)

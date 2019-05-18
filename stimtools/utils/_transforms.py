@@ -1,4 +1,3 @@
-
 import numpy as np
 
 import skimage.transform
@@ -30,7 +29,7 @@ def img_polar_to_cart(
     mode=None,
     cval=0,
     clip=True,
-    preserve_range=False
+    preserve_range=False,
 ):
     """
     Perform a polar to cartesian coordinates transform.
@@ -74,12 +73,12 @@ def img_polar_to_cart(
     """
 
     if mode is None:
-        mode = 'constant'
+        mode = "constant"
 
     if center is None:
         center = np.array(image.shape)[:2] / 2
 
-    warp_args = {'center': center}
+    warp_args = {"center": center}
 
     return skimage.transform.warp(
         image,
@@ -90,5 +89,5 @@ def img_polar_to_cart(
         mode=mode,
         cval=cval,
         clip=clip,
-        preserve_range=preserve_range
+        preserve_range=preserve_range,
     )

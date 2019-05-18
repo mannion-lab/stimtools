@@ -1,4 +1,3 @@
-
 import numpy as np
 import scipy.ndimage
 
@@ -10,8 +9,7 @@ except ImportError:
 import stimtools.utils
 
 
-class FusionLock(object):
-
+class FusionLock():
     def __init__(
         self,
         win,
@@ -20,7 +18,7 @@ class FusionLock(object):
         inner_extent_norm,
         upsample_factor=4,
         contrast=1.0,
-        binary=False
+        binary=False,
     ):
         """Vergence stabiliser.
 
@@ -58,7 +56,7 @@ class FusionLock(object):
             outer_extent_norm=outer_extent_norm,
             inner_extent_norm=inner_extent_norm,
             sector_centre_deg=0.0,
-            sector_central_angle_deg=361.0
+            sector_central_angle_deg=361.0,
         )
 
         self._stim = psychopy.visual.GratingStim(
@@ -68,7 +66,7 @@ class FusionLock(object):
             mask=lock_mask,
             tex=None,
             contrast=self._contrast,
-            autoLog=False
+            autoLog=False,
         )
 
         self.new_instance()
@@ -77,15 +75,12 @@ class FusionLock(object):
 
         if self._binary:
             lowres_lock_img = np.random.choice(
-                [-1, +1],
-                size=[self._lowres_lock_size] * 2
+                [-1, +1], size=[self._lowres_lock_size] * 2
             )
 
         else:
             lowres_lock_img = np.random.uniform(
-                low=-1.0,
-                high=+1.0,
-                size=[self._lowres_lock_size] * 2
+                low=-1.0, high=+1.0, size=[self._lowres_lock_size] * 2
             )
 
         lock_img = scipy.ndimage.zoom(
@@ -93,7 +88,7 @@ class FusionLock(object):
             zoom=self._upsample_factor,
             mode="nearest",
             prefilter=False,
-            order=0
+            order=0,
         )
 
         self._stim.tex = lock_img

@@ -14,44 +14,27 @@ except ImportError:
 
 def get_ir_stats(ir, t_gauss_thresh=None, filt_centres=None, sr=None):
 
-    if type(ir) != np.ndarray:
+    if not isinstance(ir, np.ndarray):
         (ir, sr) = soundfile.read(ir)
     else:
         if sr is None:
-            raise ValueError(
-                "Need to provide the sample rate if passing array"
-            )
+            raise ValueError("Need to provide the sample rate if passing array")
 
     # 1) T_gauss
-    (_, i_crossover, t_gauss) = calc_t_gauss(
-        ir=ir,
-        sr=sr,
-        thresh=t_gauss_thresh
-    )
+    (_, i_crossover, t_gauss) = calc_t_gauss(ir=ir, sr=sr, thresh=t_gauss_thresh)
 
     # use to split indirect component
     ir = ir[i_crossover:]
 
-    filt_out = get_filter_output(
-        ir=ir,
-        sr=sr,
-        cf=filt_centres
-    )
+    filt_out = get_filter_output(ir=ir, sr=sr, cf=filt_centres)
 
-    fit_out = fit_filter_output(
-        filt_out=filt_out,
-        sr=sr
-    )
+    fit_out = fit_filter_output(filt_out=filt_out, sr=sr)
 
     (params, fit_flags, t60_by_freq, t60_broadband) = fit_out
 
     drr_by_freq = params[:, 1]
 
-    ok = (
-        (t_gauss > 0) and
-        (np.all(fit_flags == 1)) and
-        (np.all(t60_by_freq < 15.0))
-    )
+    ok = (t_gauss > 0) and (np.all(fit_flags == 1)) and (np.all(t60_by_freq < 15.0))
 
     return (
         i_crossover,
@@ -60,7 +43,7 @@ def get_ir_stats(ir, t_gauss_thresh=None, filt_centres=None, sr=None):
         t60_broadband,
         drr_by_freq,
         fit_flags,
-        ok
+        ok,
     )
 
 
@@ -135,13 +118,10 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
 
     for i_sample in range(n):
 
-        if (
-            (i_sample < (win_size / 2)) or
-            ((i_sample + (win_size / 2)) > n)
-        ):
+        if (i_sample < (win_size / 2)) or ((i_sample + (win_size / 2)) > n):
             continue
 
-        win_data = ir[(i_sample - win_size // 2):(i_sample + win_size // 2)]
+        win_data = ir[(i_sample - win_size // 2) : (i_sample + win_size // 2)]
 
         kurtosis[i_sample] = scipy.stats.kurtosis(win_data)
 
@@ -240,9 +220,7 @@ def fit_decay(filt_response, sr):
         return M(x=t, params=params) - filt_response
 
     (p, _, _, _, ier) = scipy.optimize.leastsq(
-        func=err_func,
-        x0=[-250, 50],
-        full_output=True
+        func=err_func, x0=[-250, 50], full_output=True
     )
 
     # 2 The relative error between two consecutive iterates is at most ...
@@ -265,7 +243,7 @@ def M(x, params):
     return y
 
 
-def erbspace(low, high, N, earQ=9.26449, minBW=24.7, order=1):
+def erbspace(low, high, N, earQ=9.26449, minBW=24.7):
     """
     This is from brian.hears
     """
@@ -274,17 +252,11 @@ def erbspace(low, high, N, earQ=9.26449, minBW=24.7, order=1):
 
     high = float(high)
 
-    cf = (
-        -(earQ * minBW) +
-        np.exp(
-            np.arange(N) *
-            (
-                -np.log(high + earQ * minBW) +
-                np.log(low + earQ * minBW)
-            ) /
-            (N-1)
-        ) * (high + earQ * minBW)
-    )
+    cf = -(earQ * minBW) + np.exp(
+        np.arange(N)
+        * (-np.log(high + earQ * minBW) + np.log(low + earQ * minBW))
+        / (N - 1)
+    ) * (high + earQ * minBW)
 
     cf = cf[::-1]
 

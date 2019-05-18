@@ -1,4 +1,3 @@
-from __future__ import absolute_import, print_function, division
 
 import numpy as np
 import scipy.signal
@@ -13,16 +12,9 @@ except (ImportError, TypeError):
 import stimtools.utils
 
 
-class SFMBoundary(object):
-
+class SFMBoundary():
     def __init__(
-        self,
-        win,
-        bg_size_pix,
-        fg_size_pix,
-        bg_n_dots,
-        dot_size_pix,
-        fg_bg_phase_diff
+        self, win, bg_size_pix, fg_size_pix, bg_n_dots, dot_size_pix, fg_bg_phase_diff
     ):
 
         self._win = win
@@ -38,11 +30,7 @@ class SFMBoundary(object):
 
             dot_loc = np.vstack(
                 [
-                    np.random.randint(
-                        low=0,
-                        high=bg_dim_size_pix,
-                        size=self._bg_n_dots
-                    )
+                    np.random.randint(low=0, high=bg_dim_size_pix, size=self._bg_n_dots)
                     for bg_dim_size_pix in self._bg_size_pix
                 ]
             ).T
@@ -51,16 +39,13 @@ class SFMBoundary(object):
                 base_img[dot_loc[i_dot, 0], dot_loc[i_dot, 1], i_img] = 1
 
             base_img[..., i_img] = scipy.ndimage.filters.gaussian_filter(
-                input=base_img[..., i_img],
-                sigma=self._dot_size_pix,
-                mode="wrap"
+                input=base_img[..., i_img], sigma=self._dot_size_pix, mode="wrap"
             )
 
         self.dot_loc = dot_loc
 
         (bg_img, bg_img_mask) = stimtools.utils.pad_image(
-            img=base_img[..., 0],
-            calc_mask=True
+            img=base_img[..., 0], calc_mask=True
         )
 
         bg_img = bg_img / 0.08 * -1
@@ -72,7 +57,7 @@ class SFMBoundary(object):
             size=bg_img.shape,
             units="pix",
             interpolate=False,
-            autoLog=False
+            autoLog=False,
         )
 
         fg_img = stimtools.utils.pad_image(img=base_img[..., 1])
@@ -81,20 +66,16 @@ class SFMBoundary(object):
 
         fg_img_mask = np.ones(fg_img.shape) * -1
 
-        fg_img_mask[:self._fg_size_pix[1], :self._fg_size_pix[0]] = 1
+        fg_img_mask[: self._fg_size_pix[1], : self._fg_size_pix[0]] = 1
 
         fg_img_mask = np.roll(
             np.roll(
                 fg_img_mask,
-                shift=-int(
-                    fg_img_mask.shape[0] / 2 + self._fg_size_pix[0] / 2
-                ),
-                axis=1
+                shift=-int(fg_img_mask.shape[0] / 2 + self._fg_size_pix[0] / 2),
+                axis=1,
             ),
-            shift=-int(
-                fg_img_mask.shape[1] / 2 + self._fg_size_pix[1] / 2
-            ),
-            axis=0
+            shift=-int(fg_img_mask.shape[1] / 2 + self._fg_size_pix[1] / 2),
+            axis=0,
         )
 
         self._fg_tex = psychopy.visual.GratingStim(
@@ -104,7 +85,7 @@ class SFMBoundary(object):
             size=fg_img.shape,
             units="pix",
             interpolate=False,
-            autoLog=False
+            autoLog=False,
         )
 
     def update(self, delta_t):
@@ -128,7 +109,7 @@ def demo():
         fg_size_pix=[64, 128],
         bg_n_dots=600,
         dot_size_pix=2,
-        fg_bg_phase_diff=0
+        fg_bg_phase_diff=0,
     )
 
     ph_inc = 0.005

@@ -1,4 +1,3 @@
-
 import numpy as np
 
 
@@ -21,10 +20,10 @@ def scramble_image(img, scramble="phase", axes=(0, 1), seed=None):
 
     noise_shape = np.ones(img.ndim, dtype=np.int)
 
-    noise_shape[axes, ] = np.array(img.shape)[axes, ]
+    noise_shape[axes,] = np.array(img.shape)[axes,]
 
     tile_k = np.array(img.shape)
-    tile_k[axes, ] = 1
+    tile_k[axes,] = 1
 
     rand = np.random.RandomState(seed=seed)
 
@@ -46,17 +45,14 @@ def scramble_image(img, scramble="phase", axes=(0, 1), seed=None):
     del noise_freq
 
     # combine the image's amplitude spectrum with the random phase
-    img_scrambled_freq = (
-        out_amp * np.cos(out_phase) +
-        1j * (out_amp * np.sin(out_phase))
+    img_scrambled_freq = out_amp * np.cos(out_phase) + 1j * (
+        out_amp * np.sin(out_phase)
     )
 
     del out_amp
     del out_phase
 
     # convert back into image space
-    img_scrambled = np.real(
-        np.fft.ifftn(a=img_scrambled_freq)
-    )
+    img_scrambled = np.real(np.fft.ifftn(a=img_scrambled_freq))
 
     return img_scrambled

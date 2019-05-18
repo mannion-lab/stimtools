@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import, print_function, division
 
 import subprocess
@@ -23,7 +22,7 @@ def img_seq_to_vid(
     durations=None,
     gamma=1.0,
     quality="high",
-    print_output=True
+    print_output=True,
 ):
     """Converts an image sequence to video files.
 
@@ -70,9 +69,7 @@ def img_seq_to_vid(
             raise ValueError("Array datatype must be uint8")
 
         image_paths = (
-            (
-                (image_paths.astype("float") / 255.0) ** (1.0 / gamma)
-            ) * 255.0
+            ((image_paths.astype("float") / 255.0) ** (1.0 / gamma)) * 255.0
         ).astype("uint8")
 
         n_frames = image_paths.shape[-1]
@@ -82,8 +79,7 @@ def img_seq_to_vid(
         for i_frame in range(n_frames):
 
             new_image_path = tempfile.NamedTemporaryFile(
-                suffix=".png",
-                delete=False
+                suffix=".png", delete=False
             ).name
 
             imageio.imwrite(new_image_path, image_paths[..., i_frame])
@@ -94,10 +90,7 @@ def img_seq_to_vid(
 
     else:
 
-        image_paths = [
-            os.path.abspath(image_path)
-            for image_path in image_paths
-        ]
+        image_paths = [os.path.abspath(image_path) for image_path in image_paths]
 
     if durations is None:
 
@@ -116,26 +109,17 @@ def img_seq_to_vid(
         vid_extensions = [vid_extensions]
 
     if not all(
-        [
-            vid_ext in ["mp4", "ogg", "webm", "gif"]
-            for vid_ext in vid_extensions
-        ]
+        [vid_ext in ["mp4", "ogg", "webm", "gif"] for vid_ext in vid_extensions]
     ):
         raise ValueError("Unknown extension")
 
     if extra_ffmpeg_args is None:
         extra_ffmpeg_args = []
 
-    image_list_txt = tempfile.NamedTemporaryFile(
-        suffix=".txt",
-        mode="w",
-        delete=False
-    )
+    image_list_txt = tempfile.NamedTemporaryFile(suffix=".txt", mode="w", delete=False)
 
     filename_list_txt = tempfile.NamedTemporaryFile(
-        suffix=".txt",
-        mode="w",
-        delete=False
+        suffix=".txt", mode="w", delete=False
     )
 
     try:
@@ -143,8 +127,10 @@ def img_seq_to_vid(
         for (image_path, frame_duration) in zip(image_paths, durations):
 
             image_list_txt.write(
-                "file '" + image_path + "'\n" +
-                "duration {d:.8f}\n".format(d=frame_duration)
+                "file '"
+                + image_path
+                + "'\n"
+                + "duration {d:.8f}\n".format(d=frame_duration)
             )
 
             filename_list_txt.write(image_path + "\n")
@@ -160,32 +146,32 @@ def img_seq_to_vid(
         base_cmd = [
             ffmpeg_cmd,
             "-nostdin",
-            "-safe", "0",
-            "-f", "concat",
-            "-i", image_list_txt.name,
+            "-safe",
+            "0",
+            "-f",
+            "concat",
+            "-i",
+            image_list_txt.name,
         ]
 
         if audio_path is None:
             base_cmd.append("-an")
 
         else:
-            base_cmd.extend(
-                [
-                    "-i", audio_path,
-                    "-c:a", "aac",
-                    "-b:a", "128k"
-                ]
-            )
+            base_cmd.extend(["-i", audio_path, "-c:a", "aac", "-b:a", "128k"])
 
         if overwrite:
             base_cmd.append("-y")
 
         gif_cmd = [
             "convert",
-            "-delay", "{f:d}".format(f=int(1.0 / fps * 100.0)),
-            "-loop", "0",
-            "-quality", gif_quality,
-            "@" + filename_list_txt.name
+            "-delay",
+            "{f:d}".format(f=int(1.0 / fps * 100.0)),
+            "-loop",
+            "0",
+            "-quality",
+            gif_quality,
+            "@" + filename_list_txt.name,
         ]
 
         for vid_extension in vid_extensions:
@@ -193,26 +179,25 @@ def img_seq_to_vid(
             if vid_extension == "mp4":
 
                 cmd = base_cmd + [
-                    "-codec:v", "libx264",
-                    "-profile:v", "baseline",
-                    "-level", "3",
-                    "-pix_fmt", "yuv420p",
-                    "-f", "mp4"
+                    "-codec:v",
+                    "libx264",
+                    "-profile:v",
+                    "baseline",
+                    "-level",
+                    "3",
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-f",
+                    "mp4",
                 ]
 
             elif vid_extension == "ogg":
 
-                cmd = base_cmd + [
-                    "-codec:v", "libtheora",
-                    "-f", "ogg"
-                ]
+                cmd = base_cmd + ["-codec:v", "libtheora", "-f", "ogg"]
 
             elif vid_extension == "webm":
 
-                cmd = base_cmd + [
-                    "-codec:v", "libvpx",
-                    "-f", "webm"
-                ]
+                cmd = base_cmd + ["-codec:v", "libvpx", "-f", "webm"]
 
             elif vid_extension == "gif":
 
@@ -230,10 +215,7 @@ def img_seq_to_vid(
 
                 cmd.append(out_path)
 
-            out = subprocess.check_output(
-                cmd,
-                stderr=subprocess.STDOUT
-            )
+            out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
     except subprocess.CalledProcessError as err:
         print(err.output.decode("utf8"))
@@ -250,37 +232,28 @@ def img_seq_to_vid(
 
 def combine_vids(output_path, vid_paths, print_output=False):
 
-    vid_list_txt = tempfile.NamedTemporaryFile(
-        suffix=".txt",
-        delete=False
-    )
+    vid_list_txt = tempfile.NamedTemporaryFile(suffix=".txt", delete=False)
 
-    vid_list_txt.write(
-        "\n".join(
-            [
-                "file '" + vid_path + "'"
-                for vid_path in vid_paths
-            ]
-        )
-    )
+    vid_list_txt.write("\n".join(["file '" + vid_path + "'" for vid_path in vid_paths]))
 
     vid_list_txt.close()
 
     cmd = [
         "ffmpeg",
-        "-f", "concat",
-        "-safe", "0",
-        "-i", vid_list_txt.name,
-        "-c", "copy",
-        output_path
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        vid_list_txt.name,
+        "-c",
+        "copy",
+        output_path,
     ]
 
     try:
 
-        out = subprocess.check_output(
-            cmd,
-            stderr=subprocess.STDOUT
-        )
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
     except subprocess.CalledProcessError as err:
         print(err.output)

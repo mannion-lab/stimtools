@@ -34,7 +34,7 @@ def read_exr(exr_path, squeeze=True, channel_order=None):
 
     img_size = (
         data_window.max.x - data_window.min.x + 1,
-        data_window.max.y - data_window.min.y + 1
+        data_window.max.y - data_window.min.y + 1,
     )
 
     if channel_order is None:
@@ -51,7 +51,7 @@ def read_exr(exr_path, squeeze=True, channel_order=None):
     img = np.full(
         (img_size[1], img_size[0], len(channels)),
         np.nan,
-        dtype=type_lut[str(header["channels"][channel_order[0]].type)]
+        dtype=type_lut[str(header["channels"][channel_order[0]].type)],
     )
 
     for (i_channel, curr_channel) in enumerate(channel_order):
@@ -59,10 +59,7 @@ def read_exr(exr_path, squeeze=True, channel_order=None):
         pixel_type = header["channels"][curr_channel].type
 
         channel_str = exr_file.channel(curr_channel, pixel_type)
-        channel_img = np.fromstring(
-            channel_str,
-            dtype=type_lut[str(pixel_type)]
-        )
+        channel_img = np.fromstring(channel_str, dtype=type_lut[str(pixel_type)])
         channel_img.shape = (img_size[1], img_size[0])
         img[..., i_channel] = channel_img
 
@@ -102,10 +99,7 @@ def write_exr(exr_path, img, channels):
 
     chan_fmt = Imath.Channel(Imath.PixelType(Imath.PixelType.FLOAT))
 
-    header["channels"] = {
-        channel: chan_fmt
-        for channel in channels
-    }
+    header["channels"] = {channel: chan_fmt for channel in channels}
 
     data_dict = {
         channel: img[..., i_channel].tostring()
