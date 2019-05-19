@@ -1,7 +1,7 @@
 import alsaaudio
 
 
-class Mixer():
+class Mixer:
     def __init__(self, control="Master", **kwargs):
 
         self._mixer = alsaaudio.Mixer(control=control, **kwargs)

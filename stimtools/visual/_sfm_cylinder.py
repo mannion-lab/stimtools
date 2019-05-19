@@ -94,7 +94,7 @@ def save_vid(vid_stem, fps=30, loops=5):
     )
 
 
-class SFMCylinder():
+class SFMCylinder:
     def __init__(
         self,
         win,

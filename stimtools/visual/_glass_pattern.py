@@ -1,4 +1,3 @@
-
 import numpy as np
 
 try:
@@ -22,7 +21,7 @@ except ImportError:
 import stimtools.utils
 
 
-class GlassPattern():
+class GlassPattern:
     def __init__(
         self,
         win,

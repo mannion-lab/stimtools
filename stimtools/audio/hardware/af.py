@@ -20,7 +20,7 @@ else:
     serial_imported = True
 
 
-class AudioFileParallelUsingD0():
+class AudioFileParallelUsingD0:
     def __init__(self, port=None):
         """Interface to the CRS 'AudioFile' device, when the option in the
         playlist file ''UseDigitalInputD0'' is set to TRUE. This allows for
@@ -83,7 +83,7 @@ class AudioFileParallelUsingD0():
         del self._device
 
 
-class AudioFileParallel():
+class AudioFileParallel:
     def __init__(self, port=None):
         """Interface to the CRS 'AudioFile' device.
 
@@ -144,7 +144,7 @@ class AudioFileParallel():
         del self._device
 
 
-class AudioFileSerial():
+class AudioFileSerial:
     def __init__(self, port="/dev/audiofile"):
         """Interface to the CRS 'AudioFile' device.
 

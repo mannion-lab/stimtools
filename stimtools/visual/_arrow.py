@@ -4,7 +4,7 @@ except ImportError:
     pass
 
 
-class Arrow():
+class Arrow:
     def __init__(self, win, extra_args=None):
 
         if extra_args is None:
