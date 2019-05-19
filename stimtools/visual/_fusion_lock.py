@@ -9,7 +9,7 @@ except ImportError:
 import stimtools.utils
 
 
-class FusionLock():
+class FusionLock:
     def __init__(
         self,
         win,

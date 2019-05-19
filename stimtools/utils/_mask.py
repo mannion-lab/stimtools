@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from ._conversions import cart_to_pol, interval_convert
@@ -41,9 +40,7 @@ def polar_mask(
 
     r_mask = np.logical_and(r >= inner_extent_norm, r < outer_extent_norm)
 
-    theta_dist = np.degrees(
-        circ_dist(np.radians(theta), np.radians(sector_centre_deg))
-    )
+    theta_dist = np.degrees(circ_dist(np.radians(theta), np.radians(sector_centre_deg)))
 
     theta_mask = np.abs(theta_dist) < (sector_central_angle_deg / 2.0)
 

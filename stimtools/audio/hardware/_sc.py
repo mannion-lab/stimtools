@@ -5,7 +5,7 @@ import numpy as np
 import sounddevice
 
 
-class SoundCard():
+class SoundCard:
     def __init__(self, **extra_settings):
 
         self._waveform = np.zeros(0)

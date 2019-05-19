@@ -44,8 +44,7 @@ def get_db_info(ann_path):
             assert len(info) == len(header)
 
             info_dict = {
-                h_key: info[header.index(header_dict[h_key])]
-                for h_key in header_dict
+                h_key: info[header.index(header_dict[h_key])] for h_key in header_dict
             }
 
             # some cleaning up of the names

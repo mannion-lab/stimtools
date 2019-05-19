@@ -1,4 +1,3 @@
-
 try:
     import psychopy.visual
     import psychopy.misc
@@ -6,7 +5,7 @@ except ImportError:
     pass
 
 
-class Fixation():
+class Fixation:
     def __init__(
         self,
         win,

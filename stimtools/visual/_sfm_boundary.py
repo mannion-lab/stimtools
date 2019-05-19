@@ -1,4 +1,3 @@
-
 import numpy as np
 import scipy.signal
 import scipy.ndimage
@@ -12,7 +11,7 @@ except (ImportError, TypeError):
 import stimtools.utils
 
 
-class SFMBoundary():
+class SFMBoundary:
     def __init__(
         self, win, bg_size_pix, fg_size_pix, bg_n_dots, dot_size_pix, fg_bg_phase_diff
     ):

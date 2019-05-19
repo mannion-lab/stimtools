@@ -9,7 +9,7 @@ except ImportError:
 import stimtools.utils
 
 
-class RatingScale():
+class RatingScale:
     def __init__(
         self,
         win,
