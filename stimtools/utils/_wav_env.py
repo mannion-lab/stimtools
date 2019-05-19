@@ -4,7 +4,7 @@ import numpy as np
 import numpy.testing as npt
 
 
-def apply_hanning(waveform, window_samples):
+def apply_hanning(waveform, window_samples, section="both"):
     """Applies a Hanning window to a waveform.
 
     Parameters
@@ -12,8 +12,9 @@ def apply_hanning(waveform, window_samples):
     waveform: array
         Waveform to apply the window to.
     window_samples: int
-        Number of samples in the window (one-sided). This encompassess the (0,
-        1) range.
+        Number of samples in the window (one-sided). This encompassess the (0, 1) range.
+    section: string, {"both", "start", "end"}
+        Whether to apply the window to the start, end, or both sections of the waveform.
 
     Returns
     -------
@@ -21,6 +22,9 @@ def apply_hanning(waveform, window_samples):
         The `waveform` data, after windowing.
 
     """
+
+    if section not in ["both", "start", "end"]:
+        raise ValueError("Unknown `section`")
 
     if waveform.ndim == 1:
         waveform = waveform[:, np.newaxis]
@@ -32,8 +36,10 @@ def apply_hanning(waveform, window_samples):
     npt.assert_almost_equal(window[0], 0.0)
     npt.assert_almost_equal(window[-1], 1.0)
 
-    waveform[:window_samples, :] *= window
-    waveform[-window_samples:, :] *= window[::-1]
+    if section == "both" or section == "start":
+        waveform[:window_samples, :] *= window
+    if section == "both" or section == "end":
+        waveform[-window_samples:, :] *= window[::-1]
 
     waveform = np.squeeze(waveform)
 
