@@ -99,7 +99,6 @@ class Population:
         return (rank_ids, rank_sims)
 
 
-
 class Person:
     def __init__(self, person_id, base_path):
 
