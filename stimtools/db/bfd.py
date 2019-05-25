@@ -6,9 +6,63 @@ import os
 import pprint
 
 import numpy as np
+import scipy.spatial
 
 import imageio
 
+
+class Population:
+    def __init__(self, base_path):
+
+        self._base_path = pathlib.Path(base_path)
+
+        self.people_ids = sorted(
+            [int(person_id) for person_id in os.listdir(self._base_path / "img")]
+        )
+        self.n_people = len(self.people_ids)
+
+        self.people = {
+            person_id: Person(person_id=person_id, base_path=base_path)
+            for person_id in self.people_ids
+        }
+
+    def __repr__(self):
+        return pprint.pformat(
+            {
+                key: value
+                for (key, value) in vars(self).items()
+                if not key.startswith("_")
+            },
+            depth=1,
+        )
+
+    def calc_similarity(self):
+
+        sim = np.full((self.n_people, self.n_people, 3), np.nan)
+
+        coefs = np.array(
+            [
+                [getattr(person, f"{att:s}_coefs") for att in ("shape", "reflectance")]
+                for person in self.people.values()
+            ]
+        )
+
+        dist = scipy.spatial.distance.euclidean
+
+        for (i_row, row_id) in enumerate(self.people_ids):
+            for (i_col, col_id) in enumerate(self.people_ids):
+
+                if i_row >= i_col:
+                    continue
+
+                sim[i_row, i_col, 0] = dist(coefs[i_row, 0, :], coefs[i_col, 0, :])
+                sim[i_row, i_col, 1] = dist(coefs[i_row, 1, :], coefs[i_col, 1, :])
+                sim[i_row, i_col, 2] = dist(
+                    coefs[i_row, ...].flat, coefs[i_col, ...].flat
+                )
+
+        self.coefs = coefs
+        self.sim = sim
 
 class Person:
     def __init__(self, person_id, base_path):
