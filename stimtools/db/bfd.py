@@ -1,9 +1,11 @@
-"""Base face database"""
+"""Basel face database"""
 
 import pathlib
 import json
 import os
 import pprint
+import multiprocessing
+import functools
 
 import numpy as np
 import scipy.spatial
@@ -21,10 +23,16 @@ class Population:
         )
         self.n_people = len(self.people_ids)
 
-        self.people = {
-            person_id: Person(person_id=person_id, base_path=base_path)
-            for person_id in self.people_ids
-        }
+        person_func = functools.partial(Person, base_path=base_path)
+
+        # speed up using parallelisation
+        with multiprocessing.Pool() as pool:
+            self.people = {
+                person_id: person
+                for (person_id, person) in zip(
+                    self.people_ids, pool.map(person_func, self.people_ids)
+                )
+            }
 
     def __repr__(self):
         return pprint.pformat(
@@ -49,8 +57,8 @@ class Population:
 
         dist = scipy.spatial.distance.euclidean
 
-        for (i_row, row_id) in enumerate(self.people_ids):
-            for (i_col, col_id) in enumerate(self.people_ids):
+        for i_row in range(self.n_people):
+            for i_col in range(self.n_people):
 
                 if i_row >= i_col:
                     continue
@@ -63,6 +71,33 @@ class Population:
 
         self.coefs = coefs
         self.sim = sim
+
+    def rank_sim(self, seed_person_id, dim):
+
+        if dim not in ["shape", "reflectance", "both"]:
+            raise ValueError("Unknown ranking dimension")
+
+        if not hasattr(self, "coefs") or not hasattr(self, "sim"):
+            self.calc_similarity()
+
+        dim_lut = {"shape": 0, "reflectance": 1, "both": 2}
+
+        i_dim = dim_lut[dim]
+
+        i_seed_person = self.people_ids.index(seed_person_id)
+
+        sim = self.sim[i_seed_person, :, i_dim]
+
+        rank_vals = [
+            (sim[i_person], self.people_ids[i_person])
+            for i_person in np.argsort(sim)
+            if i_person != i_seed_person
+        ]
+
+        (rank_sims, rank_ids) = zip(*rank_vals)
+
+        return (rank_ids, rank_sims)
+
 
 
 class Person:
