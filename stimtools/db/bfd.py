@@ -64,6 +64,7 @@ class Population:
         self.coefs = coefs
         self.sim = sim
 
+
 class Person:
     def __init__(self, person_id, base_path):
 
