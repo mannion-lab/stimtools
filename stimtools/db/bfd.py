@@ -8,7 +8,6 @@ import numpy as np
 
 
 class Person:
-
     def __init__(self, person_id, base_path):
 
         self._person_id = person_id
@@ -39,10 +38,10 @@ def parse_params(param_path):
 
     # want to convert the illumination coefficients back to their directions
 
-    illum_coefs =  np.array(raw_params["environmentMap"]["coefficients"])
+    illum_coefs = np.array(raw_params["environmentMap"]["coefficients"])
 
     # the columns are just copies
-    assert np.all(illum_coefs[:, (0, )] == illum_coefs)
+    assert np.all(illum_coefs[:, (0,)] == illum_coefs)
 
     illum_coefs = illum_coefs[:, 0]
 
