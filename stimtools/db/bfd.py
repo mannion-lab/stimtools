@@ -60,9 +60,6 @@ class Population:
         for i_row in range(self.n_people):
             for i_col in range(self.n_people):
 
-                if i_row >= i_col:
-                    continue
-
                 sim[i_row, i_col, 0] = dist(coefs[i_row, 0, :], coefs[i_col, 0, :])
                 sim[i_row, i_col, 1] = dist(coefs[i_row, 1, :], coefs[i_col, 1, :])
                 sim[i_row, i_col, 2] = dist(
@@ -91,7 +88,7 @@ class Population:
         rank_vals = [
             (sim[i_person], self.people_ids[i_person])
             for i_person in np.argsort(sim)
-            if i_person != i_seed_person
+            if i_person != i_seed_person and not np.isnan(sim[i_person])
         ]
 
         (rank_sims, rank_ids) = zip(*rank_vals)
