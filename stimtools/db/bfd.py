@@ -11,7 +11,6 @@ import imageio
 
 
 class Person:
-
     def __init__(self, person_id, base_path):
 
         self.person_id = person_id
@@ -50,7 +49,8 @@ class Person:
         return pprint.pformat(
             {
                 key: value
-                for (key, value) in vars(self).items() if not key.startswith("_")
+                for (key, value) in vars(self).items()
+                if not key.startswith("_")
             }
         )
 
