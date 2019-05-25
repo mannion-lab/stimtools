@@ -3,20 +3,87 @@
 import pathlib
 import json
 import os
+import pprint
 
 import numpy as np
 
+import imageio
+
 
 class Person:
+
     def __init__(self, person_id, base_path):
 
-        self._person_id = person_id
+        self.person_id = person_id
         self._base_path = pathlib.Path(base_path)
 
         self._params_path = self._base_path / "rps" / f"{person_id:d}"
 
         # count the number of 'samples' as the number of parameter files
         n_samp = len(os.listdir(self._params_path))
+
+        self.pose_yaws = np.full(n_samp, np.nan)
+        self.illum_azimuths = np.full(n_samp, np.nan)
+
+        # store the parameters
+        for (i_samp, samp_num) in enumerate(range(1, n_samp + 1)):
+
+            samp_param_path = self._params_path / f"{person_id:d}_{samp_num:d}.rps"
+
+            samp_params = parse_params(param_path=samp_param_path)
+
+            # these are assumed to be the same across samples
+            for attr_name in ("shape_coefs", "reflectance_coefs", "image_size_xy"):
+
+                try:
+                    assert np.all(getattr(self, attr_name) == samp_params[attr_name])
+                except AttributeError:
+                    setattr(self, attr_name, samp_params[attr_name])
+
+            self.pose_yaws[i_samp] = samp_params["pose"]["yaw"]
+            self.illum_azimuths[i_samp] = samp_params["illum"]["azimuth"]
+
+        self.unique_pose_yaws = np.unique(self.pose_yaws)
+        self.unique_illum_azimuths = np.unique(self.illum_azimuths)
+
+    def __repr__(self):
+        return pprint.pformat(
+            {
+                key: value
+                for (key, value) in vars(self).items() if not key.startswith("_")
+            }
+        )
+
+    def load_image(self, illum_azimuth=0.0, pose_yaw=0.0, image_type="render"):
+
+        if image_type == "render":
+            image_type = ""
+        elif image_type in ["albedo", "depth", "illumination", "normals"]:
+            image_type = "_" + image_type
+        else:
+            raise ValueError("Unknown image type")
+
+        samp_match = np.logical_and(
+            self.pose_yaws == pose_yaw, self.illum_azimuths == illum_azimuth
+        )
+
+        n_match = np.sum(samp_match)
+
+        if n_match == 1:
+            i_samp = int(np.flatnonzero(samp_match))
+        elif n_match == 0:
+            raise ValueError("No samples matching requirements")
+        else:
+            raise ValueError("Multiple samples matching requirements")
+
+        samp_num = i_samp + 1
+
+        images_path = self._base_path / "img" / f"{self.person_id:d}"
+        image_path = images_path / f"{self.person_id:d}_{samp_num:d}{image_type:s}.png"
+
+        image = imageio.imread(uri=image_path)
+
+        return image
 
 
 def parse_params(param_path):
