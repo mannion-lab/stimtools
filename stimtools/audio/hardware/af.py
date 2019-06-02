@@ -45,7 +45,7 @@ class AudioFileParallelUsingD0:
         self.start = None
         self.stop = None
 
-    def cue(self, track_num):
+    def cue(self, track_num, wait_s=0.0):
         """Prepares a track for presentation.
 
         Parameters
@@ -53,6 +53,8 @@ class AudioFileParallelUsingD0:
         track_num: integer, [1, 256]
             Track number, according to the 'Playlist.xml' register on the
             device.
+        wait_s: float, optional
+            Wait for a period after cueing.
 
         Notes
         -----
@@ -64,6 +66,8 @@ class AudioFileParallelUsingD0:
 
         self._device.setData(data_val)
         self._device.setDataStrobe(strobe_val)
+
+        time.sleep(wait_s)
 
     def trigger(self, trigger_val=129):
         """Triggers sound playback.
