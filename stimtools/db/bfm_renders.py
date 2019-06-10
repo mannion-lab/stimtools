@@ -18,21 +18,15 @@ class Population:
 
         self._base_path = pathlib.Path(base_path)
 
-        self.people_ids = sorted(
-            [int(person_id) for person_id in os.listdir(self._base_path / "img")]
-        )
-        self.n_people = len(self.people_ids)
+        self.n_people = len(os.listdir(self._base_path / "img"))
 
         person_func = functools.partial(Person, base_path=base_path)
 
-        # speed up using parallelisation
         with multiprocessing.Pool() as pool:
-            self.people = {
-                person_id: person
-                for (person_id, person) in zip(
-                    self.people_ids, pool.map(person_func, self.people_ids)
-                )
-            }
+            self.people = [
+                person
+                for person in pool.map(person_func, range(self.n_people))
+            ]
 
     def __repr__(self):
         return pprint.pformat(
@@ -44,6 +38,38 @@ class Population:
             depth=1,
         )
 
+    def calc_dissim(self, pose_yaw, illum_azimuth):
+
+        self.dissim = np.zeros((self.n_people, self.n_people, 2))
+
+        for (i_image_type, image_type) in enumerate(("albedo", "normals")):
+
+            images = np.array(
+                [
+                    person.load_image(
+                        image_type=image_type,
+                        pose_yaw=pose_yaw,
+                        illum_azimuth=illum_azimuth
+                    )
+                    for person in self.people
+                ]
+            )
+
+            i_masks = np.all(images > 0, axis=-1)
+
+            for i_row in [0]: #range(self.n_people):
+                for i_col in range(self.n_people):
+
+                    i_mask = np.logical_and(i_masks[i_row, ...], i_masks[i_col, ...])
+
+                    dissim = np.mean(
+                        np.abs(images[i_row, ...][i_mask] - images[i_col, ...][i_mask])
+                    )
+
+                    self.dissim[i_row, i_col, i_image_type] = dissim
+
+
+
     def calc_similarity(self):
 
         sim = np.full((self.n_people, self.n_people, 3), np.nan)
@@ -51,7 +77,7 @@ class Population:
         coefs = np.array(
             [
                 [getattr(person, f"{att:s}_coefs") for att in ("shape", "reflectance")]
-                for person in self.people.values()
+                for person in self.people
             ]
         )
 
@@ -81,14 +107,12 @@ class Population:
 
         i_dim = dim_lut[dim]
 
-        i_seed_person = self.people_ids.index(seed_person_id)
-
-        sim = self.sim[i_seed_person, :, i_dim]
+        sim = self.sim[seed_person_id, :, i_dim]
 
         rank_vals = [
-            (sim[i_person], self.people_ids[i_person])
+            (sim[i_person], i_person)
             for i_person in np.argsort(sim)
-            if i_person != i_seed_person and not np.isnan(sim[i_person])
+            if i_person != seed_person_id and not np.isnan(sim[i_person])
         ]
 
         (rank_sims, rank_ids) = zip(*rank_vals)
