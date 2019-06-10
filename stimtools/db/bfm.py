@@ -7,6 +7,16 @@ import os
 import numpy as np
 import scipy.io
 
+try:
+    import trimesh
+except ImportError:
+    pass
+
+try:
+    import pyrender
+except ImportError:
+    pass
+
 
 class Person:
     def __init__(self, model=None):
@@ -35,6 +45,9 @@ class Person:
 
         self._model = model
 
+        # triangle list
+        self._tl = self._model["tl"]
+
         self.dims = {
             dim_name: {
                 param.lower(): model[f"{dim_name:s}{param:s}"]
@@ -42,6 +55,11 @@ class Person:
             }
             for dim_name in ["shape", "tex"]
         }
+
+        self._n_vertices = len(self.dims["shape"]["mu"]) // 3
+
+        for dim in self.dims:
+            self.set_dim(dim=dim, coefs=np.zeros(1))
 
     def set_dim(self, dim, coefs):
         """Set the head configuration from model coefficients.
@@ -71,3 +89,32 @@ class Person:
         vals = np.reshape(vals, (len(vals) // 3, 3))
 
         self.dims[dim]["vals"] = vals
+
+    def render(self):
+
+        vertices = self.dims["shape"]["vals"]
+        faces = self._tl - 1
+        colours = self.dims["tex"]["vals"]
+
+        mesh = trimesh.Trimesh(vertices=vertices, faces=faces, vertex_colors=colours)
+
+        self._mesh = mesh
+
+        camera = pyrender.OrthographicCamera(xmag=1.0, ymag=1.0)
+
+        obj = pyrender.Mesh.from_trimesh(mesh=mesh)
+
+        scene = pyrender.Scene(ambient_light=[0.2] * 3)
+
+        scene.add(camera)
+        scene.add(obj)
+
+        renderer = pyrender.OffscreenRenderer(
+            viewport_width=512, viewport_height=512
+        )
+
+        self._scene = scene
+
+        color, depth = renderer.render(scene)
+
+        return (color, depth)
