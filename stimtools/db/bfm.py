@@ -9,7 +9,6 @@ import scipy.io
 
 
 class Person:
-
     def __init__(self, model=None):
         """An instance from the Basel Face Model (2009).
 
@@ -44,7 +43,6 @@ class Person:
             for dim_name in ["shape", "tex"]
         }
 
-
     def set_dim(self, dim, coefs):
         """Set the head configuration from model coefficients.
 
@@ -73,5 +71,3 @@ class Person:
         vals = np.reshape(vals, (len(vals) // 3, 3))
 
         self.dims[dim]["vals"] = vals
-
-
