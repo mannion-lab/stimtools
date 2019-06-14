@@ -93,28 +93,36 @@ class Person:
     def render(self):
 
         vertices = self.dims["shape"]["vals"]
+        vertices /= np.max(np.abs(vertices))
+
+        vertices[:, -1] -= 100
+
         faces = self._tl - 1
         colours = self.dims["tex"]["vals"]
 
         mesh = trimesh.Trimesh(vertices=vertices, faces=faces, vertex_colors=colours)
 
+        mesh.invert()
+
         self._mesh = mesh
 
         camera = pyrender.OrthographicCamera(xmag=1.0, ymag=1.0)
 
-        obj = pyrender.Mesh.from_trimesh(mesh=mesh)
+        #material = pyrender.MetallicRoughnessMaterial(doubleSided=True)
 
-        scene = pyrender.Scene(ambient_light=[0.2] * 3)
+        obj = pyrender.Mesh.from_trimesh(mesh=mesh) #, material=material)
+
+        scene = pyrender.Scene(ambient_light=[1.0] * 3)
 
         scene.add(camera)
         scene.add(obj)
 
-        renderer = pyrender.OffscreenRenderer(
+        self._renderer = pyrender.OffscreenRenderer(
             viewport_width=512, viewport_height=512
         )
 
         self._scene = scene
 
-        color, depth = renderer.render(scene)
+        color, depth = self._renderer.render(scene)
 
         return (color, depth)
