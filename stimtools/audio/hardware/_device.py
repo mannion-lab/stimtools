@@ -37,7 +37,7 @@ class Dummy:
 
         self.start = self.close = self.play = self.stop
 
-    def cue(self, track_num):
+    def cue(self, track_num, wait_s=0.0):
         pass
 
     def stop(self):
