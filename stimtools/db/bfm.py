@@ -6,6 +6,7 @@ import os
 
 import numpy as np
 import scipy.io
+import scipy.spatial.transform
 
 try:
     import trimesh
@@ -61,7 +62,7 @@ class Person:
         for dim in self.dims:
             self.set_dim(dim=dim, coefs=np.zeros(1))
 
-    def set_dim(self, dim, coefs):
+    def set_dim(self, dim, coefs, clip_warn=False):
         """Set the head configuration from model coefficients.
 
         Parameters
@@ -70,6 +71,9 @@ class Person:
             Which dimension the coefficents are for.
         coefs: array of floats
             Principal component coefficients. Can be fewer than those in the model.
+        clip_warn: bool
+            Whether to warn when `tex` parameters cause the values to be outside of the
+            [0, 255] interval.
 
         Notes
         -----
@@ -86,16 +90,20 @@ class Person:
 
         vals = mu + pc[:, :n_coef] @ (coefs * ev[:n_coef])
 
+        if dim == "tex":
+            if np.any(np.logical_or(vals < 0, vals > 255)):
+                if clip_warn:
+                    print("Clipping")
+                vals = np.clip(vals, 0, 255)
+
         vals = np.reshape(vals, (len(vals) // 3, 3))
 
         self.dims[dim]["vals"] = vals
 
-    def render(self):
+    def render(self, pose_deg=25.0, light_pose_deg=-25.0, gamma=1.0):
 
         vertices = self.dims["shape"]["vals"]
         vertices /= np.max(np.abs(vertices))
-
-        vertices[:, -1] -= 100
 
         faces = self._tl - 1
         colours = self.dims["tex"]["vals"]
@@ -108,14 +116,29 @@ class Person:
 
         camera = pyrender.OrthographicCamera(xmag=1.0, ymag=1.0)
 
-        #material = pyrender.MetallicRoughnessMaterial(doubleSided=True)
+        pose_vec = scipy.spatial.transform.Rotation.from_rotvec(
+            [0, np.radians(pose_deg), 0]
+        )
 
-        obj = pyrender.Mesh.from_trimesh(mesh=mesh) #, material=material)
+        pose_mat = np.eye(4)
+        pose_mat[:3, :3] = pose_vec.as_dcm()
+        pose_mat[2, -1] = -100
 
-        scene = pyrender.Scene(ambient_light=[1.0] * 3)
+        obj = pyrender.Mesh.from_trimesh(mesh=mesh, poses=pose_mat[np.newaxis, ...])
+
+        light = pyrender.DirectionalLight(intensity=5.0)
+
+        light_pose_vec = scipy.spatial.transform.Rotation.from_rotvec(
+            [0, np.radians(light_pose_deg), 0]
+        )
+        light_pose_mat = np.eye(4)
+        light_pose_mat[:3, :3] = light_pose_vec.as_dcm()
+
+        scene = pyrender.Scene(ambient_light=[0.1] * 3)
 
         scene.add(camera)
         scene.add(obj)
+        scene.add(light, pose=light_pose_mat)
 
         self._renderer = pyrender.OffscreenRenderer(
             viewport_width=512, viewport_height=512
@@ -123,6 +146,9 @@ class Person:
 
         self._scene = scene
 
-        color, depth = self._renderer.render(scene)
+        (img, _) = self._renderer.render(scene)
 
-        return (color, depth)
+        img = (img / 255.0) ** (1.0 / gamma)
+        img = np.round(img * 255.0).astype("uint8")
+
+        return img
