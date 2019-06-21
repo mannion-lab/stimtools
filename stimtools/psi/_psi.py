@@ -113,13 +113,14 @@ class Psi:
 
         posterior = p_r_x_full / p_r_x
 
-        marginal = np.sum(posterior, axis=self._marginal_sum_axes)
+        self._marginal = np.sum(posterior, axis=self._marginal_sum_axes)
 
-        h = -1 * np.sum(
-            marginal * np.log2(marginal + 10e-10), axis=tuple(range(2, marginal.ndim))
+        self._h = -1 * np.sum(
+            self._marginal * np.log2(self._marginal + 10e-10),
+            axis=tuple(range(2, self._marginal.ndim))
         )
 
-        e_h = np.sum(h * np.squeeze(p_r_x), axis=0)
+        e_h = np.sum(self._h * np.squeeze(p_r_x), axis=0)
 
         e_h[np.isnan(e_h)] = np.Inf
 
