@@ -10,12 +10,14 @@ import OpenGL.GL as gl
 
 KEYCODE_TO_KEY = {
     keycode: "_".join(key.split("_")[1:]).lower()
-    for (key, keycode) in vars(glfw).items() if key.startswith("KEY_")
+    for (key, keycode) in vars(glfw).items()
+    if key.startswith("KEY_")
 }
 
 MODCODE_TO_KEY = {
     modcode: "_".join(key.split("_")[1:]).lower()
-    for (key, modcode) in vars(glfw).items() if key.startswith("MOD_")
+    for (key, modcode) in vars(glfw).items()
+    if key.startswith("MOD_")
 }
 
 Keypress = collections.namedtuple(
@@ -24,7 +26,6 @@ Keypress = collections.namedtuple(
 
 
 class Window:
-
     def __init__(
         self,
         size_pix=(800, 800),
@@ -32,7 +33,7 @@ class Window:
         vsync=True,
         fullscreen=False,
         event_buffer_size=20,
-        gamma=1.0
+        gamma=1.0,
     ):
 
         self.colour = tuple(colour)
@@ -83,7 +84,7 @@ class Window:
 
         glfw.set_window_close_callback(self.win, self.window_close_callback)
 
-        gl.glClearColor(*(self.colour + (1.0, )))
+        gl.glClearColor(*(self.colour + (1.0,)))
 
         self.flip()
 
@@ -119,11 +120,7 @@ class Window:
             else:
                 mod = MODCODE_TO_KEY[mods]
 
-            keypress = Keypress(
-                name=KEYCODE_TO_KEY[key],
-                time=time,
-                mod=mod
-            )
+            keypress = Keypress(name=KEYCODE_TO_KEY[key], time=time, mod=mod)
 
             self._event_buffer.append(keypress)
 
