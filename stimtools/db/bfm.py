@@ -100,15 +100,48 @@ class Person:
 
         self.dims[dim]["vals"] = vals
 
+    def export_ply(self, ply_path):
+
+        vertices = self.dims["shape"]["vals"]
+
+        # this brings them into about the [-15, +15] range
+        vertices /= 10_000
+
+        faces = self._tl - 1
+
+        colours = self.dims["tex"]["vals"]
+
+        mesh = trimesh.Trimesh(
+            vertices=vertices, faces=faces, vertex_colors=colours
+        )
+
+        mesh.invert()
+
+        mesh.export(file_obj=ply_path)
+
     def render(self, pose_deg=25.0, light_pose_deg=-25.0, gamma=1.0):
 
         vertices = self.dims["shape"]["vals"]
         vertices /= np.max(np.abs(vertices))
 
         faces = self._tl - 1
+
+        # these are linear (I think) but the renderer needs them in sRGB
         colours = self.dims["tex"]["vals"]
 
-        mesh = trimesh.Trimesh(vertices=vertices, faces=faces, vertex_colors=colours)
+        srgb_colours = colours / 255.0
+
+        srgb_colours = np.where(
+            srgb_colours < 0.0031308,
+            srgb_colours * 12.92,
+            1.055 * (srgb_colours ** (1.0 / 2.4)) - 0.055
+        )
+
+        srgb_colours *= 255.0
+
+        mesh = trimesh.Trimesh(
+            vertices=vertices, faces=faces, vertex_colors=colours
+        )
 
         mesh.invert()
 
@@ -124,7 +157,15 @@ class Person:
         pose_mat[:3, :3] = pose_vec.as_dcm()
         pose_mat[2, -1] = -100
 
-        obj = pyrender.Mesh.from_trimesh(mesh=mesh, poses=pose_mat[np.newaxis, ...])
+        material = pyrender.material.SpecularGlossinessMaterial(
+            diffuseFactor=1.0, glossinessFactor=0.0
+        )
+
+        obj = pyrender.Mesh.from_trimesh(
+            mesh=mesh, poses=pose_mat[np.newaxis, ...], #material=material
+        )
+
+        self._obj = obj
 
         light = pyrender.DirectionalLight(intensity=5.0)
 
@@ -134,7 +175,7 @@ class Person:
         light_pose_mat = np.eye(4)
         light_pose_mat[:3, :3] = light_pose_vec.as_dcm()
 
-        scene = pyrender.Scene(ambient_light=[0.1] * 3)
+        scene = pyrender.Scene(ambient_light=[0.1] * 3, bg_color=[0] * 4)
 
         scene.add(camera)
         scene.add(obj)
@@ -146,7 +187,13 @@ class Person:
 
         self._scene = scene
 
-        (img, _) = self._renderer.render(scene)
+        flags = (
+            pyrender.constants.RenderFlags.NONE
+            | pyrender.constants.RenderFlags.RGBA
+            | pyrender.constants.RenderFlags.SHADOWS_ALL
+        )
+
+        (img, _) = self._renderer.render(scene, flags=flags)
 
         img = (img / 255.0) ** (1.0 / gamma)
         img = np.round(img * 255.0).astype("uint8")
