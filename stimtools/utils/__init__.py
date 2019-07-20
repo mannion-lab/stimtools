@@ -22,6 +22,7 @@ from ._ar_face import ar_expressions, ar_img_read, ar_read
 from ._ply import create_ply
 from ._data_files import get_subj_ids_from_data_files
 from ._crop import crop_to_centre
+from ._ramp import raised_cosine
 
 __all__ = [
     "pad_image",
@@ -56,4 +57,5 @@ __all__ = [
     "get_subj_ids_from_data_files",
     "read_vid_audio",
     "crop_to_centre",
+    "raised_cosine",
 ]
