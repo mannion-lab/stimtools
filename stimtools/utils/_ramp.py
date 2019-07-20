@@ -27,4 +27,7 @@ def raised_cosine(n_peak, n_flank):
 
     profile = np.concatenate((flank, peak, flank[::-1]))
 
+    # convert from [-1, +1] to [0, 1]
+    profile = (profile + 1.0) / 2.0
+
     return profile
