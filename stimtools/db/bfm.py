@@ -111,9 +111,7 @@ class Person:
 
         colours = self.dims["tex"]["vals"]
 
-        mesh = trimesh.Trimesh(
-            vertices=vertices, faces=faces, vertex_colors=colours
-        )
+        mesh = trimesh.Trimesh(vertices=vertices, faces=faces, vertex_colors=colours)
 
         mesh.invert()
 
@@ -134,14 +132,12 @@ class Person:
         srgb_colours = np.where(
             srgb_colours < 0.0031308,
             srgb_colours * 12.92,
-            1.055 * (srgb_colours ** (1.0 / 2.4)) - 0.055
+            1.055 * (srgb_colours ** (1.0 / 2.4)) - 0.055,
         )
 
         srgb_colours *= 255.0
 
-        mesh = trimesh.Trimesh(
-            vertices=vertices, faces=faces, vertex_colors=colours
-        )
+        mesh = trimesh.Trimesh(vertices=vertices, faces=faces, vertex_colors=colours)
 
         mesh.invert()
 
@@ -162,7 +158,7 @@ class Person:
         )
 
         obj = pyrender.Mesh.from_trimesh(
-            mesh=mesh, poses=pose_mat[np.newaxis, ...], #material=material
+            mesh=mesh, poses=pose_mat[np.newaxis, ...]  # material=material
         )
 
         self._obj = obj
