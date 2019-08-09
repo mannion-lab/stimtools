@@ -43,12 +43,18 @@ except NameError:
 
 class Rift:
 
-    def __init__(self):
+    def __init__(self, monoscopic=True):
 
         ovr.initialize()
         ovr.create()
 
         self.hmd_info = ovr.getHmdInfo()
+
+        self.i_left = libovr.EYE_LEFT
+        self.i_right = libovr.EYE_RIGHT
+
+        
+
 
     def __enter__(self):
         return self
