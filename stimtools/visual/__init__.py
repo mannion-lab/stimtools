@@ -9,6 +9,7 @@ from ._arrow import Arrow
 from ._rep_tex import rep_tex
 from ._noise import noise_image
 from ._rating_scale import RatingScale
+from ._cubemap import CubeMap
 
 __all__ = [
     "DisplayPlusPlus",
@@ -22,4 +23,5 @@ __all__ = [
     "rep_tex",
     "noise_image",
     "RatingScale",
+    "CubeMap",
 ]
