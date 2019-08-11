@@ -14,7 +14,6 @@ except ImportError:
 
 
 class Rift:
-
     def __init__(self, monoscopic=True):
 
         if not monoscopic:
@@ -84,7 +83,6 @@ class Rift:
 
 
 class Frame:
-
     def __init__(self, i_frame, i_fbo):
 
         self._i_frame = i_frame
@@ -104,12 +102,8 @@ class Frame:
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
 
         # do these need to be done each frame?
-        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(
-            ovr.TEXTURE_SWAP_CHAIN0,
-        )
-        (_, i_t) = ovr.getTextureSwapChainBufferGL(
-            ovr.TEXTURE_SWAP_CHAIN0, i_swap
-        )
+        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
+        (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
 
         gl.glFramebufferTexture2D(
             gl.GL_DRAW_FRAMEBUFFER,  # target
@@ -120,9 +114,9 @@ class Frame:
         )
 
         # these are really window operations
-        #gl.glViewport(*(rift.viewport))
-        #gl.glClearColor(*(win.colour + (1.0, )))
-        #gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        # gl.glViewport(*(rift.viewport))
+        # gl.glClearColor(*(win.colour + (1.0, )))
+        # gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         view = ovr.getEyeViewMatrix(0)
 
