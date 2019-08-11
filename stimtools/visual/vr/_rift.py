@@ -1,5 +1,8 @@
 import os
+
 import numpy as np
+
+import OpenGL.GL as gl
 
 try:
     import psychxr.libovr as ovr
@@ -34,7 +37,7 @@ class Rift:
             fov[2:] = symm[2:]
 
             # symmetric for monoscopic
-            for (i_eye, eye_fov) in zip(self.i_eyes, symm):
+            for (i_eye, _) in zip(self.i_eyes, symm):
                 ovr.setEyeRenderFov(eye=i_eye, fov=fov)
 
             tex_sizes = [ovr.calcEyeBufferSize(i_eye) for i_eye in self.i_eyes]
