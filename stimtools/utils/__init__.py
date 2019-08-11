@@ -23,6 +23,7 @@ from ._ply import create_ply
 from ._data_files import get_subj_ids_from_data_files
 from ._crop import crop_to_centre
 from ._ramp import raised_cosine
+from ._cubemap import panorama_to_cubemap
 
 __all__ = [
     "pad_image",
@@ -58,4 +59,5 @@ __all__ = [
     "read_vid_audio",
     "crop_to_centre",
     "raised_cosine",
+    "panorama_to_cubemap",
 ]
