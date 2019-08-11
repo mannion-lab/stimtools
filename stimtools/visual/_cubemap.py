@@ -6,6 +6,7 @@ import imageio
 
 import OpenGL.GL as gl
 
+
 # (row, col) indices of the faces
 face_locs = {
     gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X: (1, 2),
@@ -200,7 +201,7 @@ class CubeMap:
     def set_view(self, view):
 
         view[:, -1] = 0
-        
+
         gl.glUseProgram(self.program)
 
         gl.glUniformMatrix4fv(
