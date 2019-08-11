@@ -36,9 +36,10 @@ def apply_hanning(waveform, window_samples, section="both"):
     npt.assert_almost_equal(window[0], 0.0)
     npt.assert_almost_equal(window[-1], 1.0)
 
-    if section == "both" or section == "start":
+    if section in ("both", "start"):
         waveform[:window_samples, :] *= window
-    if section == "both" or section == "end":
+
+    if section in ("both", "end"):
         waveform[-window_samples:, :] *= window[::-1]
 
     waveform = np.squeeze(waveform)
