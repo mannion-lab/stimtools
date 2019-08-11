@@ -24,8 +24,7 @@ class Population:
 
         with multiprocessing.Pool() as pool:
             self.people = [
-                person
-                for person in pool.map(person_func, range(self.n_people))
+                person for person in pool.map(person_func, range(self.n_people))
             ]
 
     def __repr__(self):
@@ -49,7 +48,7 @@ class Population:
                     person.load_image(
                         image_type=image_type,
                         pose_yaw=pose_yaw,
-                        illum_azimuth=illum_azimuth
+                        illum_azimuth=illum_azimuth,
                     )
                     for person in self.people
                 ]
@@ -57,7 +56,7 @@ class Population:
 
             i_masks = np.all(images > 0, axis=-1)
 
-            for i_row in [0]: #range(self.n_people):
+            for i_row in [0]:  # range(self.n_people):
                 for i_col in range(self.n_people):
 
                     i_mask = np.logical_and(i_masks[i_row, ...], i_masks[i_col, ...])
@@ -67,8 +66,6 @@ class Population:
                     )
 
                     self.dissim[i_row, i_col, i_image_type] = dissim
-
-
 
     def calc_similarity(self):
 

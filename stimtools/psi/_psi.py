@@ -117,7 +117,7 @@ class Psi:
 
         self._h = -1 * np.sum(
             self._marginal * np.log2(self._marginal + 10e-10),
-            axis=tuple(range(2, self._marginal.ndim))
+            axis=tuple(range(2, self._marginal.ndim)),
         )
 
         e_h = np.sum(self._h * np.squeeze(p_r_x), axis=0)
