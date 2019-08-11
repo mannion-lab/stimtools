@@ -53,47 +53,114 @@ void main()
 
 vertices = np.array(
     [
-        -1.0, +1.0, -1.0,
-        -1.0, -1.0, -1.0,
-        +1.0, -1.0, -1.0,
-        +1.0, -1.0, -1.0,
-        +1.0, +1.0, -1.0,
-        -1.0, +1.0, -1.0,
-
-        -1.0, -1.0, +1.0,
-        -1.0, -1.0, -1.0,
-        -1.0, +1.0, -1.0,
-        -1.0, +1.0, -1.0,
-        -1.0, +1.0, +1.0,
-        -1.0, -1.0, +1.0,
-
-        +1.0, -1.0, -1.0,
-        +1.0, -1.0, +1.0,
-        +1.0, +1.0, +1.0,
-        +1.0, +1.0, +1.0,
-        +1.0, +1.0, -1.0,
-        +1.0, -1.0, -1.0,
-
-        -1.0, -1.0, +1.0,
-        -1.0, +1.0, +1.0,
-        +1.0, +1.0, +1.0,
-        +1.0, +1.0, +1.0,
-        +1.0, -1.0, +1.0,
-        -1.0, -1.0, +1.0,
-
-        -1.0, +1.0, -1.0,
-        +1.0, +1.0, -1.0,
-        +1.0, +1.0, +1.0,
-        +1.0, +1.0, +1.0,
-        -1.0, +1.0, +1.0,
-        -1.0, +1.0, -1.0,
-
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0, +1.0,
-        +1.0, -1.0, -1.0,
-        +1.0, -1.0, -1.0,
-        -1.0, -1.0, +1.0,
-        +1.0, -1.0, +1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        +1.0,
+        +1.0,
+        -1.0,
+        +1.0,
     ]
 ).astype("float32")
 
@@ -101,7 +168,6 @@ n_vertices = len(vertices) // 3
 
 
 class CubeMap:
-
     def __init__(self, cube_map_img):
 
         # load the image
@@ -139,13 +205,13 @@ class CubeMap:
             gl.glTexParameteri(
                 gl.GL_TEXTURE_CUBE_MAP,
                 getattr(gl, "GL_TEXTURE_" + param + "_FILTER"),
-                gl.GL_LINEAR
+                gl.GL_LINEAR,
             )
         for param in "STR":
             gl.glTexParameteri(
                 gl.GL_TEXTURE_CUBE_MAP,
                 getattr(gl, "GL_TEXTURE_WRAP_" + param),
-                gl.GL_CLAMP_TO_EDGE
+                gl.GL_CLAMP_TO_EDGE,
             )
 
         # set up the shader
@@ -205,10 +271,7 @@ class CubeMap:
         gl.glUseProgram(self.program)
 
         gl.glUniformMatrix4fv(
-            self.i_view,  # location
-            1,  # count
-            gl.GL_TRUE,  # transpose
-            view,  # value
+            self.i_view, 1, gl.GL_TRUE, view  # location  # count  # transpose  # value
         )
 
         gl.glUseProgram(0)
@@ -218,10 +281,7 @@ class CubeMap:
         gl.glUseProgram(self.program)
 
         gl.glUniformMatrix4fv(
-            self.i_proj,  # location
-            1,  # count
-            gl.GL_TRUE,  # transpose
-            proj,  # value
+            self.i_proj, 1, gl.GL_TRUE, proj  # location  # count  # transpose  # value
         )
 
         gl.glUseProgram(0)
