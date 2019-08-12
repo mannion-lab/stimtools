@@ -30,8 +30,6 @@ class Window:
         self,
         size_pix=(800, 800),
         colour=(0.5, 0.5, 0.5),
-        vsync=True,
-        fullscreen=False,
         event_buffer_size=20,
         gamma=1.0,
     ):
@@ -64,21 +62,7 @@ class Window:
 
         glfw.make_context_current(self.win)
 
-        if vsync:
-            glfw.swap_interval(1)
-        else:
-            glfw.swap_interval(0)
-
-        if fullscreen:
-            glfw.set_window_monitor(
-                window=self.win,
-                monitor=self.monitor,
-                xpos=0,
-                ypos=0,
-                width=size_pix[0],
-                height=size_pix[1],
-                refresh_rate=60,
-            )
+        glfw.swap_interval(0)
 
         glfw.set_key_callback(self.win, self.key_event_callback)
 
