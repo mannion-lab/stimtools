@@ -29,15 +29,12 @@ class Rift:
             self.i_right = ovr.EYE_RIGHT
             self.i_eyes = (self.i_left, self.i_right)
 
-            symm = self.hmd_info.symmetricEyeFov[0]
-            default = self.hmd_info.defaultEyeFov[0]
-
-            fov = np.copy(default)
-            fov[2:] = symm[2:]
+            symm = self.hmd_info.symmetricEyeFov
+            default = self.hmd_info.defaultEyeFov
 
             # symmetric for monoscopic
-            for (i_eye, _) in zip(self.i_eyes, symm):
-                ovr.setEyeRenderFov(eye=i_eye, fov=fov)
+            for (i_eye, eye_fov) in zip(self.i_eyes, symm):
+                ovr.setEyeRenderFov(eye=i_eye, fov=eye_fov)
 
             tex_sizes = [ovr.calcEyeBufferSize(i_eye) for i_eye in self.i_eyes]
             assert tex_sizes[0] == tex_sizes[1]
@@ -64,6 +61,29 @@ class Rift:
                 )
 
             ovr.setHighQuality(True)
+
+            gl.glViewport(*self.viewport)
+
+            self.i_fbo = gl.glGenFramebuffers(1)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+
+            self.i_rbo = gl.glGenRenderbuffers(1)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
+            gl.glRenderbufferStorage(
+                gl.GL_RENDERBUFFER,
+                gl.GL_DEPTH24_STENCIL8,
+                self.tex_width,
+                self.tex_height,
+            )
+            gl.glFramebufferRenderbuffer(
+                gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_RENDERBUFFER, self.i_rbo
+            )
+            gl.glFramebufferRenderbuffer(
+                gl.GL_FRAMEBUFFER, gl.GL_STENCIL_ATTACHMENT, gl.GL_RENDERBUFFER, self.i_rbo
+            )
+
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
 
         except:
             self.close()
@@ -114,7 +134,6 @@ class Frame:
         )
 
         # these are really window operations
-        # gl.glViewport(*(rift.viewport))
         # gl.glClearColor(*(win.colour + (1.0, )))
         # gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
