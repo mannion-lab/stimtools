@@ -26,11 +26,12 @@ out vec3 texcoord;
 
 uniform mat4 projection;
 uniform mat4 view;
+uniform mat4 rotate;
 
 void main()
 {
     texcoord = pos;
-    vec4 npos = projection * view * vec4(pos, 1.0);
+    vec4 npos = projection * view * rotate * vec4(pos, 1.0);
     gl_Position = npos.xyww;
 }
 """
@@ -261,6 +262,10 @@ class CubeMap:
 
         self.i_proj = gl.glGetUniformLocation(self.program, "projection")
         self.i_view = gl.glGetUniformLocation(self.program, "view")
+        self.i_rotate = gl.glGetUniformLocation(self.program, "rotate")
+
+        # set the rotation matrix to null
+        self.set_rotate(rotate=np.eye(4).T)
 
         gl.glUseProgram(0)
 
@@ -284,6 +289,16 @@ class CubeMap:
 
         gl.glUniformMatrix4fv(
             self.i_proj, 1, gl.GL_TRUE, proj  # location  # count  # transpose  # value
+        )
+
+        gl.glUseProgram(0)
+
+    def set_rotate(self, rotate):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniformMatrix4fv(
+            self.i_rotate, 1, gl.GL_TRUE, rotate  # location  # count  # transpose  # value
         )
 
         gl.glUseProgram(0)
