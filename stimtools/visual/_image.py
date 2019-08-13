@@ -14,9 +14,6 @@ layout (location = 0) in vec3 pos;
 
 out vec3 texcoord;
 
-uniform mat4 projection;
-uniform mat4 view;
-
 void main()
 {
     texcoord = pos;
@@ -55,7 +52,7 @@ n_vertices = len(points) // 3
 
 
 class ImageStim:
-    def __init__(self, img):
+    def __init__(self, img, srgb=True):
 
         # load the image
         if not isinstance(img, np.ndarray):
@@ -64,8 +61,13 @@ class ImageStim:
         (img_h, img_w, img_c) = img.shape
 
         if img_c == 3:
-            fmt = "GL_RGB"
-        elif img_c == 4:
+            # add an alpha channel, if it doesn't have one
+            alpha = np.ones_like(img[..., (0, )])
+            img = np.concatenate((img, alpha), axis=-1)
+
+        if srgb:
+            fmt = "GL_SRGB_ALPHA"
+        else:
             fmt = "GL_RGBA"
 
         self.i_tex = gl.glGenTextures(1)
@@ -78,7 +80,7 @@ class ImageStim:
             img_w,  # width
             img_h, # height
             0,  # border
-            getattr(gl, fmt),  # format
+            GL_RGBA,  # format
             gl.GL_UNSIGNED_BYTE, # type
             img,
         )
