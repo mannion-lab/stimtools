@@ -109,6 +109,64 @@ class Rift:
         ovr.shutdown()
 
 
+class MockRift:
+
+    def __init__(self, monoscopic=True):
+
+        self.tex_size = [1520] * 2
+
+        (self.tex_width, self.tex_height) = self.tex_size
+
+        self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
+
+        self.proj_mat = pyrr.matrix44.create_perspective_projection_matrix(
+            fovy=87.4,
+            aspect=1.0,
+            near=0.01,
+            far=100.0,
+        ).T
+
+        gl.glViewport(*self.viewport)
+
+        self.i_fbo = gl.glGenFramebuffers(1)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+
+        self.i_rbo = gl.glGenRenderbuffers(1)
+        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
+        gl.glRenderbufferStorage(
+            gl.GL_RENDERBUFFER,
+            gl.GL_DEPTH24_STENCIL8,
+            self.tex_width,
+            self.tex_height,
+        )
+        gl.glFramebufferRenderbuffer(
+            gl.GL_FRAMEBUFFER,
+            gl.GL_DEPTH_ATTACHMENT,
+            gl.GL_RENDERBUFFER,
+            self.i_rbo,
+        )
+        gl.glFramebufferRenderbuffer(
+            gl.GL_FRAMEBUFFER,
+            gl.GL_STENCIL_ATTACHMENT,
+            gl.GL_RENDERBUFFER,
+            self.i_rbo,
+        )
+
+        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    @staticmethod
+    def close():
+        pass
+
+
+
 class Frame:
     def __init__(self, i_frame, i_fbo):
 
