@@ -6,11 +6,13 @@ import OpenGL.GL as gl
 
 try:
     import psychxr.libovr as ovr
+    has_psychxr = True
 except ImportError:
     # windows
     if os.name == "nt":
         print("Install `psychxr`")
         raise
+    has_psychxr = False
 
 try:
     import pyrr
