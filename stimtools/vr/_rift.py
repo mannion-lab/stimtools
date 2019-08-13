@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 import OpenGL.GL as gl
 
 try:
@@ -130,7 +132,6 @@ class Frame:
 
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
 
-        # do these need to be done each frame?
         (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
         (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
 
@@ -154,6 +155,7 @@ class Frame:
             ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
 
             gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
 
             ovr.endFrame(self._i_frame)
 
