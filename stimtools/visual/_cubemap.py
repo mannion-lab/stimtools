@@ -189,10 +189,12 @@ class CubeMap:
 
             face = np.copy(cube_map_img[row_slice, col_slice, :])
 
+            # by using sRGB as the internal format, the textures are transformed into
+            # linear space internally
             gl.glTexImage2D(
                 target,  # target
                 0,  # level of detail
-                gl.GL_RGB,  # internal format
+                gl.GL_SRGB,  # internal format
                 face_size,  # width
                 face_size,  # height
                 0,  # border

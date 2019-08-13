@@ -119,6 +119,10 @@ class Frame:
 
         ovr.beginFrame(self._i_frame)
 
+        # "OpenGL will automatically convert the output colors from linear to the sRGB
+        # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
+        gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
+
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
 
         # do these need to be done each frame?
@@ -132,10 +136,6 @@ class Frame:
             i_t,  # texture
             0,  # level
         )
-
-        # these are really window operations
-        # gl.glClearColor(*(win.colour + (1.0, )))
-        # gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         view = ovr.getEyeViewMatrix(0)
 
@@ -151,3 +151,5 @@ class Frame:
             gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
 
             ovr.endFrame(self._i_frame)
+
+            gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
