@@ -115,7 +115,6 @@ class Rift:
 
 
 class MockRift:
-
     def __init__(self, monoscopic=True):
 
         self.tex_size = [1520] * 2
@@ -125,10 +124,7 @@ class MockRift:
         self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
 
         self.proj_mat = pyrr.matrix44.create_perspective_projection_matrix(
-            fovy=87.4,
-            aspect=1.0,
-            near=0.01,
-            far=100.0,
+            fovy=87.4, aspect=1.0, near=0.01, far=100.0
         ).T
 
         gl.glViewport(*self.viewport)
@@ -144,7 +140,6 @@ class MockRift:
     @staticmethod
     def close():
         pass
-
 
 
 class Frame:
@@ -201,7 +196,6 @@ class Frame:
 
 
 class MockFrame:
-
     def __init__(self, i_frame, i_fbo):
 
         self._i_frame = i_frame
@@ -212,9 +206,7 @@ class MockFrame:
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
 
         view = pyrr.Matrix44.look_at(
-            eye=[0, 0, 0],
-            target=[0.25, 0.25, -1],
-            up=[0, 1, 0]
+            eye=[0, 0, 0], target=[0.25, 0.25, -1], up=[0, 1, 0]
         ).T
 
         return view
