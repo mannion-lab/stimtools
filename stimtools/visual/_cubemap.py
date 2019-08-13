@@ -298,7 +298,10 @@ class CubeMap:
         gl.glUseProgram(self.program)
 
         gl.glUniformMatrix4fv(
-            self.i_rotate, 1, gl.GL_TRUE, rotate  # location  # count  # transpose  # value
+            self.i_rotate,  # location
+            1,  # count
+            gl.GL_TRUE,  # transpose
+            rotate,  # value
         )
 
         gl.glUseProgram(0)
