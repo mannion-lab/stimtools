@@ -1,7 +1,5 @@
 import os
 
-import numpy as np
-
 import OpenGL.GL as gl
 
 try:
@@ -30,7 +28,6 @@ class Rift:
             self.i_eyes = (self.i_left, self.i_right)
 
             symm = self.hmd_info.symmetricEyeFov
-            default = self.hmd_info.defaultEyeFov
 
             # symmetric for monoscopic
             for (i_eye, eye_fov) in zip(self.i_eyes, symm):
@@ -47,6 +44,8 @@ class Rift:
                 ovr.setEyeRenderViewport(eye=i_eye, values=self.viewport)
 
             self.proj_mat = ovr.getEyeProjectionMatrix(0)
+
+            assert np.all(self.proj_mat == ovr.getEyeProjectionMatrix(1))
 
             ovr.createTextureSwapChainGL(
                 ovr.TEXTURE_SWAP_CHAIN0,
@@ -76,10 +75,16 @@ class Rift:
                 self.tex_height,
             )
             gl.glFramebufferRenderbuffer(
-                gl.GL_FRAMEBUFFER, gl.GL_DEPTH_ATTACHMENT, gl.GL_RENDERBUFFER, self.i_rbo
+                gl.GL_FRAMEBUFFER,
+                gl.GL_DEPTH_ATTACHMENT,
+                gl.GL_RENDERBUFFER,
+                self.i_rbo,
             )
             gl.glFramebufferRenderbuffer(
-                gl.GL_FRAMEBUFFER, gl.GL_STENCIL_ATTACHMENT, gl.GL_RENDERBUFFER, self.i_rbo
+                gl.GL_FRAMEBUFFER,
+                gl.GL_STENCIL_ATTACHMENT,
+                gl.GL_RENDERBUFFER,
+                self.i_rbo,
             )
 
             gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
