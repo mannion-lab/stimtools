@@ -12,6 +12,11 @@ except ImportError:
         print("Install `psychxr`")
         raise
 
+try:
+    import pyrr
+except ImportError:
+    pass
+
 
 class Rift:
     def __init__(self, monoscopic=True):
@@ -128,32 +133,7 @@ class MockRift:
 
         gl.glViewport(*self.viewport)
 
-        self.i_fbo = gl.glGenFramebuffers(1)
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
-
-        self.i_rbo = gl.glGenRenderbuffers(1)
-        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
-        gl.glRenderbufferStorage(
-            gl.GL_RENDERBUFFER,
-            gl.GL_DEPTH24_STENCIL8,
-            self.tex_width,
-            self.tex_height,
-        )
-        gl.glFramebufferRenderbuffer(
-            gl.GL_FRAMEBUFFER,
-            gl.GL_DEPTH_ATTACHMENT,
-            gl.GL_RENDERBUFFER,
-            self.i_rbo,
-        )
-        gl.glFramebufferRenderbuffer(
-            gl.GL_FRAMEBUFFER,
-            gl.GL_STENCIL_ATTACHMENT,
-            gl.GL_RENDERBUFFER,
-            self.i_rbo,
-        )
-
-        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+        self.i_fbo = 0
 
     def __enter__(self):
         return self
@@ -217,4 +197,29 @@ class Frame:
 
             ovr.endFrame(self._i_frame)
 
+            gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
+
+
+class MockFrame:
+
+    def __init__(self, i_frame, i_fbo):
+
+        self._i_frame = i_frame
+        self._i_fbo = i_fbo
+
+    def __enter__(self):
+
+        gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
+
+        view = pyrr.Matrix44.look_at(
+            eye=[0, 0, 0],
+            target=[0.25, 0.25, -1],
+            up=[0, 1, 0]
+        ).T
+
+        return view
+
+    def __exit__(self, exc_type, exc_value, traceback):
+
+        if exc_type is None:
             gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
