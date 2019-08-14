@@ -44,11 +44,11 @@ out vec4 FragColor;
 in vec3 texcoord;
 
 uniform samplerCube cubemap;
+uniform float alpha;
 
 void main()
 {
-    FragColor = texture(cubemap, texcoord);
-    //FragColor = vec4(texcoord, 1);
+    FragColor = texture(cubemap, texcoord) * alpha;
 }
 """
 
@@ -169,7 +169,7 @@ n_vertices = len(vertices) // 3
 
 
 class CubeMap:
-    def __init__(self, cube_map_img):
+    def __init__(self, cube_map_img, alpha=1.0):
 
         # load the image
         if not isinstance(cube_map_img, np.ndarray):
@@ -237,6 +237,9 @@ class CubeMap:
         loc = gl.glGetUniformLocation(self.program, "cubemap")
         gl.glUniform1i(loc, 0)
 
+        self.i_alpha = gl.glGetUniformLocation(self.program, "alpha")
+        gl.glUniform1i(loc, 0)
+
         # set up the geometry
         i_pos = gl.glGetAttribLocation(self.program, "pos")
         self.i_vao = gl.glGenVertexArrays(1)
@@ -270,6 +273,20 @@ class CubeMap:
         gl.glUseProgram(0)
 
         gl.glEnable(gl.GL_TEXTURE_CUBE_MAP_SEAMLESS)
+
+        self.alpha = alpha
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, alpha):
+        self._alpha = alpha
+
+        gl.glUseProgram(self.program)
+        gl.glUniform1f(self.i_alpha, alpha)
+        gl.glUseProgram(0)
 
     def set_view(self, view):
 
