@@ -4,6 +4,7 @@ import collections
 import soundfile
 import librosa
 
+import PIL as pillow
 import imageio
 
 import skimage.transform
@@ -15,14 +16,6 @@ except ImportError:
 else:
     pano_avail = True
 
-
-try:
-    base_path = os.environ["ECHO_THIEF_PATH"]
-except KeyError:
-    base_path = os.path.expanduser("~/science/db/echo_thief")
-
-base_audio_path = os.path.join(base_path, "EchoThiefImpulseResponseLibrary")
-base_img_path = os.path.join(base_path, "locations")
 
 name_to_img_lut = {
     "ExerciseAndNutritionSciences": "ExerciseAndNutritionalSciences.JPG",
@@ -43,7 +36,16 @@ name_to_img_lut = {
 bad_locs = ["BatteryQuarles", "StorageTankNo7", "TunnelToHeaven", "TunnelToHell"]
 
 
-def get_db_info():
+def get_db_info(base_path=None):
+
+    if base_path is None:
+        try:
+            base_path = os.environ["ECHO_THIEF_PATH"]
+        except KeyError:
+            base_path = os.path.expanduser("~/science/db/echo_thief")
+
+    base_audio_path = os.path.join(base_path, "EchoThiefImpulseResponseLibrary")
+    base_img_path = os.path.join(base_path, "locations")
 
     locations = {}
 
@@ -76,11 +78,17 @@ def get_db_info():
 
             assert file_name not in locations
 
+            # load the header
+            header = pillow.Image.open(fp=jpg_path)
+
+            img_size_pix = header.size
+
             locations[file_name] = {
                 "category": category,
                 "wav_name": file_name,
                 "wav_path": os.path.join(dir_path, curr_file),
                 "jpg_path": jpg_path,
+                "img_size_pix": img_size_pix,
             }
 
     # do some checks
