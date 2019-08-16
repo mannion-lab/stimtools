@@ -37,14 +37,7 @@ void main()
 """
 
 points = np.array(
-    [
-        -1.0, -1.0,
-        +1.0, -1.0,
-        -1.0, +1.0,
-        -1.0, +1.0,
-        +1.0, -1.0,
-        +1.0, +1.0,
-    ]
+    [-1.0, -1.0, +1.0, -1.0, -1.0, +1.0, -1.0, +1.0, +1.0, -1.0, +1.0, +1.0]
 ).astype("float32")
 
 n_vertices = len(points) // 2
@@ -61,7 +54,7 @@ class ImageStim:
 
         if img_c == 3:
             # add an alpha channel, if it doesn't have one
-            alpha = np.ones_like(img[..., (0, )])
+            alpha = np.ones_like(img[..., (0,)])
             img = np.concatenate((img, alpha), axis=-1)
 
         if srgb:
@@ -74,13 +67,13 @@ class ImageStim:
 
         gl.glTexImage2D(
             gl.GL_TEXTURE_2D,  # target
-            0, # level of detail
+            0,  # level of detail
             getattr(gl, fmt),
             img_w,  # width
-            img_h, # height
+            img_h,  # height
             0,  # border
             gl.GL_RGBA,  # format
-            gl.GL_UNSIGNED_BYTE, # type
+            gl.GL_UNSIGNED_BYTE,  # type
             img,
         )
 
@@ -97,11 +90,7 @@ class ImageStim:
                 gl.GL_LINEAR,
             )
 
-        gl.glTexParameterfv(
-            gl.GL_TEXTURE_2D,
-            gl.GL_TEXTURE_BORDER_COLOR,
-            np.zeros(4),
-        )
+        gl.glTexParameterfv(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_BORDER_COLOR, np.zeros(4))
 
         # set up the shader
         i_vert = gl.glCreateShader(gl.GL_VERTEX_SHADER)
@@ -119,9 +108,6 @@ class ImageStim:
         gl.glValidateProgram(self.program)
 
         gl.glUseProgram(self.program)
-
-        #self.i_img = gl.glGetUniformLocation(self.program, "img")
-        #gl.glUniform1i(self.i_img, 0)
 
         # set up the geometry
         i_pos = gl.glGetAttribLocation(self.program, "pos")
