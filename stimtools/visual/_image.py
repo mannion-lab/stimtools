@@ -10,15 +10,14 @@ import OpenGL.GL as gl
 vert_shader = """
 #version 330 core
 
-layout (location = 0) in vec3 pos;
+layout (location = 0) in vec2 pos;
 
-out vec3 texcoord;
+out vec2 uv;
 
 void main()
 {
-    texcoord = pos;
-    vec4 npos = projection * view * vec4(pos, 1.0);
-    gl_Position = npos.xyww;
+    uv = (pos + 1.0) / 2.0;
+    gl_Position = vec4(pos, 0.0, 1.0);
 }
 """
 
@@ -27,28 +26,28 @@ frag_shader = """
 
 out vec4 FragColor;
 
-in vec3 texcoord;
+in vec2 uv;
 
 uniform sampler2D img;
 
 void main()
 {
-    FragColor = texture(img, texcoord);
+    FragColor = texture(img, uv);
 }
 """
 
 points = np.array(
     [
-        -1.0, -1.0, 0.0,
-        +1.0, -1.0, 0.0,
-        -1.0, +1.0, 0.0,
-        -1.0, +1.0, 0.0,
-        +1.0, -1.0, 0.0,
-        +1.0, +1.0, 0.0,
+        -1.0, -1.0,
+        +1.0, -1.0,
+        -1.0, +1.0,
+        -1.0, +1.0,
+        +1.0, -1.0,
+        +1.0, +1.0,
     ]
 ).astype("float32")
 
-n_vertices = len(points) // 3
+n_vertices = len(points) // 2
 
 
 class ImageStim:
@@ -56,7 +55,7 @@ class ImageStim:
 
         # load the image
         if not isinstance(img, np.ndarray):
-            img = np.asarray(imageio.imread(img))
+            img = np.flipud(imageio.imread(img))
 
         (img_h, img_w, img_c) = img.shape
 
@@ -80,17 +79,29 @@ class ImageStim:
             img_w,  # width
             img_h, # height
             0,  # border
-            GL_RGBA,  # format
+            gl.GL_RGBA,  # format
             gl.GL_UNSIGNED_BYTE, # type
             img,
         )
 
         for param in "ST":
             gl.glTexParameteri(
-                gl.GL_TEXTURE_CUBE_MAP,
+                gl.GL_TEXTURE_2D,
                 getattr(gl, "GL_TEXTURE_WRAP_" + param),
                 gl.GL_CLAMP_TO_EDGE,
             )
+        for param in ("MIN", "MAG"):
+            gl.glTexParameteri(
+                gl.GL_TEXTURE_2D,
+                getattr(gl, "GL_TEXTURE_" + param + "_FILTER"),
+                gl.GL_LINEAR,
+            )
+
+        gl.glTexParameterfv(
+            gl.GL_TEXTURE_2D,
+            gl.GL_TEXTURE_BORDER_COLOR,
+            np.zeros(4),
+        )
 
         # set up the shader
         i_vert = gl.glCreateShader(gl.GL_VERTEX_SHADER)
@@ -109,8 +120,8 @@ class ImageStim:
 
         gl.glUseProgram(self.program)
 
-        loc = gl.glGetUniformLocation(self.program, "cubemap")
-        gl.glUniform1i(loc, 0)
+        #self.i_img = gl.glGetUniformLocation(self.program, "img")
+        #gl.glUniform1i(self.i_img, 0)
 
         # set up the geometry
         i_pos = gl.glGetAttribLocation(self.program, "pos")
@@ -128,20 +139,20 @@ class ImageStim:
         gl.glEnableVertexAttribArray(i_pos)
         gl.glVertexAttribPointer(
             i_pos,  # index
-            3,  # size
+            2,  # size
             gl.GL_FLOAT,  # type
             gl.GL_FALSE,  # normalisation
             0,  # stride
             ctypes.c_void_p(0),  # pointer
         )
 
-        self.i_proj = gl.glGetUniformLocation(self.program, "projection")
-        self.i_view = gl.glGetUniformLocation(self.program, "view")
-
         gl.glUseProgram(0)
 
     def draw(self):
         gl.glUseProgram(self.program)
+
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
         gl.glBindVertexArray(self.i_vao)
         gl.glActiveTexture(gl.GL_TEXTURE0)
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.i_tex)
