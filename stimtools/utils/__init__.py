@@ -8,6 +8,8 @@ from ._conversions import (
     sph_to_cart,
     cart_to_sph,
     rgb_to_grey,
+    srgb_to_linear,
+    linear_to_srgb,
 )
 from ._circ_dist import circ_dist
 from ._pf import logistic, weibull, cnorm, cnorm_alt, cnorm_wrap
@@ -60,4 +62,6 @@ __all__ = [
     "crop_to_centre",
     "raised_cosine",
     "panorama_to_cubemap",
+    "srgb_to_linear",
+    "linear_to_srgb",
 ]

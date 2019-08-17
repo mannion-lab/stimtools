@@ -11,6 +11,7 @@ from ._noise import noise_image
 from ._rating_scale import RatingScale
 from ._cubemap import CubeMap
 from ._image import ImageStim
+from ._sphere import Sphere
 
 __all__ = [
     "DisplayPlusPlus",
@@ -26,4 +27,5 @@ __all__ = [
     "RatingScale",
     "CubeMap",
     "ImageStim",
+    "Sphere",
 ]
