@@ -207,9 +207,8 @@ class MockFrame:
 
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
 
-        view = pyrr.Matrix44.look_at(
-            eye=[0, 0, 0], target=[0, 0, -1], up=[0, 1, 0]
-        ).T
+        view = np.eye(4)
+        #view[-1, -1] = 1.0
 
         return view
 
