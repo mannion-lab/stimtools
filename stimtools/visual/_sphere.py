@@ -31,11 +31,8 @@ out vec3 frag_pos;
 void main()
 {
     vec4 fpos = projection * view * rotate * vec4(pos, 1.0);
-    //gl_Position = vec4(fpos.x, 1.0, 1.0, 1.0);
-    gl_Position = projection * view * rotate * vec4(pos, 1.0);
-    //gl_Position = vec4(fpos.xy, 0.5, 0);
-    //gl_Position = fpos;
-    frag_pos = fpos.xyz;
+    gl_Position = fpos;
+    frag_pos = vec3(rotate * vec4(pos, 1.0));
     n = normal;
 }
 """
@@ -52,15 +49,15 @@ void main()
 {
 
     vec3 norm = normalize(n);
-    vec3 lightDir = normalize(vec3(10, 10, -10) - frag_pos);
+    vec3 lightDir = normalize(vec3(1, 1, 1) - frag_pos);
 
     vec3 lightColor = vec3(1, 0, 0);
 
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor * n;
+    vec3 diffuse = diff * lightColor;
 
-    //FragColor = vec4(diffuse, 1.0);
-    FragColor = vec4(1.0,0.0,0.001 * n.x,1.0);
+    FragColor = vec4(diffuse, 1.0);
+    //FragColor = vec4(1, 0, 0.001 * diffuse.x, 1.0);
 }
 """
 
@@ -481,7 +478,7 @@ class Sphere:
             3,  # size
             gl.GL_FLOAT,  # type
             gl.GL_FALSE,  # normalisation
-            3 * 4,  # stride
+            0,  # stride
             ctypes.c_void_p(0),  # pointer
         )
 
@@ -491,8 +488,8 @@ class Sphere:
             3,  # size
             gl.GL_FLOAT,  # type
             gl.GL_FALSE,  # normalisation
-            3 * 4,  # stride
-            ctypes.c_void_p(len(points) * 32),  # pointer
+            0,  # stride
+            ctypes.c_void_p(len(points) * 4),  # pointer
         )
 
         self.i_proj = gl.glGetUniformLocation(self.program, "projection")
@@ -505,6 +502,9 @@ class Sphere:
 
     def draw(self):
         gl.glUseProgram(self.program)
+
+        gl.glEnable(gl.GL_DEPTH_TEST)
+        #gl.glDepthFunc(gl.GL_LEQUAL)
         gl.glBindVertexArray(self.i_vao)
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, n_vertices)
         gl.glBindVertexArray(0)
@@ -586,4 +586,4 @@ def gen_geometry(print_code=True):
 
         print(to_print)
 
-    return (vertices, normals)
+    return (vertices, normals, mesh)
