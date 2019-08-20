@@ -1,6 +1,9 @@
 import numpy as np
 
-import imageio
+try:
+    import imageio
+except ImportError:
+    pass
 
 try:
     import py360convert

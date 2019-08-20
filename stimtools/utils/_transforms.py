@@ -1,6 +1,9 @@
 import numpy as np
 
-import skimage.transform
+try:
+    import skimage.transform
+except ImportError:
+    pass
 
 # this is from https://github.com/scikit-image/scikit-image/pull/2496
 

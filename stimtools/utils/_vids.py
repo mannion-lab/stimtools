@@ -7,7 +7,10 @@ import os
 
 import numpy as np
 
-import imageio
+try:
+    import imageio
+except ImportError:
+    pass
 
 
 def img_seq_to_vid(
