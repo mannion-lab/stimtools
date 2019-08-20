@@ -21,14 +21,22 @@ vert_shader = """
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 rotate;
+
 out vec3 n;
 out vec3 frag_pos;
 
 void main()
 {
-    gl_Position = vec4(pos, 1);
+    vec4 fpos = projection * view * rotate * vec4(pos, 1.0);
+    //gl_Position = vec4(fpos.x, 1.0, 1.0, 1.0);
+    gl_Position = projection * view * rotate * vec4(pos, 1.0);
+    //gl_Position = vec4(fpos.xy, 0.5, 0);
+    //gl_Position = fpos;
+    frag_pos = fpos.xyz;
     n = normal;
-    frag_pos = pos;
 }
 """
 
@@ -49,9 +57,10 @@ void main()
     vec3 lightColor = vec3(1, 0, 0);
 
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
+    vec3 diffuse = diff * lightColor * n;
 
-    FragColor = vec4(diffuse, 1.0); //1.0, 0, 0, 1.0);
+    //FragColor = vec4(diffuse, 1.0);
+    FragColor = vec4(1.0,0.0,0.001 * n.x,1.0);
 }
 """
 
@@ -427,7 +436,7 @@ normals = np.array(
 
 n_vertices = len(points) // 3
 
-vertex_data = np.concatenate((points, normals))
+vertex_data = np.concatenate((points, normals)).astype("float32")
 
 
 class Sphere:
@@ -472,7 +481,7 @@ class Sphere:
             3,  # size
             gl.GL_FLOAT,  # type
             gl.GL_FALSE,  # normalisation
-            0,  # stride
+            3 * 4,  # stride
             ctypes.c_void_p(0),  # pointer
         )
 
@@ -482,10 +491,16 @@ class Sphere:
             3,  # size
             gl.GL_FLOAT,  # type
             gl.GL_FALSE,  # normalisation
-            0,  # stride
+            3 * 4,  # stride
             ctypes.c_void_p(len(points) * 32),  # pointer
         )
 
+        self.i_proj = gl.glGetUniformLocation(self.program, "projection")
+        self.i_view = gl.glGetUniformLocation(self.program, "view")
+        self.i_rotate = gl.glGetUniformLocation(self.program, "rotate")
+
+        # set the rotation matrix to null
+        self.set_rotate(rotate=np.eye(4).T)
         gl.glUseProgram(0)
 
     def draw(self):
@@ -493,6 +508,41 @@ class Sphere:
         gl.glBindVertexArray(self.i_vao)
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, n_vertices)
         gl.glBindVertexArray(0)
+        gl.glUseProgram(0)
+
+    def set_view(self, view):
+
+        #view[:, -1] = 0
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniformMatrix4fv(
+            self.i_view, 1, gl.GL_TRUE, view  # location  # count  # transpose  # value
+        )
+
+        gl.glUseProgram(0)
+
+    def set_proj(self, proj):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniformMatrix4fv(
+            self.i_proj, 1, gl.GL_TRUE, proj  # location  # count  # transpose  # value
+        )
+
+        gl.glUseProgram(0)
+
+    def set_rotate(self, rotate):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniformMatrix4fv(
+            self.i_rotate,  # location
+            1,  # count
+            gl.GL_TRUE,  # transpose
+            rotate,  # value
+        )
+
         gl.glUseProgram(0)
 
 

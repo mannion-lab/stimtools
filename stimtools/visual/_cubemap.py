@@ -293,6 +293,7 @@ class CubeMap:
 
     def set_view(self, view):
 
+        view = np.array(view)
         view[:, -1] = 0
 
         gl.glUseProgram(self.program)
