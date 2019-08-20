@@ -277,6 +277,8 @@ class CubeMap:
 
         gl.glEnable(gl.GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
+        gl.glDepthFunc(gl.GL_LEQUAL)
+
         self.alpha = alpha
 
     @property
@@ -328,6 +330,7 @@ class CubeMap:
         gl.glUseProgram(0)
 
     def draw(self):
+        gl.glDepthMask(gl.GL_FALSE)
         gl.glUseProgram(self.program)
         gl.glBindVertexArray(self.i_vao)
         gl.glActiveTexture(gl.GL_TEXTURE0)
@@ -335,3 +338,4 @@ class CubeMap:
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, n_vertices)
         gl.glBindVertexArray(0)
         gl.glUseProgram(0)
+        gl.glDepthMask(gl.GL_TRUE)

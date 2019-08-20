@@ -57,7 +57,6 @@ void main()
     vec3 diffuse = diff * lightColor;
 
     FragColor = vec4(diffuse, 1.0);
-    //FragColor = vec4(1, 0, 0.001 * diffuse.x, 1.0);
 }
 """
 
@@ -504,15 +503,12 @@ class Sphere:
         gl.glUseProgram(self.program)
 
         gl.glEnable(gl.GL_DEPTH_TEST)
-        #gl.glDepthFunc(gl.GL_LEQUAL)
         gl.glBindVertexArray(self.i_vao)
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, n_vertices)
         gl.glBindVertexArray(0)
         gl.glUseProgram(0)
 
     def set_view(self, view):
-
-        #view[:, -1] = 0
 
         gl.glUseProgram(self.program)
 
