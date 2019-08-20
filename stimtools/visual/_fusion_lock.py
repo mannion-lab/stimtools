@@ -1,5 +1,9 @@
 import numpy as np
-import scipy.ndimage
+
+try:
+    import scipy.ndimage
+except ImportError:
+    pass
 
 try:
     import psychopy.visual

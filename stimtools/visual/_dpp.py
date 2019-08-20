@@ -1,16 +1,22 @@
 from __future__ import print_function
 
-import pyglet.canvas
-
 try:
+    import pyglet.canvas
+    have_pyglet = True
 
-    import pyglet.gl
+except ImportError:
+    have_pyglet = False
 
-    import psychopy.visual
-    import psychopy.hardware.crs
+if have_pyglet:
+    try:
 
-except pyglet.canvas.xlib.NoSuchDisplayException:
-    pass
+        import pyglet.gl
+
+        import psychopy.visual
+        import psychopy.hardware.crs
+
+    except pyglet.canvas.xlib.NoSuchDisplayException:
+        pass
 
 
 try:

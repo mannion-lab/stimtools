@@ -1,6 +1,9 @@
 import numpy as np
 
-import scipy.stats
+try:
+    import scipy.stats
+except ImportError:
+    pass
 
 
 def logistic(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):

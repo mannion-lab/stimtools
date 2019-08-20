@@ -1,6 +1,10 @@
 import numpy as np
-import scipy.signal
-import scipy.ndimage
+
+try:
+    import scipy.signal
+    import scipy.ndimage
+except ImportError:
+    pass
 
 try:
     import psychopy.visual

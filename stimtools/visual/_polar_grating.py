@@ -1,7 +1,10 @@
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
-import scipy.signal
+try:
+    import scipy.signal
+except ImportError:
+    pass
 
 import stimtools.utils
 

@@ -2,7 +2,10 @@ import ctypes
 
 import numpy as np
 
-import imageio
+try:
+    import imageio
+except ImportError:
+    pass
 
 import OpenGL.GL as gl
 
