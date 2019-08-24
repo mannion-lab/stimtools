@@ -85,19 +85,13 @@ class Rift:
             )
             gl.glFramebufferRenderbuffer(
                 gl.GL_FRAMEBUFFER,
-                gl.GL_DEPTH_ATTACHMENT,
-                gl.GL_RENDERBUFFER,
-                self.i_rbo,
-            )
-            gl.glFramebufferRenderbuffer(
-                gl.GL_FRAMEBUFFER,
-                gl.GL_STENCIL_ATTACHMENT,
+                gl.GL_DEPTH_STENCIL_ATTACHMENT,
                 gl.GL_RENDERBUFFER,
                 self.i_rbo,
             )
 
-            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
         except:
             self.close()
@@ -161,11 +155,13 @@ class Frame:
 
         ovr.beginFrame(self._i_frame)
 
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
+
+        gl.glEnable(gl.GL_DEPTH_TEST)
+
         # "OpenGL will automatically convert the output colors from linear to the sRGB
         # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
-
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
 
         (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
         (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
@@ -177,6 +173,8 @@ class Frame:
             i_t,  # texture
             0,  # level
         )
+
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         view = ovr.getEyeViewMatrix(0)
 
@@ -190,11 +188,13 @@ class Frame:
             ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
 
             gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
-            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
 
             ovr.endFrame(self._i_frame)
 
             gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
+
+            gl.glDisable(gl.GL_DEPTH_TEST)
+            gl.glDisable(gl.GL_SCISSOR_TEST)
 
 
 class MockFrame:
@@ -208,7 +208,6 @@ class MockFrame:
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
 
         view = np.eye(4)
-        #view[-1, -1] = 1.0
 
         return view
 

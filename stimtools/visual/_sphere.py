@@ -512,7 +512,6 @@ class Sphere:
     def draw(self):
         gl.glUseProgram(self.program)
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glBindVertexArray(self.i_vao)
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, n_vertices)
         gl.glBindVertexArray(0)
