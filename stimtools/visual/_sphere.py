@@ -23,40 +23,47 @@ layout (location = 1) in vec3 normal;
 
 uniform mat4 projection;
 uniform mat4 view;
-uniform mat4 rotate;
+uniform mat4 model;
 
-out vec3 n;
-out vec3 frag_pos;
+out vec3 world_pos;
+out vec3 nrm;
 
 void main()
 {
-    vec4 fpos = projection * view * rotate * vec4(pos, 1.0);
-    gl_Position = fpos;
-    frag_pos = vec3(rotate * vec4(pos, 1.0));
-    n = normal;
+    // calculate the position in clip space
+    gl_Position = projection * view * model * vec4(pos, 1.0);
+
+    // for the lighting, we need the vertices in world space
+    world_pos = vec3(model * vec4(pos, 1.0));
+
+    // the lighting also needs the normals, so pass those along
+    nrm = normal;
 }
 """
 
 frag_shader = """
 #version 330 core
 
-out vec4 FragColor;
+uniform vec3 colour;
+uniform vec3 lightsource_dir;
+uniform float ambient;
 
-in vec3 n;
-in vec3 frag_pos;
+in vec3 world_pos;
+in vec3 nrm;
+
+out vec4 FragColor;
 
 void main()
 {
 
-    vec3 norm = normalize(n);
-    vec3 lightDir = normalize(vec3(1, 1, 1) - frag_pos);
+    // normalise the normal vector
+    vec3 nrm_n = normalize(nrm);
+    //vec3 light_dir = normalize(vec3(0,1000,0) - world_pos);
+    vec3 light_dir = normalize(lightsource_dir - world_pos);
 
-    vec3 lightColor = vec3(1, 0, 0);
+    float diffuse = max(dot(nrm_n, light_dir), 0.0);
 
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
-
-    FragColor = vec4(diffuse, 1.0);
+    FragColor = vec4((diffuse + ambient) * colour, 1.0);
 }
 """
 
@@ -493,10 +500,13 @@ class Sphere:
 
         self.i_proj = gl.glGetUniformLocation(self.program, "projection")
         self.i_view = gl.glGetUniformLocation(self.program, "view")
-        self.i_rotate = gl.glGetUniformLocation(self.program, "rotate")
+        self.i_model = gl.glGetUniformLocation(self.program, "model")
+        self.i_colour = gl.glGetUniformLocation(self.program, "colour")
+        self.i_lightsource_dir = gl.glGetUniformLocation(self.program, "lightsource_dir")
+        self.i_ambient = gl.glGetUniformLocation(self.program, "ambient")
 
         # set the rotation matrix to null
-        self.set_rotate(rotate=np.eye(4).T)
+        self.set_model(model=np.eye(4).T)
         gl.glUseProgram(0)
 
     def draw(self):
@@ -528,19 +538,54 @@ class Sphere:
 
         gl.glUseProgram(0)
 
-    def set_rotate(self, rotate):
+    def set_model(self, model):
 
         gl.glUseProgram(self.program)
 
         gl.glUniformMatrix4fv(
-            self.i_rotate,  # location
+            self.i_model,  # location
             1,  # count
             gl.GL_TRUE,  # transpose
-            rotate,  # value
+            model,  # value
         )
 
         gl.glUseProgram(0)
 
+    def set_colour(self, colour):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniform3fv(
+            self.i_colour,  # location
+            1,  # count
+            colour,  # value
+        )
+
+        gl.glUseProgram(0)
+
+    def set_lightsource_dir(self, lightsource_dir):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniform3fv(
+            self.i_lightsource_dir,  # location
+            1,  # count
+            lightsource_dir,  # value
+        )
+
+        gl.glUseProgram(0)
+
+    def set_ambient(self, ambient):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniform1fv(
+            self.i_ambient,  # location
+            1,
+            ambient,  # value
+        )
+
+        gl.glUseProgram(0)
 
 def gen_geometry(print_code=True):
 
