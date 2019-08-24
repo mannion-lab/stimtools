@@ -205,7 +205,11 @@ class MockFrame:
 
     def __enter__(self):
 
+        gl.glEnable(gl.GL_DEPTH_TEST)
+
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
+
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         view = np.eye(4)
 
