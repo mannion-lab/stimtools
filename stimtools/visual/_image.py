@@ -31,11 +31,21 @@ out vec4 FragColor;
 
 in vec2 uv;
 
+uniform float global_alpha;
+uniform bool apply_global_alpha;
+
 uniform sampler2D img;
 
 void main()
 {
     FragColor = texture(img, uv);
+
+    if (apply_global_alpha) {
+        FragColor = vec4(FragColor.rgb, FragColor.a * global_alpha);
+    }
+    else {
+        FragColor = vec4(0,1,0,1);
+    }
 }
 """
 
@@ -47,7 +57,7 @@ n_vertices = len(points) // 2
 
 
 class ImageStim:
-    def __init__(self, img, srgb=True):
+    def __init__(self, img, global_alpha=1.0, apply_global_alpha=False, srgb=True):
 
         # load the image
         if not isinstance(img, np.ndarray):
@@ -57,7 +67,7 @@ class ImageStim:
 
         if img_c == 3:
             # add an alpha channel, if it doesn't have one
-            alpha = np.ones_like(img[..., (0,)])
+            alpha = np.ones_like(img[..., (0,)]) * 255
             img = np.concatenate((img, alpha), axis=-1)
 
         if srgb:
@@ -112,6 +122,11 @@ class ImageStim:
 
         gl.glUseProgram(self.program)
 
+        self.i_global_alpha = gl.glGetUniformLocation(self.program, "global_alpha")
+        self.i_apply_global_alpha = gl.glGetUniformLocation(
+            self.program, "apply_global_alpha"
+        )
+
         # set up the geometry
         i_pos = gl.glGetAttribLocation(self.program, "pos")
         self.i_vao = gl.glGenVertexArrays(1)
@@ -135,6 +150,36 @@ class ImageStim:
             ctypes.c_void_p(0),  # pointer
         )
 
+        gl.glUseProgram(0)
+
+        self.global_alpha = global_alpha
+        self.apply_global_alpha = apply_global_alpha
+
+    @property
+    def global_alpha(self):
+        return self._global_alpha
+
+    @global_alpha.setter
+    def global_alpha(self, global_alpha):
+        self._global_alpha = global_alpha
+
+        gl.glUseProgram(self.program)
+        gl.glUniform1f(self.i_global_alpha, global_alpha)
+        gl.glUseProgram(0)
+
+    @property
+    def apply_global_alpha(self):
+        return bool(self._apply_global_alpha)
+
+    @apply_global_alpha.setter
+    def apply_global_alpha(self, apply_global_alpha):
+        if apply_global_alpha:
+            self._apply_global_alpha = gl.GL_TRUE
+        else:
+            self._apply_global_alpha = gl.GL_FALSE
+
+        gl.glUseProgram(self.program)
+        gl.glUniform1i(self.i_apply_global_alpha, self._apply_global_alpha)
         gl.glUseProgram(0)
 
     def draw(self):

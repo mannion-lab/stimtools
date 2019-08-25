@@ -172,55 +172,13 @@ n_vertices = len(vertices) // 3
 
 
 class CubeMap:
-    def __init__(self, cube_map_img, alpha=1.0):
-
-        # load the image
-        if not isinstance(cube_map_img, np.ndarray):
-            cube_map_img = np.asarray(imageio.imread(cube_map_img))
-
-        (img_h, img_w, _) = cube_map_img.shape
-        face_size = img_h // 3
-        assert img_w == face_size * 4
-
-        # generate a cubemap texture
-        self.i_tex = gl.glGenTextures(1)
-        gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, self.i_tex)
-
-        for (target, (i_row, i_col)) in face_locs.items():
-
-            row_slice = slice(i_row * face_size, i_row * face_size + face_size)
-            col_slice = slice(i_col * face_size, i_col * face_size + face_size)
-
-            face = np.copy(cube_map_img[row_slice, col_slice, :])
-
-            # by using sRGB as the internal format, the textures are transformed into
-            # linear space internally
-            gl.glTexImage2D(
-                target,  # target
-                0,  # level of detail
-                gl.GL_SRGB,  # internal format
-                face_size,  # width
-                face_size,  # height
-                0,  # border
-                gl.GL_RGB,  # format
-                gl.GL_UNSIGNED_BYTE,  # type
-                face,  # data
-            )
-
-        for param in ("MIN", "MAG"):
-            gl.glTexParameteri(
-                gl.GL_TEXTURE_CUBE_MAP,
-                getattr(gl, "GL_TEXTURE_" + param + "_FILTER"),
-                gl.GL_LINEAR,
-            )
-        for param in "STR":
-            gl.glTexParameteri(
-                gl.GL_TEXTURE_CUBE_MAP,
-                getattr(gl, "GL_TEXTURE_WRAP_" + param),
-                gl.GL_CLAMP_TO_EDGE,
-            )
+    def __init__(self, cubemap_img, alpha=1.0):
 
         # set up the shader
+        self.i_tex = gl.glGenTextures(1)
+
+        self.cubemap_img = cubemap_img
+
         i_vert = gl.glCreateShader(gl.GL_VERTEX_SHADER)
         gl.glShaderSource(i_vert, vert_shader)
         i_frag = gl.glCreateShader(gl.GL_FRAGMENT_SHADER)
@@ -277,9 +235,63 @@ class CubeMap:
 
         gl.glEnable(gl.GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
+        for param in ("MIN", "MAG"):
+            gl.glTexParameteri(
+                gl.GL_TEXTURE_CUBE_MAP,
+                getattr(gl, "GL_TEXTURE_" + param + "_FILTER"),
+                gl.GL_LINEAR,
+            )
+        for param in "STR":
+            gl.glTexParameteri(
+                gl.GL_TEXTURE_CUBE_MAP,
+                getattr(gl, "GL_TEXTURE_WRAP_" + param),
+                gl.GL_CLAMP_TO_EDGE,
+            )
+
         gl.glDepthFunc(gl.GL_LEQUAL)
 
         self.alpha = alpha
+
+    @property
+    def cubemap_img(self):
+        return self._cubemap_img
+
+    @cubemap_img.setter
+    def cubemap_img(self, cubemap_img):
+
+        self._cubemap_img = cubemap_img
+
+        # load the image
+        if not isinstance(cubemap_img, np.ndarray):
+            cubemap_img = np.asarray(imageio.imread(cubemap_img))
+
+        (img_h, img_w, _) = cubemap_img.shape
+        face_size = img_h // 3
+        assert img_w == face_size * 4
+
+        # generate a cubemap texture
+        gl.glBindTexture(gl.GL_TEXTURE_CUBE_MAP, self.i_tex)
+
+        for (target, (i_row, i_col)) in face_locs.items():
+
+            row_slice = slice(i_row * face_size, i_row * face_size + face_size)
+            col_slice = slice(i_col * face_size, i_col * face_size + face_size)
+
+            face = np.copy(cubemap_img[row_slice, col_slice, :])
+
+            # by using sRGB as the internal format, the textures are transformed into
+            # linear space internally
+            gl.glTexImage2D(
+                target,  # target
+                0,  # level of detail
+                gl.GL_SRGB,  # internal format
+                face_size,  # width
+                face_size,  # height
+                0,  # border
+                gl.GL_RGB,  # format
+                gl.GL_UNSIGNED_BYTE,  # type
+                face,  # data
+            )
 
     @property
     def alpha(self):
