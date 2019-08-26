@@ -34,7 +34,7 @@ uniform mat4 rotate;
 void main()
 {
     texcoord = pos;
-    vec4 npos = projection * view * rotate * vec4(pos, 1.0);
+    vec4 npos = projection * view * rotate * vec4(texcoord, 1.0);
     gl_Position = npos.xyww;
 }
 """
