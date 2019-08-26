@@ -12,6 +12,7 @@ from ._rating_scale import RatingScale
 from ._cubemap import CubeMap
 from ._image import ImageStim
 from ._sphere import Sphere
+from ._text_image import image_with_text
 
 __all__ = [
     "DisplayPlusPlus",
@@ -28,4 +29,5 @@ __all__ = [
     "CubeMap",
     "ImageStim",
     "Sphere",
+    "image_with_text",
 ]
