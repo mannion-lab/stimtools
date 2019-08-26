@@ -43,9 +43,6 @@ void main()
     if (apply_global_alpha) {
         FragColor = vec4(FragColor.rgb, FragColor.a * global_alpha);
     }
-    else {
-        FragColor = vec4(0,1,0,1);
-    }
 }
 """
 
@@ -59,51 +56,9 @@ n_vertices = len(points) // 2
 class ImageStim:
     def __init__(self, img, global_alpha=1.0, apply_global_alpha=False, srgb=True):
 
-        # load the image
-        if not isinstance(img, np.ndarray):
-            img = np.flipud(imageio.imread(img))
-
-        (img_h, img_w, img_c) = img.shape
-
-        if img_c == 3:
-            # add an alpha channel, if it doesn't have one
-            alpha = np.ones_like(img[..., (0,)]) * 255
-            img = np.concatenate((img, alpha), axis=-1)
-
-        if srgb:
-            fmt = "GL_SRGB_ALPHA"
-        else:
-            fmt = "GL_RGBA"
-
         self.i_tex = gl.glGenTextures(1)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, self.i_tex)
 
-        gl.glTexImage2D(
-            gl.GL_TEXTURE_2D,  # target
-            0,  # level of detail
-            getattr(gl, fmt),
-            img_w,  # width
-            img_h,  # height
-            0,  # border
-            gl.GL_RGBA,  # format
-            gl.GL_UNSIGNED_BYTE,  # type
-            img,
-        )
-
-        for param in "ST":
-            gl.glTexParameteri(
-                gl.GL_TEXTURE_2D,
-                getattr(gl, "GL_TEXTURE_WRAP_" + param),
-                gl.GL_CLAMP_TO_EDGE,
-            )
-        for param in ("MIN", "MAG"):
-            gl.glTexParameteri(
-                gl.GL_TEXTURE_2D,
-                getattr(gl, "GL_TEXTURE_" + param + "_FILTER"),
-                gl.GL_LINEAR,
-            )
-
-        gl.glTexParameterfv(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_BORDER_COLOR, np.zeros(4))
+        self.set_img(img=img, srgb=srgb)
 
         # set up the shader
         i_vert = gl.glCreateShader(gl.GL_VERTEX_SHADER)
@@ -150,10 +105,57 @@ class ImageStim:
             ctypes.c_void_p(0),  # pointer
         )
 
+        for param in "ST":
+            gl.glTexParameteri(
+                gl.GL_TEXTURE_2D,
+                getattr(gl, "GL_TEXTURE_WRAP_" + param),
+                gl.GL_CLAMP_TO_EDGE,
+            )
+        for param in ("MIN", "MAG"):
+            gl.glTexParameteri(
+                gl.GL_TEXTURE_2D,
+                getattr(gl, "GL_TEXTURE_" + param + "_FILTER"),
+                gl.GL_LINEAR,
+            )
+
+        gl.glTexParameterfv(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_BORDER_COLOR, np.zeros(4))
+
         gl.glUseProgram(0)
 
         self.global_alpha = global_alpha
         self.apply_global_alpha = apply_global_alpha
+
+    def set_img(self, img, srgb=True):
+
+        # load the image
+        if not isinstance(img, np.ndarray):
+            img = np.flipud(imageio.imread(img))
+
+        (img_h, img_w, img_c) = img.shape
+
+        if img_c == 3:
+            # add an alpha channel, if it doesn't have one
+            alpha = np.ones_like(img[..., (0,)]) * 255
+            img = np.concatenate((img, alpha), axis=-1)
+
+        if srgb:
+            fmt = "GL_SRGB_ALPHA"
+        else:
+            fmt = "GL_RGBA"
+
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.i_tex)
+
+        gl.glTexImage2D(
+            gl.GL_TEXTURE_2D,  # target
+            0,  # level of detail
+            getattr(gl, fmt),
+            img_w,  # width
+            img_h,  # height
+            0,  # border
+            gl.GL_RGBA,  # format
+            gl.GL_UNSIGNED_BYTE,  # type
+            img,
+        )
 
     @property
     def global_alpha(self):
