@@ -54,13 +54,6 @@ class Rift:
 
             self.proj_mat = ovr.getEyeProjectionMatrix(0)
 
-            # for some reason, the projection matrix flips the output horizontally
-            # this is a hack that flips it back
-            flip = np.eye(4)
-            flip[0, 0]  = -1
-
-            self.proj_mat = self.proj_mat @ flip
-
             assert np.all(self.proj_mat == ovr.getEyeProjectionMatrix(1))
 
             ovr.createTextureSwapChainGL(

@@ -252,6 +252,12 @@ class CubeMap:
 
         self.alpha = alpha
 
+        # for some reason, the output is L-R flipped
+        # apply this adjustment to the view matrix to fix it
+        self.flip_mat = np.eye(4)
+        self.flip_mat[0, 0]  = -1
+        self.flip_mat = self.flip_mat.T
+
     @property
     def cubemap_img(self):
         return self._cubemap_img
@@ -308,7 +314,10 @@ class CubeMap:
     def set_view(self, view):
 
         view = np.array(view)
+        # remove the translation components
         view[:, -1] = 0
+
+        view = view @ self.flip_mat
 
         gl.glUseProgram(self.program)
 
