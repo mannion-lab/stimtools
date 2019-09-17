@@ -32,9 +32,12 @@ class Window:
         colour=(0.5, 0.5, 0.5),
         event_buffer_size=20,
         gamma=1.0,
+        close_on_exit=True,
     ):
 
         self.colour = tuple(colour)
+
+        self.close_on_exit = close_on_exit
 
         self._event_buffer = collections.deque(maxlen=event_buffer_size)
 
@@ -78,7 +81,8 @@ class Window:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        if exc_type is not None or self.close_on_exit:
+            self.close()
 
     def close(self):
         glfw.set_gamma_ramp(monitor=self.monitor, ramp=self._orig_gamma)
