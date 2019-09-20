@@ -26,6 +26,7 @@ from ._data_files import get_subj_ids_from_data_files
 from ._crop import crop_to_centre
 from ._ramp import raised_cosine
 from ._cubemap import panorama_to_cubemap
+from ._mesh import pymesh_to_povray
 
 __all__ = [
     "pad_image",
@@ -64,4 +65,5 @@ __all__ = [
     "panorama_to_cubemap",
     "srgb_to_linear",
     "linear_to_srgb",
+    "pymesh_to_povray",
 ]
