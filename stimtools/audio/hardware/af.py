@@ -148,14 +148,14 @@ class AudioFileParallel:
 
 
 class AudioFileSerial:
-    def __init__(self, port=None, open=True):
+    def __init__(self, port=None, open_port=True):
         """Interface to the CRS 'AudioFile' device.
 
         Parameters
         ----------
         port: string, optional
             The `port` path, as required by `pyserial`.
-        open: bool, optional
+        open_port: bool, optional
             Whether to open the port at the time of creation.
 
         """
@@ -176,7 +176,7 @@ class AudioFileSerial:
         if self._product_type != "AudioFile":
             raise OSError("Device doesn't seem to be an AudioFile")
 
-        if not open:
+        if not open_port:
             self._device.close()
 
         self.start = None
@@ -193,7 +193,7 @@ class AudioFileSerial:
             self.close()
 
     def _send_msg(self, message_str, delay=0.1):
-    
+
         self._device.read(self._device.inWaiting())
 
         if not message_str.endswith("\r"):
