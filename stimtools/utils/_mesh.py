@@ -98,16 +98,6 @@ def pymesh_to_povray_mesh2(mesh, smooth=True, save_path=None):
 
     pov += "\n}\n"
 
-    (n_faces, _) = mesh.faces.shape
-
-    pov += f"face_indices {{ {n_faces:d}"
-
-    for face in mesh.faces:
-        pov += ","
-        pov += "<" + ",".join([f"{dim_i:d}" for dim_i in face]) + ">"
-
-    pov += "\n}\n"
-
     if smooth:
 
         if not mesh.has_attribute("vertex_normal"):
@@ -124,6 +114,16 @@ def pymesh_to_povray_mesh2(mesh, smooth=True, save_path=None):
             pov += "<" + ",".join([f"{dim_normal:.12f}" for dim_normal in normal]) + ">"
 
         pov += "\n}\n"
+
+    (n_faces, _) = mesh.faces.shape
+
+    pov += f"face_indices {{ {n_faces:d}"
+
+    for face in mesh.faces:
+        pov += ","
+        pov += "<" + ",".join([f"{dim_i:d}" for dim_i in face]) + ">"
+
+    pov += "\n}\n"
 
     pov += "}"
 
