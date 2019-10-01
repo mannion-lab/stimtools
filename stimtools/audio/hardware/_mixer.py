@@ -1,4 +1,7 @@
-import alsaaudio
+try:
+    import alsaaudio
+except ImportError:
+    pass
 
 
 class Mixer:

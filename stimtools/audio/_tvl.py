@@ -4,8 +4,10 @@ import os
 
 import numpy as np
 
-import soundfile
-import resampy
+try:
+    import resampy
+except ImportError:
+    pass
 
 
 def compute_tvl(wav, db_max, fir_type="midear", sr_orig=None):

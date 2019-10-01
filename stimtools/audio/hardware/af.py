@@ -1,13 +1,12 @@
-from __future__ import absolute_import, print_function, division
-
 import os
 import time
 import xml.etree.ElementTree as etree
 import xml.dom.minidom
+import platform
 
 try:
     import parallel
-except ImportError:
+except (ImportError, OSError):
     parallel_imported = False
 else:
     parallel_imported = True
@@ -149,17 +148,25 @@ class AudioFileParallel:
 
 
 class AudioFileSerial:
-    def __init__(self, port="/dev/audiofile"):
+    def __init__(self, port=None, open_port=True):
         """Interface to the CRS 'AudioFile' device.
 
         Parameters
         ----------
         port: string, optional
             The `port` path, as required by `pyserial`.
+        open_port: bool, optional
+            Whether to open the port at the time of creation.
 
         """
 
-        if not parallel_imported:
+        if port is None:
+            if platform.os.name == "nt":
+                port = "COM5"
+            else:
+                port = "/dev/audiofile"
+
+        if not serial_imported:
             raise ImportError("Could not import pyserial")
 
         self._device = serial.Serial(port=port)
@@ -169,28 +176,34 @@ class AudioFileSerial:
         if self._product_type != "AudioFile":
             raise OSError("Device doesn't seem to be an AudioFile")
 
+        if not open_port:
+            self._device.close()
+
         self.start = None
 
         self.cue = None
 
     def __enter__(self):
+        if not self._device.is_open:
+            self._device.open()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        if self._device.is_open:
+            self.close()
 
     def _send_msg(self, message_str, delay=0.1):
 
-        _ = self._device.read(self._device.inWaiting())  # noqa
+        self._device.read(self._device.inWaiting())
 
         if not message_str.endswith("\r"):
             message_str += "\r"
 
-        self._device.write(message_str)
+        self._device.write(message_str.encode("utf8"))
 
         time.sleep(delay)
 
-        response = self._device.read(self._device.inWaiting())
+        response = self._device.read(self._device.inWaiting()).decode("utf8")
 
         if response.startswith("$"):
             response = response.strip().split(";")[1]
