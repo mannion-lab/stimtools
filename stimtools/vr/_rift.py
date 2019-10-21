@@ -154,9 +154,8 @@ class Frame:
         ovr.waitToBeginFrame(self._i_frame)
 
         abs_time = ovr.getPredictedDisplayTime(self._i_frame)
-        (tracking_state, _) = ovr.getTrackingState(abs_time, True)
-        (headPose, _) = tracking_state[ovr.TRACKED_DEVICE_TYPE_HMD]
-        ovr.calcEyePoses(headPose.pose)
+        tracking_state = ovr.getTrackingState(abs_time, True)
+        ovr.calcEyePoses(tracking_state.headPose.thePose)
 
         ovr.beginFrame(self._i_frame)
 

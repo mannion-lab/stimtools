@@ -31,7 +31,7 @@ class Window:
         size_pix=(800, 800),
         colour=(0.5, 0.5, 0.5),
         event_buffer_size=20,
-        gamma=1.0,
+        gamma=None,
         close_on_exit=True,
     ):
 
@@ -53,7 +53,8 @@ class Window:
 
         self._orig_gamma = glfw.get_gamma_ramp(self.monitor)
 
-        glfw.set_gamma(monitor=self.monitor, gamma=gamma)
+        if gamma is not None:
+            glfw.set_gamma(monitor=self.monitor, gamma=gamma)
 
         self.win = glfw.create_window(
             width=size_pix[0],
