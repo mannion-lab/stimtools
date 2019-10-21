@@ -33,7 +33,10 @@ class Window:
         event_buffer_size=20,
         gamma=None,
         close_on_exit=True,
+        global_quit=True,
     ):
+
+        self._global_quit = global_quit
 
         self.colour = tuple(colour)
 
@@ -110,6 +113,9 @@ class Window:
                 mod = MODCODE_TO_KEY[mods]
 
             keypress = Keypress(name=KEYCODE_TO_KEY[key], time=time, mod=mod)
+
+            if keypress.name == "q" and self._global_quit:
+                raise ValueError("User quit")
 
             self._event_buffer.append(keypress)
 
