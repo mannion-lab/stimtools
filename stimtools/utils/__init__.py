@@ -26,7 +26,7 @@ from ._data_files import get_subj_ids_from_data_files
 from ._crop import crop_to_centre
 from ._ramp import raised_cosine
 from ._cubemap import panorama_to_cubemap
-from ._mesh import (pymesh_to_povray, pymesh_to_povray_mesh2)
+from ._mesh import pymesh_to_povray, pymesh_to_povray_mesh2
 
 __all__ = [
     "pad_image",

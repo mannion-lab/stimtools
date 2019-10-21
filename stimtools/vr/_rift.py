@@ -6,6 +6,7 @@ import OpenGL.GL as gl
 
 try:
     import psychxr.libovr as ovr
+
     has_psychxr = True
 except ImportError:
     # windows

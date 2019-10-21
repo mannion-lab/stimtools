@@ -502,7 +502,9 @@ class Sphere:
         self.i_view = gl.glGetUniformLocation(self.program, "view")
         self.i_model = gl.glGetUniformLocation(self.program, "model")
         self.i_colour = gl.glGetUniformLocation(self.program, "colour")
-        self.i_lightsource_dir = gl.glGetUniformLocation(self.program, "lightsource_dir")
+        self.i_lightsource_dir = gl.glGetUniformLocation(
+            self.program, "lightsource_dir"
+        )
         self.i_ambient = gl.glGetUniformLocation(self.program, "ambient")
 
         # set the rotation matrix to null
@@ -554,11 +556,7 @@ class Sphere:
 
         gl.glUseProgram(self.program)
 
-        gl.glUniform3fv(
-            self.i_colour,  # location
-            1,  # count
-            colour,  # value
-        )
+        gl.glUniform3fv(self.i_colour, 1, colour)  # location  # count  # value
 
         gl.glUseProgram(0)
 
@@ -567,9 +565,7 @@ class Sphere:
         gl.glUseProgram(self.program)
 
         gl.glUniform3fv(
-            self.i_lightsource_dir,  # location
-            1,  # count
-            lightsource_dir,  # value
+            self.i_lightsource_dir, 1, lightsource_dir  # location  # count  # value
         )
 
         gl.glUseProgram(0)
@@ -578,13 +574,10 @@ class Sphere:
 
         gl.glUseProgram(self.program)
 
-        gl.glUniform1fv(
-            self.i_ambient,  # location
-            1,
-            ambient,  # value
-        )
+        gl.glUniform1fv(self.i_ambient, 1, ambient)  # location  # value
 
         gl.glUseProgram(0)
+
 
 def gen_geometry(print_code=True):
 
@@ -615,13 +608,13 @@ def gen_geometry(print_code=True):
         to_print = "points = np.array(\n    [\n"
         for point in vertices.flat:
             to_print += " " * 4 * 2 + f"{point:+.08f},\n"
-        to_print += " " * 4 + "]\n).astype(\"float32\")\n"
+        to_print += " " * 4 + ']\n).astype("float32")\n'
         to_print += "\n"
 
         to_print += "normals = np.array(\n    [\n"
         for point in normals.flat:
             to_print += " " * 4 * 2 + f"{point:+.08f},\n"
-        to_print += " " * 4 + "]\n).astype(\"float32\")\n"
+        to_print += " " * 4 + ']\n).astype("float32")\n'
         to_print += "\n"
 
         print(to_print)

@@ -255,7 +255,7 @@ class CubeMap:
         # for some reason, the output is L-R flipped
         # apply this adjustment to the view matrix to fix it
         self.flip_mat = np.eye(4)
-        self.flip_mat[0, 0]  = -1
+        self.flip_mat[0, 0] = -1
         self.flip_mat = self.flip_mat.T
 
     @property

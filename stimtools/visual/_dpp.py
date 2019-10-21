@@ -2,6 +2,7 @@ from __future__ import print_function
 
 try:
     import pyglet.canvas
+
     have_pyglet = True
 
 except ImportError:
