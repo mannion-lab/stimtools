@@ -124,7 +124,7 @@ class MockRift:
         ).T
 
         flip = np.eye(4)
-        flip[0, 0]  = -1
+        flip[0, 0] = -1
 
         self.proj_mat = self.proj_mat @ flip
 
