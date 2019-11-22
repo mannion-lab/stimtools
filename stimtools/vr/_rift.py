@@ -162,8 +162,6 @@ class Frame:
 
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
-
         # "OpenGL will automatically convert the output colors from linear to the sRGB
         # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
