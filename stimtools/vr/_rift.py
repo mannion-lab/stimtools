@@ -224,3 +224,83 @@ class MockFrame:
 
         if exc_type is None:
             gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
+
+
+class Response:
+    def __init__(self, thumb_threshold=0.8, min_t_interval_s=0.5, win=None):
+
+        self._thumb_threshold = thumb_threshold
+        self._min_t_interval_s = min_t_interval_s
+
+        (self._controller,) = ovr.getConnectedControllerTypes()
+
+        self._last_thumb = 0.0
+
+    def update(self):
+
+        ovr.updateInputState(self._controller)
+
+        (self.button, time) = ovr.getButton(
+            self._controller, ovr.BUTTON_A or ovr.BUTTON_X, "rising"
+        )
+
+        (left_touch, right_touch) = ovr.getThumbstickValues(self._controller, False)
+
+        self.thumb_x = np.array([left_touch[0], right_touch[0]])
+        self.thumb_y = np.array([left_touch[1], right_touch[1]])
+
+        if (time - self._last_thumb) > self._min_t_interval_s:
+            self.thumb_left = np.any(self.thumb_x < -(self._thumb_threshold))
+            self.thumb_right = np.any(self.thumb_x > self._thumb_threshold)
+            if self.thumb_left or self.thumb_right:
+                self._last_thumb = time
+        else:
+            self.thumb_left = self.thumb_right = False
+
+
+class MockResponse:
+    def __init__(self, thumb_threshold=0.8, min_t_interval_s=0.05, win=None):
+
+        self._thumb_threshold = thumb_threshold
+        self._min_t_interval_s = min_t_interval_s
+
+        self._win = win
+
+        self._last_thumb = 0.0
+        self.button = False
+        self.thumb_x = self.thumb_y = 0.0
+        self.thumb_left = self.thumb_right = False
+        self.thumb_up = self.thumb_down = False
+
+    def update(self):
+
+        keys = self._win.get_keys()
+
+        if keys:
+            time = keys[-1].time
+            self.button = any([key.name in ["a", "x"] for key in keys])
+
+            if "left" in [key.name for key in keys]:
+                self.thumb_x = -1.0
+            elif "right" in [key.name for key in keys]:
+                self.thumb_x = +1.0
+            elif "up" in [key.name for key in keys]:
+                self.thumb_y = +1.0
+            elif "down" in [key.name for key in keys]:
+                self.thumb_y = -1.0
+
+            if (time - self._last_thumb) > self._min_t_interval_s:
+                self.thumb_left = np.any(self.thumb_x < -(self._thumb_threshold))
+                self.thumb_right = np.any(self.thumb_x > self._thumb_threshold)
+                self.thumb_down = np.any(self.thumb_y < -(self._thumb_threshold))
+                self.thumb_up = np.any(self.thumb_y > self._thumb_threshold)
+                if any(
+                    [self.thumb_left, self.thumb_right, self.thumb_up, self.thumb_down]
+                ):
+                    self._last_thumb = time
+            else:
+                self.thumb_left = self.thumb_right = False
+                self.thumb_up = self.thumb_down = False
+        else:
+            self.thumb_left = self.thumb_right = False
+            self.thumb_up = self.thumb_down = False
