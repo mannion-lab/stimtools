@@ -59,7 +59,16 @@ n_vertices = len(points) // 2
 
 
 class WorldImageStim:
-    def __init__(self, img, global_alpha=1.0, apply_global_alpha=False, srgb=True):
+    def __init__(
+        self,
+        img,
+        proj_mat,
+        global_alpha=1.0,
+        apply_global_alpha=False,
+        srgb=True
+    ):
+
+        self._proj_mat = proj_mat
 
         self.i_tex = gl.glGenTextures(1)
 
@@ -136,6 +145,8 @@ class WorldImageStim:
 
         self.global_alpha = global_alpha
         self.apply_global_alpha = apply_global_alpha
+
+        self.set_proj(proj=self._proj_mat)
 
     def set_view(self, view):
 
