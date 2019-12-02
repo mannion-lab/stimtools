@@ -98,6 +98,8 @@ class Rift:
             self.close()
             raise
 
+        self.frame = Frame(i_fbo=self.i_fbo)
+
     def __enter__(self):
         return self
 
@@ -145,7 +147,7 @@ class MockRift:
 
 
 class Frame:
-    def __init__(self, i_frame, i_fbo):
+    def __init__(self, i_fbo, i_frame=0):
 
         self._i_frame = i_frame
         self._i_fbo = i_fbo
@@ -180,6 +182,8 @@ class Frame:
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         view = ovr.getEyeViewMatrix(0)
+
+        self._i_frame += 1
 
         return view
 
