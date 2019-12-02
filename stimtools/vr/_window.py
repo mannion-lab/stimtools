@@ -101,9 +101,12 @@ class Window:
     def window_close_callback(self, window):
         self.close()
 
+    def get_time(self):
+        return glfw.get_time()
+
     def key_event_callback(self, window, key, scancode, action, mods):
 
-        time = glfw.get_time()
+        time = self.get_time()
 
         if action == glfw.PRESS:
 
