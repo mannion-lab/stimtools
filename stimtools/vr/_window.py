@@ -29,7 +29,7 @@ class Window:
     def __init__(
         self,
         size_pix=(800, 800),
-        colour=(0.5, 0.5, 0.5),
+        colour=(0, 0, 0),
         event_buffer_size=20,
         gamma=None,
         close_on_exit=True,
