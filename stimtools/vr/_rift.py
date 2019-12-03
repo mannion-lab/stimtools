@@ -183,8 +183,6 @@ class Frame:
 
         view = ovr.getEyeViewMatrix(0)
 
-        self._i_frame += 1
-
         return view
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -202,6 +200,9 @@ class Frame:
 
             gl.glDisable(gl.GL_DEPTH_TEST)
             gl.glDisable(gl.GL_SCISSOR_TEST)
+
+            self._i_frame += 1
+
 
 
 class MockFrame:
