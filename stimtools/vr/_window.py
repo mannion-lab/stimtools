@@ -95,8 +95,10 @@ class Window:
 
     def flip(self):
         glfw.swap_buffers(self.win)
+        approx_flip_time = self.get_time()
         glfw.poll_events()
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        return approx_flip_time
 
     def window_close_callback(self, window):
         self.close()
