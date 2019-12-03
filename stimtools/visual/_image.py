@@ -139,9 +139,9 @@ class ImageStim:
             img = np.concatenate((img, alpha), axis=-1)
 
         if srgb:
-            fmt = "GL_SRGB_ALPHA"
+            fmt = "GL_SRGB8_ALPHA8"
         else:
-            fmt = "GL_RGBA"
+            fmt = "GL_RGBA8"
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.i_tex)
 

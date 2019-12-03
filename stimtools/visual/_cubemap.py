@@ -51,7 +51,7 @@ uniform float alpha;
 
 void main()
 {
-    FragColor = texture(cubemap, texcoord) * alpha;
+    FragColor = vec4(texture(cubemap, texcoord).rgb, alpha);
 }
 """
 
