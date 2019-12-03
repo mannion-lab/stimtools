@@ -27,6 +27,7 @@ from ._crop import crop_to_centre
 from ._ramp import raised_cosine
 from ._cubemap import panorama_to_cubemap
 from ._mesh import pymesh_to_povray, pymesh_to_povray_mesh2
+from ._alert import windows_alert_box
 
 __all__ = [
     "pad_image",
@@ -67,4 +68,5 @@ __all__ = [
     "linear_to_srgb",
     "pymesh_to_povray",
     "pymesh_to_povray_mesh2",
+    "windows_alert_box",
 ]
