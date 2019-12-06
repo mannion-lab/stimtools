@@ -21,6 +21,8 @@ try:
 except ImportError:
     pass
 
+import stimtools.utils
+
 
 class Rift:
 
@@ -35,10 +37,35 @@ class Rift:
 
         self._i_frame = 0
 
-    def __enter__(self):
+    def __enter__(self, require_controller=False):
 
         ovr.initialize()
         ovr.create()
+
+        # get response devices
+        controllers_ok = False
+        while not controllers_ok:
+
+            controllers = ovr.getConnectedControllerTypes()
+
+            if len(controllers) == 0:
+                if require_controller:
+                    response = stimtools.utils.windows_alert_box(
+                        msg="Pair a touch device",
+                        style=5,
+                    )
+                    if response == 1:
+                        raise ValueError("User cancelled")
+                else:
+                    self._controller = None
+                    controllers_ok = True
+            elif len(controllers) == 1:
+                (self._controller,) = controllers
+                controllers_ok = True
+            else:
+                raise NotImplementedError("Only one controller currently supported")
+
+        self._last_thumb = 0.0
 
         self.hmd_info = ovr.getHmdInfo()
 
@@ -169,7 +196,7 @@ class Rift:
 
         ovr.beginFrame(self._i_frame)
 
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
 
         # "OpenGL will automatically convert the output colors from linear to the sRGB
         # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
@@ -205,198 +232,25 @@ class Rift:
 
         self._i_frame += 1
 
+    def update_controller(self, thumb_threshold=0.8, min_t_interval_s=0.5):
 
-class MockRift:
-    def __init__(self, msaa=1):
+        if self._controller is not None:
 
-        self.tex_size = [1520] * 2
+            ovr.updateInputState(self._controller)
 
-        (self.tex_width, self.tex_height) = self.tex_size
+            (self.button, time) = ovr.getButton(
+                self._controller, ovr.BUTTON_A or ovr.BUTTON_X, "rising"
+            )
 
-        self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
+            (left_touch, right_touch) = ovr.getThumbstickValues(self._controller, False)
 
-        self.proj_mat = pyrr.matrix44.create_perspective_projection_matrix(
-            fovy=87.4, aspect=1.0, near=0.01, far=100.0
-        ).T
+            self.thumb_x = np.array([left_touch[0], right_touch[0]])
+            self.thumb_y = np.array([left_touch[1], right_touch[1]])
 
-        flip = np.eye(4)
-        flip[0, 0] = -1
-
-        self.proj_mat = self.proj_mat @ flip
-
-        gl.glViewport(*self.viewport)
-
-        self.i_fbo = 0
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        pass
-
-    @staticmethod
-    def close():
-        pass
-
-
-class Frame:
-    def __init__(self, i_fbo, i_frame=0):
-
-        self._i_frame = i_frame
-        self._i_fbo = i_fbo
-
-    def __enter__(self):
-
-        ovr.waitToBeginFrame(self._i_frame)
-
-        abs_time = ovr.getPredictedDisplayTime(self._i_frame)
-        tracking_state = ovr.getTrackingState(abs_time, True)
-        ovr.calcEyePoses(tracking_state.headPose.thePose)
-
-        ovr.beginFrame(self._i_frame)
-
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
-
-        # "OpenGL will automatically convert the output colors from linear to the sRGB
-        # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
-        gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
-
-        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
-        (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
-
-        gl.glFramebufferTexture2D(
-            gl.GL_DRAW_FRAMEBUFFER,  # target
-            gl.GL_COLOR_ATTACHMENT0,  # attachment
-            gl.GL_TEXTURE_2D,  # tex target
-            i_t,  # texture
-            0,  # level
-        )
-
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-        view = ovr.getEyeViewMatrix(0)
-
-        return view
-
-    def __exit__(self, exc_type, exc_value, traceback):
-
-        # only wind up properly if there hasn't been an exception
-        if exc_type is None:
-
-            ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
-
-            gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
-
-            ovr.endFrame(self._i_frame)
-
-            gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
-
-            gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_SCISSOR_TEST)
-
-            self._i_frame += 1
-
-
-
-class MockFrame:
-    def __init__(self, i_frame, i_fbo):
-
-        self._i_frame = i_frame
-        self._i_fbo = i_fbo
-
-    def __enter__(self):
-
-        gl.glEnable(gl.GL_DEPTH_TEST)
-
-        gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
-
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-        view = np.eye(4)
-
-        return view
-
-    def __exit__(self, exc_type, exc_value, traceback):
-
-        if exc_type is None:
-            gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
-
-
-class Response:
-    def __init__(self, thumb_threshold=0.8, min_t_interval_s=0.5):
-
-        self._thumb_threshold = thumb_threshold
-        self._min_t_interval_s = min_t_interval_s
-
-        (self._controller,) = ovr.getConnectedControllerTypes()
-
-        self._last_thumb = 0.0
-
-    def update(self):
-
-        ovr.updateInputState(self._controller)
-
-        (self.button, time) = ovr.getButton(
-            self._controller, ovr.BUTTON_A or ovr.BUTTON_X, "rising"
-        )
-
-        (left_touch, right_touch) = ovr.getThumbstickValues(self._controller, False)
-
-        self.thumb_x = np.array([left_touch[0], right_touch[0]])
-        self.thumb_y = np.array([left_touch[1], right_touch[1]])
-
-        if (time - self._last_thumb) > self._min_t_interval_s:
-            self.thumb_left = np.any(self.thumb_x < -(self._thumb_threshold))
-            self.thumb_right = np.any(self.thumb_x > self._thumb_threshold)
-            if self.thumb_left or self.thumb_right:
-                self._last_thumb = time
-        else:
-            self.thumb_left = self.thumb_right = False
-
-
-class MockResponse:
-    def __init__(self, thumb_threshold=0.8, min_t_interval_s=0.05, win=None):
-
-        self._thumb_threshold = thumb_threshold
-        self._min_t_interval_s = min_t_interval_s
-
-        self._win = win
-
-        self._last_thumb = 0.0
-        self.button = False
-        self.thumb_x = self.thumb_y = 0.0
-        self.thumb_left = self.thumb_right = False
-        self.thumb_up = self.thumb_down = False
-
-    def update(self):
-
-        keys = self._win.get_keys()
-
-        if keys:
-            time = keys[-1].time
-            self.button = any([key.name in ["a", "x"] for key in keys])
-
-            if "left" in [key.name for key in keys]:
-                self.thumb_x = -1.0
-            elif "right" in [key.name for key in keys]:
-                self.thumb_x = +1.0
-            elif "up" in [key.name for key in keys]:
-                self.thumb_y = +1.0
-            elif "down" in [key.name for key in keys]:
-                self.thumb_y = -1.0
-
-            if (time - self._last_thumb) > self._min_t_interval_s:
-                self.thumb_left = np.any(self.thumb_x < -(self._thumb_threshold))
-                self.thumb_right = np.any(self.thumb_x > self._thumb_threshold)
-                self.thumb_down = np.any(self.thumb_y < -(self._thumb_threshold))
-                self.thumb_up = np.any(self.thumb_y > self._thumb_threshold)
-                if any(
-                    [self.thumb_left, self.thumb_right, self.thumb_up, self.thumb_down]
-                ):
+            if (time - self._last_thumb) > min_t_interval_s:
+                self.thumb_left = np.any(self.thumb_x < -(thumb_threshold))
+                self.thumb_right = np.any(self.thumb_x > thumb_threshold)
+                if self.thumb_left or self.thumb_right:
                     self._last_thumb = time
             else:
                 self.thumb_left = self.thumb_right = False
-                self.thumb_up = self.thumb_down = False
-        else:
-            self.thumb_left = self.thumb_right = False
-            self.thumb_up = self.thumb_down = False
