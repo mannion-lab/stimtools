@@ -184,6 +184,7 @@ class WorldImageStim:
         )
 
         gl.glUseProgram(0)
+
     def set_img(self, img, srgb=True):
 
         # load the image
