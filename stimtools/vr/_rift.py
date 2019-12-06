@@ -26,9 +26,10 @@ import stimtools.utils
 
 class Rift:
 
-    def __init__(self, msaa=1):
+    def __init__(self, msaa=1, require_controller=False):
 
         self._msaa = msaa
+        self._require_controller = require_controller
 
         self.hmd_info = None
         self.tex_width = self.tex_height = self.tex_size = None
@@ -37,7 +38,7 @@ class Rift:
 
         self._i_frame = 0
 
-    def __enter__(self, require_controller=False):
+    def __enter__(self):
 
         ovr.initialize()
         ovr.create()
@@ -49,7 +50,7 @@ class Rift:
             controllers = ovr.getConnectedControllerTypes()
 
             if len(controllers) == 0:
-                if require_controller:
+                if self._require_controller:
                     response = stimtools.utils.windows_alert_box(
                         msg="Pair a touch device",
                         style=5,
@@ -112,15 +113,15 @@ class Rift:
         # generate the MSAA buffer
         if self._msaa > 1:
 
-            self.i_msaa_fbo = gl.glGenFrameBuffers(1)
+            self.i_msaa_fbo = gl.glGenFramebuffers(1)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_msaa_fbo)
 
-            self.i_msaa_rbo = gl.glGenRenderBuffers(1)
-            gl.glBindRenderBuffer(gl.GL_RENDERBUFFER, self.i_msaa_rbo)
-            gl.RenderbufferStorageMultisample(
+            self.i_msaa_rbo = gl.glGenRenderbuffers(1)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_msaa_rbo)
+            gl.glRenderbufferStorageMultisample(
                 gl.GL_RENDERBUFFER,
-                self.msaa,
-                gl.GL_RGBA8,
+                self._msaa,
+                gl.GL_SRGB8_ALPHA8,
                 self.tex_width,
                 self.tex_height,
             )
@@ -132,11 +133,11 @@ class Rift:
             )
             gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
 
-            self.i_msaa_depth_rbo = gl.glGenRenderBuffers(1)
-            gl.glBindRenderBuffer(gl.GL_RENDERBUFFER, self.i_msaa_depth_rbo)
-            gl.RenderbufferStorageMultisample(
+            self.i_msaa_depth_rbo = gl.glGenRenderbuffers(1)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_msaa_depth_rbo)
+            gl.glRenderbufferStorageMultisample(
                 gl.GL_RENDERBUFFER,
-                self.msaa,
+                self._msaa,
                 gl.GL_DEPTH24_STENCIL8,
                 self.tex_width,
                 self.tex_height,
@@ -149,7 +150,7 @@ class Rift:
             )
             gl.glFramebufferRenderbuffer(
                 gl.GL_FRAMEBUFFER,
-                gl.GL_STENCTIL_ATTACHMENT,
+                gl.GL_STENCIL_ATTACHMENT,
                 gl.GL_RENDERBUFFER,
                 self.i_msaa_depth_rbo,
             )
@@ -199,7 +200,7 @@ class Rift:
         (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
         (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
 
-        if self.msaa == 1:
+        if self._msaa == 1:
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
             gl.glFramebufferTexture2D(
                 gl.GL_DRAW_FRAMEBUFFER,  # target
@@ -222,14 +223,14 @@ class Rift:
 
         yield view
 
-        if self.msaa > 1:
+        if self._msaa > 1:
 
             gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, self.i_msaa_fbo)
             gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, self.i_fbo)
 
             gl.glFramebufferTexture2D(
-                gl.gl_DRAW_FRAMEBUFFER,
-                gl.gl_COLOR_ATTACHMENT0,
+                gl.GL_DRAW_FRAMEBUFFER,
+                gl.GL_COLOR_ATTACHMENT0,
                 gl.GL_TEXTURE_2D,
                 i_t,
                 0,
@@ -242,7 +243,7 @@ class Rift:
                 gl.GL_NEAREST,
             )
 
-            gl.BindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
         ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
 
