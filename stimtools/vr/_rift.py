@@ -1,4 +1,5 @@
 import os
+import contextlib
 
 import numpy as np
 
@@ -22,99 +23,191 @@ except ImportError:
 
 
 class Rift:
-    def __init__(self, monoscopic=True):
 
-        if not monoscopic:
-            raise NotImplementedError("Only mono for now")
+    def __init__(self, msaa=1):
+
+        self._msaa = msaa
+
+        self.hmd_info = None
+        self.tex_width = self.tex_height = self.tex_size = None
+        self.proj_mat = None
+        self.i_fbo = self.i_rbo = None
+
+        self._i_frame = 0
+
+    def __enter__(self):
 
         ovr.initialize()
         ovr.create()
 
-        try:
-            self.hmd_info = ovr.getHmdInfo()
+        self.hmd_info = ovr.getHmdInfo()
 
-            self.i_left = ovr.EYE_LEFT
-            self.i_right = ovr.EYE_RIGHT
-            self.i_eyes = (self.i_left, self.i_right)
+        i_left = ovr.EYE_LEFT
+        i_right = ovr.EYE_RIGHT
+        i_eyes = (i_left, i_right)
 
-            symm = self.hmd_info.symmetricEyeFov
+        symm = self.hmd_info.symmetricEyeFov
 
-            # symmetric for monoscopic
-            for (i_eye, eye_fov) in zip(self.i_eyes, symm):
-                ovr.setEyeRenderFov(eye=i_eye, fov=eye_fov)
+        # symmetric for monoscopic
+        for (i_eye, eye_fov) in zip(i_eyes, symm):
+            ovr.setEyeRenderFov(eye=i_eye, fov=eye_fov)
 
-            tex_sizes = [ovr.calcEyeBufferSize(i_eye) for i_eye in self.i_eyes]
-            assert tex_sizes[0] == tex_sizes[1]
-            (self.tex_size, _) = tex_sizes
+        tex_sizes = [ovr.calcEyeBufferSize(i_eye) for i_eye in i_eyes]
+        assert tex_sizes[0] == tex_sizes[1]
+        (self.tex_size, _) = tex_sizes
 
-            (self.tex_width, self.tex_height) = self.tex_size
+        (self.tex_width, self.tex_height) = self.tex_size
 
-            self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
-            for i_eye in self.i_eyes:
-                ovr.setEyeRenderViewport(eye=i_eye, values=self.viewport)
+        self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
+        for i_eye in i_eyes:
+            ovr.setEyeRenderViewport(eye=i_eye, values=self.viewport)
 
-            self.proj_mat = ovr.getEyeProjectionMatrix(0)
+        self.proj_mat = ovr.getEyeProjectionMatrix(0)
 
-            assert np.all(self.proj_mat == ovr.getEyeProjectionMatrix(1))
+        assert np.all(self.proj_mat == ovr.getEyeProjectionMatrix(1))
 
-            ovr.createTextureSwapChainGL(
-                ovr.TEXTURE_SWAP_CHAIN0,
-                width=self.tex_width,
-                height=self.tex_height,
-                textureFormat=ovr.FORMAT_R8G8B8A8_UNORM_SRGB,
+        ovr.createTextureSwapChainGL(
+            ovr.TEXTURE_SWAP_CHAIN0,
+            width=self.tex_width,
+            height=self.tex_height,
+            textureFormat=ovr.FORMAT_R8G8B8A8_UNORM_SRGB,
+        )
+
+        for i_eye in i_eyes:
+            ovr.setEyeColorTextureSwapChain(
+                eye=i_eye, swapChain=ovr.TEXTURE_SWAP_CHAIN0
             )
 
-            for i_eye in self.i_eyes:
-                ovr.setEyeColorTextureSwapChain(
-                    eye=i_eye, swapChain=ovr.TEXTURE_SWAP_CHAIN0
-                )
+        ovr.setHighQuality(True)
 
-            ovr.setHighQuality(True)
+        gl.glViewport(*self.viewport)
 
-            gl.glViewport(*self.viewport)
+        # generate the MSAA buffer
+        if self._msaa > 1:
 
-            self.i_fbo = gl.glGenFramebuffers(1)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+            self.i_msaa_fbo = gl.glGenFrameBuffers(1)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_msaa_fbo)
 
-            self.i_rbo = gl.glGenRenderbuffers(1)
-            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
-            gl.glRenderbufferStorage(
+            self.i_msaa_rbo = gl.glGenRenderBuffers(1)
+            gl.glBindRenderBuffer(gl.GL_RENDERBUFFER, self.i_msaa_rbo)
+            gl.RenderbufferStorageMultisample(
                 gl.GL_RENDERBUFFER,
+                self.msaa,
+                gl.GL_RGBA8,
+                self.tex_width,
+                self.tex_height,
+            )
+            gl.glFramebufferRenderbuffer(
+                gl.GL_FRAMEBUFFER,
+                gl.GL_COLOR_ATTACHMENT0,
+                gl.GL_RENDERBUFFER,
+                self.i_msaa_rbo,
+            )
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
+
+            self.i_msaa_depth_rbo = gl.glGenRenderBuffers(1)
+            gl.glBindRenderBuffer(gl.GL_RENDERBUFFER, self.i_msaa_depth_rbo)
+            gl.RenderbufferStorageMultisample(
+                gl.GL_RENDERBUFFER,
+                self.msaa,
                 gl.GL_DEPTH24_STENCIL8,
                 self.tex_width,
                 self.tex_height,
             )
             gl.glFramebufferRenderbuffer(
                 gl.GL_FRAMEBUFFER,
-                gl.GL_DEPTH_STENCIL_ATTACHMENT,
+                gl.GL_DEPTH_ATTACHMENT,
                 gl.GL_RENDERBUFFER,
-                self.i_rbo,
+                self.i_msaa_depth_rbo,
             )
-
+            gl.glFramebufferRenderbuffer(
+                gl.GL_FRAMEBUFFER,
+                gl.GL_STENCTIL_ATTACHMENT,
+                gl.GL_RENDERBUFFER,
+                self.i_msaa_depth_rbo,
+            )
             gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
+            gl.glClear(gl.GL_STENCIL_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-        except:
-            self.close()
-            raise
+        self.i_fbo = gl.glGenFramebuffers(1)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
 
-        self.frame = Frame(i_fbo=self.i_fbo)
+        self.i_rbo = gl.glGenRenderbuffers(1)
+        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
+        gl.glRenderbufferStorage(
+            gl.GL_RENDERBUFFER,
+            gl.GL_DEPTH24_STENCIL8,
+            self.tex_width,
+            self.tex_height,
+        )
+        gl.glFramebufferRenderbuffer(
+            gl.GL_FRAMEBUFFER,
+            gl.GL_DEPTH_STENCIL_ATTACHMENT,
+            gl.GL_RENDERBUFFER,
+            self.i_rbo,
+        )
 
-    def __enter__(self):
+        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    @staticmethod
-    def close():
         ovr.destroyTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
         ovr.destroy()
         ovr.shutdown()
 
+    @contextlib.contextmanager
+    def frame(self):
+
+        ovr.waitToBeginFrame(self._i_frame)
+
+        abs_time = ovr.getPredictedDisplayTime(self._i_frame)
+        tracking_state = ovr.getTrackingState(abs_time, True)
+        ovr.calcEyePoses(tracking_state.headPose.thePose)
+
+        ovr.beginFrame(self._i_frame)
+
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
+
+        # "OpenGL will automatically convert the output colors from linear to the sRGB
+        # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
+        gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
+
+        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
+        (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
+
+        gl.glFramebufferTexture2D(
+            gl.GL_DRAW_FRAMEBUFFER,  # target
+            gl.GL_COLOR_ATTACHMENT0,  # attachment
+            gl.GL_TEXTURE_2D,  # tex target
+            i_t,  # texture
+            0,  # level
+        )
+
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+        view = ovr.getEyeViewMatrix(0)
+
+        yield view
+
+        ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
+
+        gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
+
+        ovr.endFrame(self._i_frame)
+
+        gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
+
+        gl.glDisable(gl.GL_DEPTH_TEST)
+        gl.glDisable(gl.GL_SCISSOR_TEST)
+
+        self._i_frame += 1
+
 
 class MockRift:
-    def __init__(self, monoscopic=True):
+    def __init__(self, msaa=1):
 
         self.tex_size = [1520] * 2
 
@@ -230,7 +323,7 @@ class MockFrame:
 
 
 class Response:
-    def __init__(self, thumb_threshold=0.8, min_t_interval_s=0.5, win=None):
+    def __init__(self, thumb_threshold=0.8, min_t_interval_s=0.5):
 
         self._thumb_threshold = thumb_threshold
         self._min_t_interval_s = min_t_interval_s
