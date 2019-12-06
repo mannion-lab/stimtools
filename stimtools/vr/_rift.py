@@ -196,28 +196,53 @@ class Rift:
 
         ovr.beginFrame(self._i_frame)
 
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
+        (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
+
+        if self.msaa == 1:
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+            gl.glFramebufferTexture2D(
+                gl.GL_DRAW_FRAMEBUFFER,  # target
+                gl.GL_COLOR_ATTACHMENT0,  # attachment
+                gl.GL_TEXTURE_2D,  # tex target
+                i_t,  # texture
+                0,  # level
+            )
+        else:
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_msaa_fbo)
+            gl.glEnable(gl.GL_MULTISAMPLE)
 
         # "OpenGL will automatically convert the output colors from linear to the sRGB
         # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
-
-        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
-        (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
-
-        gl.glFramebufferTexture2D(
-            gl.GL_DRAW_FRAMEBUFFER,  # target
-            gl.GL_COLOR_ATTACHMENT0,  # attachment
-            gl.GL_TEXTURE_2D,  # tex target
-            i_t,  # texture
-            0,  # level
-        )
 
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         view = ovr.getEyeViewMatrix(0)
 
         yield view
+
+        if self.msaa > 1:
+
+            gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, self.i_msaa_fbo)
+            gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, self.i_fbo)
+
+            gl.glFramebufferTexture2D(
+                gl.gl_DRAW_FRAMEBUFFER,
+                gl.gl_COLOR_ATTACHMENT0,
+                gl.GL_TEXTURE_2D,
+                i_t,
+                0,
+            )
+
+            gl.glBlitFramebuffer(
+                0, 0, self.tex_width, self.tex_height,
+                0, 0, self.tex_width, self.tex_height,
+                gl.GL_COLOR_BUFFER_BIT,
+                gl.GL_NEAREST,
+            )
+
+            gl.BindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
         ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
 
