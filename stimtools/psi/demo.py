@@ -5,7 +5,7 @@ import stimtools.utils
 import stimtools.psi
 
 
-def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0):
+def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0, check_reset=True):
     "Demo of the operation of the psi function"
 
     true_alpha = 5.0
@@ -48,28 +48,39 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0):
         params=params, stim_levels=stim_levels, pf=psych_func, seed=seed
     )
 
-    psi.step()
+    if check_reset:
+        n_iterations = 2
+    else:
+        n_iterations = 1
 
-    for i_trial in range(n_trials):
+    for i_iteration in range(n_iterations):
 
-        resp_prob = psych_func(stim_levels[psi.curr_stim_index], true_alpha, true_beta)
+        psi.step()
 
-        resp = rand.choice([0, 1], p=[1 - resp_prob, resp_prob])
+        for i_trial in range(n_trials):
 
-        psi.update(resp)
+            resp_prob = psych_func(stim_levels[psi.curr_stim_index], true_alpha, true_beta)
 
-        estimates = psi.get_estimates()
+            resp = rand.choice([0, 1], p=[1 - resp_prob, resp_prob])
 
-        psi.step(ratio=ratio)
+            psi.update(resp)
 
-        if verbose:
-            print(
-                "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
-                    t=i_trial + 1, a=estimates["alpha"], b=estimates["beta"]
+            estimates = psi.get_estimates()
+
+            psi.step(ratio=ratio)
+
+            if verbose:
+                print(
+                    "{t:d}  alpha:{a:.3f}   beta:{b:.3f}".format(
+                        t=i_trial + 1, a=estimates["alpha"], b=estimates["beta"]
+                    )
                 )
-            )
 
-    print(psi.get_estimates())
+        print(psi.get_estimates())
+
+        if check_reset:
+            psi.reset()
+            rand = np.random.RandomState(seed=seed)
 
     return psi
 

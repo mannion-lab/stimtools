@@ -30,7 +30,9 @@ class Psi:
         self._n_stim_levels = len(stim_levels)
         self._pf = pf
 
-        self._rand = np.random.RandomState(seed=seed)
+        self.seed = seed
+
+        self._rand = np.random.RandomState(seed=self.seed)
 
         self._param_names = self._params.keys()
         self._n_params = len(self._params)
@@ -90,6 +92,15 @@ class Psi:
         self._p_lut[1, ...] = est
 
         self.curr_stim_index = None
+
+    def reset(self):
+        """Clears the current state. This is useful to avoid doing all the initialisation
+        in simulations. Change the `seed` property before calling if a new random number
+        generator is desired."""
+
+        self._rand = np.random.RandomState(seed=self.seed)
+
+        self._prior = np.prod([param["full_prior"] for param in self._params.values()])
 
     def step(self, ratio=0.0):
         """Steps the Psi handler forward. Inspect `curr_stim_index` and
