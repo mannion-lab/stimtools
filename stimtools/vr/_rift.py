@@ -258,15 +258,31 @@ class Rift:
 
         self._i_frame += 1
 
-    def update_controller(self, thumb_threshold=0.8, min_t_interval_s=0.5):
+    def update_controller(
+        self, thumb_threshold=0.8, min_t_interval_s=0.5, any_button=False
+    ):
 
         if self._controller is not None:
 
             ovr.updateInputState(self._controller)
 
-            (self.button, time) = ovr.getButton(
-                self._controller, ovr.BUTTON_A or ovr.BUTTON_X, "rising"
+            buttons_to_check = [ovr.BUTTON_A, ovr.BUTTON_X]
+
+            if any_button:
+                buttons_to_check += [ovr.BUTTON_B, ovr.BUTTON_Y]
+
+            # `getButton` can only check for one button at a time
+            # the docs about ORing are for simultaneous presses
+            resp_status = [
+                ovr.getButton(self._controller, button_to_check, "pressed")
+                for button_to_check in buttons_to_check
+            ]
+
+            self.button = any(
+                [button_pressed for (button_pressed, _) in resp_status]
             )
+
+            (_, time) =  resp_status[-1]
 
             (left_touch, right_touch) = ovr.getThumbstickValues(self._controller, False)
 
