@@ -79,11 +79,19 @@ class Window:
 
         glfw.set_time(0.0)
 
+        self.nests = 0
+
     def __enter__(self):
+
+        self.nests += 1
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is not None or self.close_on_exit:
+
+        self.nests -= 1
+
+        if (exc_type is not None) or (self.close_on_exit) and (self.nests == 0):
             self.close()
 
     @property

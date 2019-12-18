@@ -38,7 +38,14 @@ class Rift:
 
         self._i_frame = 0
 
+        self.nests = 0
+
     def __enter__(self):
+
+        self.nests += 1
+
+        if self.nests > 1:
+            return self
 
         ovr.initialize()
         ovr.create()
@@ -182,9 +189,13 @@ class Rift:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        ovr.destroyTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
-        ovr.destroy()
-        ovr.shutdown()
+
+        self.nests -= 1
+
+        if self.nests == 0:
+            ovr.destroyTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
+            ovr.destroy()
+            ovr.shutdown()
 
     @contextlib.contextmanager
     def frame(self):
