@@ -195,9 +195,7 @@ def rgb_to_grey(img):
 def linear_to_srgb(img):
 
     srgb_img = np.where(
-        img <= 0.0031308,
-        12.92 * img,
-        ((1.055 * img) ** (1.0 / 2.4)) - 0.055,
+        img <= 0.0031308, 12.92 * img, ((1.055 * img) ** (1.0 / 2.4)) - 0.055
     )
 
     return srgb_img
@@ -205,10 +203,6 @@ def linear_to_srgb(img):
 
 def srgb_to_linear(img):
 
-    linear_img = np.where(
-        img >= 0.04045,
-        ((img + 0.055) / 1.055) ** 2.4,
-        img / 12.92,
-    )
+    linear_img = np.where(img >= 0.04045, ((img + 0.055) / 1.055) ** 2.4, img / 12.92)
 
     return linear_img

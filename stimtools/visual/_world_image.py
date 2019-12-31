@@ -15,12 +15,17 @@ vert_shader = """
 
 layout (location = 0) in vec2 pos;
 
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+uniform vec2 phase;
+
 out vec2 uv;
 
 void main()
 {
-    uv = (pos + 1.0) / 2.0;
-    gl_Position = vec4(pos, 0.0, 1.0);
+    uv = (pos + 1.0) / 2.0 + phase;
+    gl_Position = projection * view * model * vec4(pos, 0.0, 1.0);
 }
 """
 
@@ -33,7 +38,6 @@ in vec2 uv;
 
 uniform float global_alpha;
 uniform bool apply_global_alpha;
-uniform vec3 colour_mod = vec3(1.0, 1.0, 1.0);
 
 uniform sampler2D img;
 
@@ -44,12 +48,10 @@ void main()
     if (apply_global_alpha) {
         FragColor = vec4(FragColor.rgb, FragColor.a * global_alpha);
     }
-
-    FragColor = FragColor * vec4(colour_mod, 1.0);
-
 }
 """
 
+# just the xy
 points = np.array(
     [-1.0, -1.0, +1.0, -1.0, -1.0, +1.0, -1.0, +1.0, +1.0, -1.0, +1.0, +1.0]
 ).astype("float32")
@@ -57,15 +59,18 @@ points = np.array(
 n_vertices = len(points) // 2
 
 
-class ImageStim:
+class WorldImageStim:
     def __init__(
         self,
         img,
+        proj_mat,
         global_alpha=1.0,
         apply_global_alpha=False,
         srgb=True,
-        colour_mod=None,
+        model=None,
     ):
+
+        self._proj_mat = proj_mat
 
         self.i_tex = gl.glGenTextures(1)
 
@@ -92,7 +97,8 @@ class ImageStim:
         self.i_apply_global_alpha = gl.glGetUniformLocation(
             self.program, "apply_global_alpha"
         )
-        self.i_colour_mod = gl.glGetUniformLocation(self.program, "colour_mod")
+
+        self.i_phase = gl.glGetUniformLocation(self.program, "phase")
 
         # set up the geometry
         i_pos = gl.glGetAttribLocation(self.program, "pos")
@@ -132,13 +138,56 @@ class ImageStim:
 
         gl.glTexParameterfv(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_BORDER_COLOR, np.zeros(4))
 
+        self.i_proj = gl.glGetUniformLocation(self.program, "projection")
+        self.i_view = gl.glGetUniformLocation(self.program, "view")
+        self.i_model = gl.glGetUniformLocation(self.program, "model")
+
+        # set the rotation matrix to null
+        self.set_model(model=np.eye(4).T)
+
         gl.glUseProgram(0)
 
+        self.phase = [0.0, 0.0]
         self.global_alpha = global_alpha
         self.apply_global_alpha = apply_global_alpha
 
-        if colour_mod is None:
-            self.colour_mod = (1.0,) * 3
+        self.set_proj(proj=self._proj_mat)
+
+        if model is not None:
+            self.set_model(model=model)
+
+    def set_view(self, view):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniformMatrix4fv(
+            self.i_view, 1, gl.GL_TRUE, view  # location  # count  # transpose  # value
+        )
+
+        gl.glUseProgram(0)
+
+    def set_proj(self, proj):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniformMatrix4fv(
+            self.i_proj, 1, gl.GL_TRUE, proj  # location  # count  # transpose  # value
+        )
+
+        gl.glUseProgram(0)
+
+    def set_model(self, model):
+
+        gl.glUseProgram(self.program)
+
+        gl.glUniformMatrix4fv(
+            self.i_model,  # location
+            1,  # count
+            gl.GL_TRUE,  # transpose
+            model,  # value
+        )
+
+        gl.glUseProgram(0)
 
     def set_img(self, img, srgb=True):
 
@@ -154,9 +203,9 @@ class ImageStim:
             img = np.concatenate((img, alpha), axis=-1)
 
         if srgb:
-            fmt = "GL_SRGB8_ALPHA8"
+            fmt = "GL_SRGB_ALPHA"
         else:
-            fmt = "GL_RGBA8"
+            fmt = "GL_RGBA"
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.i_tex)
 
@@ -173,6 +222,18 @@ class ImageStim:
         )
 
     @property
+    def phase(self):
+        return self._phase
+
+    @phase.setter
+    def phase(self, phase):
+        self._phase = phase
+
+        gl.glUseProgram(self.program)
+        gl.glUniform2f(self.i_phase, *phase)
+        gl.glUseProgram(0)
+
+    @property
     def global_alpha(self):
         return self._global_alpha
 
@@ -182,18 +243,6 @@ class ImageStim:
 
         gl.glUseProgram(self.program)
         gl.glUniform1f(self.i_global_alpha, global_alpha)
-        gl.glUseProgram(0)
-
-    @property
-    def colour_mod(self):
-        return self._colour_mod
-
-    @colour_mod.setter
-    def colour_mod(self, colour_mod):
-        self._colour_mod = colour_mod
-
-        gl.glUseProgram(self.program)
-        gl.glUniform3f(self.i_colour_mod, *colour_mod)
         gl.glUseProgram(0)
 
     @property

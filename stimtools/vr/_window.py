@@ -31,10 +31,14 @@ class Window:
         size_pix=(800, 800),
         colour=(0.5, 0.5, 0.5),
         event_buffer_size=20,
-        gamma=1.0,
+        gamma=None,
+        close_on_exit=True,
+        global_quit=True,
     ):
 
-        self.colour = tuple(colour)
+        self._global_quit = global_quit
+
+        self.close_on_exit = close_on_exit
 
         self._event_buffer = collections.deque(maxlen=event_buffer_size)
 
@@ -50,7 +54,8 @@ class Window:
 
         self._orig_gamma = glfw.get_gamma_ramp(self.monitor)
 
-        glfw.set_gamma(monitor=self.monitor, gamma=gamma)
+        if gamma is not None:
+            glfw.set_gamma(monitor=self.monitor, gamma=gamma)
 
         self.win = glfw.create_window(
             width=size_pix[0],
@@ -68,17 +73,35 @@ class Window:
 
         glfw.set_window_close_callback(self.win, self.window_close_callback)
 
-        gl.glClearColor(*(self.colour + (1.0,)))
+        self.colour = colour
 
         self.flip()
 
         glfw.set_time(0.0)
 
+        self.nests = 0
+
     def __enter__(self):
+
+        self.nests += 1
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+
+        self.nests -= 1
+
+        if (exc_type is not None) or (self.close_on_exit) and (self.nests == 0):
+            self.close()
+
+    @property
+    def colour(self):
+        return self._colour
+
+    @colour.setter
+    def colour(self, colour):
+        self._colour = tuple(colour)
+        gl.glClearColor(*(self.colour + (1.0,)))
 
     def close(self):
         glfw.set_gamma_ramp(monitor=self.monitor, ramp=self._orig_gamma)
@@ -87,15 +110,21 @@ class Window:
 
     def flip(self):
         glfw.swap_buffers(self.win)
+        approx_flip_time = self.get_time()
         glfw.poll_events()
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        return approx_flip_time
 
-    def window_close_callback(self, window):
+    def window_close_callback(self, _):
         self.close()
 
-    def key_event_callback(self, window, key, scancode, action, mods):
+    @staticmethod
+    def get_time():
+        return glfw.get_time()
 
-        time = glfw.get_time()
+    def key_event_callback(self, _, key, __, action, mods):
+
+        time = self.get_time()
 
         if action == glfw.PRESS:
 
@@ -105,6 +134,9 @@ class Window:
                 mod = MODCODE_TO_KEY[mods]
 
             keypress = Keypress(name=KEYCODE_TO_KEY[key], time=time, mod=mod)
+
+            if keypress.name == "q" and self._global_quit:
+                raise ValueError("User quit")
 
             self._event_buffer.append(keypress)
 

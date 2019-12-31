@@ -1,38 +1,44 @@
-import os
-import glob
+import pathlib
 
 
-def get_subj_ids_from_data_files(data_path, study_id):
+def get_subj_ids_from_data_files(data_path, study_id, skip_malformed=False):
 
     subj_ids = []
 
-    # get a list of all the tsv files in the data path
-    found_paths = glob.glob(os.path.join(data_path, "*.tsv"))
+    problems = []
+
+    data_path = pathlib.Path(data_path)
+
+    # get a generator of all the tsv files in the data path
+    found_paths = data_path.glob("*.tsv")
 
     for found_path in found_paths:
 
-        # split the filename from the directory
-        (_, filename) = os.path.split(found_path)
+        # run a few tests first
+        if not found_path.name.startswith(study_id):
+            problems.append(f"Wrong start: {found_path.name:s}")
+            continue
 
-        # split the filename into its stem and extension
-        (stem, ext) = os.path.splitext(filename)
+        try:
+            (_, *_, subj_id) = found_path.stem.split("_")
+        except ValueError:
+            problems.append(f"Trouble splitting: {found_path.name:s}")
+            continue
 
-        # extension will always be tsv
-        assert ext == ".tsv"
+        if len(subj_id) != 5:
+            problems.append(f"Wrong subject ID length: {found_path.name:s}")
+            continue
 
-        # filename will always start with the study id
-        assert stem.startswith(study_id)
-
-        # subject id is always the section after the last _
-        subj_id = stem.split("_")[-1]
-
-        assert len(subj_id) == 5
-
-        assert subj_id.startswith("p")
+        if not subj_id.startswith("p"):
+            problems.append(f"Bad subject ID: {found_path.name:s}")
+            continue
 
         subj_ids.append(subj_id)
 
     # in-place sort
     subj_ids.sort()
+
+    if problems and not skip_malformed:
+        raise ValueError("\n".join(problems))
 
     return subj_ids

@@ -1,4 +1,5 @@
 import os
+import contextlib
 
 import numpy as np
 
@@ -6,6 +7,7 @@ import OpenGL.GL as gl
 
 try:
     import psychxr.libovr as ovr
+
     has_psychxr = True
 except ImportError:
     # windows
@@ -19,208 +21,289 @@ try:
 except ImportError:
     pass
 
+import stimtools.utils
+
 
 class Rift:
-    def __init__(self, monoscopic=True):
 
-        if not monoscopic:
-            raise NotImplementedError("Only mono for now")
+    def __init__(self, msaa=1, require_controller=False):
+
+        self._msaa = msaa
+        self._require_controller = require_controller
+
+        self.hmd_info = None
+        self.tex_width = self.tex_height = self.tex_size = None
+        self.proj_mat = None
+        self.i_fbo = self.i_rbo = None
+
+        self._i_frame = 0
+
+        self.nests = 0
+
+    def __enter__(self):
+
+        self.nests += 1
+
+        if self.nests > 1:
+            return self
 
         ovr.initialize()
         ovr.create()
 
-        try:
-            self.hmd_info = ovr.getHmdInfo()
+        # get response devices
+        controllers_ok = False
+        while not controllers_ok:
 
-            self.i_left = ovr.EYE_LEFT
-            self.i_right = ovr.EYE_RIGHT
-            self.i_eyes = (self.i_left, self.i_right)
+            controllers = ovr.getConnectedControllerTypes()
 
-            symm = self.hmd_info.symmetricEyeFov
+            if len(controllers) == 0:
+                if self._require_controller:
+                    response = stimtools.utils.windows_alert_box(
+                        msg="Pair a touch device",
+                        style=5,
+                    )
+                    if response == 1:
+                        raise ValueError("User cancelled")
+                else:
+                    self._controller = None
+                    controllers_ok = True
+            elif len(controllers) == 1:
+                (self._controller,) = controllers
+                controllers_ok = True
+            else:
+                raise NotImplementedError("Only one controller currently supported")
 
-            # symmetric for monoscopic
-            for (i_eye, eye_fov) in zip(self.i_eyes, symm):
-                ovr.setEyeRenderFov(eye=i_eye, fov=eye_fov)
+        self._last_thumb = 0.0
 
-            tex_sizes = [ovr.calcEyeBufferSize(i_eye) for i_eye in self.i_eyes]
-            assert tex_sizes[0] == tex_sizes[1]
-            (self.tex_size, _) = tex_sizes
+        self.hmd_info = ovr.getHmdInfo()
 
-            (self.tex_width, self.tex_height) = self.tex_size
+        i_left = ovr.EYE_LEFT
+        i_right = ovr.EYE_RIGHT
+        i_eyes = (i_left, i_right)
 
-            self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
-            for i_eye in self.i_eyes:
-                ovr.setEyeRenderViewport(eye=i_eye, values=self.viewport)
+        symm = self.hmd_info.symmetricEyeFov
 
-            self.proj_mat = ovr.getEyeProjectionMatrix(0)
+        # symmetric for monoscopic
+        for (i_eye, eye_fov) in zip(i_eyes, symm):
+            ovr.setEyeRenderFov(eye=i_eye, fov=eye_fov)
 
-            assert np.all(self.proj_mat == ovr.getEyeProjectionMatrix(1))
+        tex_sizes = [ovr.calcEyeBufferSize(i_eye) for i_eye in i_eyes]
+        assert tex_sizes[0] == tex_sizes[1]
+        (self.tex_size, _) = tex_sizes
 
-            ovr.createTextureSwapChainGL(
-                ovr.TEXTURE_SWAP_CHAIN0,
-                width=self.tex_width,
-                height=self.tex_height,
-                textureFormat=ovr.FORMAT_R8G8B8A8_UNORM_SRGB,
+        (self.tex_width, self.tex_height) = self.tex_size
+
+        self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
+        for i_eye in i_eyes:
+            ovr.setEyeRenderViewport(eye=i_eye, values=self.viewport)
+
+        self.proj_mat = ovr.getEyeProjectionMatrix(0)
+
+        assert np.all(self.proj_mat == ovr.getEyeProjectionMatrix(1))
+
+        ovr.createTextureSwapChainGL(
+            ovr.TEXTURE_SWAP_CHAIN0,
+            width=self.tex_width,
+            height=self.tex_height,
+            textureFormat=ovr.FORMAT_R8G8B8A8_UNORM_SRGB,
+        )
+
+        for i_eye in i_eyes:
+            ovr.setEyeColorTextureSwapChain(
+                eye=i_eye, swapChain=ovr.TEXTURE_SWAP_CHAIN0
             )
 
-            for i_eye in self.i_eyes:
-                ovr.setEyeColorTextureSwapChain(
-                    eye=i_eye, swapChain=ovr.TEXTURE_SWAP_CHAIN0
-                )
+        ovr.setHighQuality(True)
 
-            ovr.setHighQuality(True)
+        gl.glViewport(*self.viewport)
 
-            gl.glViewport(*self.viewport)
+        # generate the MSAA buffer
+        if self._msaa > 1:
 
-            self.i_fbo = gl.glGenFramebuffers(1)
-            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+            self.i_msaa_fbo = gl.glGenFramebuffers(1)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_msaa_fbo)
 
-            self.i_rbo = gl.glGenRenderbuffers(1)
-            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
-            gl.glRenderbufferStorage(
+            self.i_msaa_rbo = gl.glGenRenderbuffers(1)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_msaa_rbo)
+            gl.glRenderbufferStorageMultisample(
                 gl.GL_RENDERBUFFER,
+                self._msaa,
+                gl.GL_SRGB8_ALPHA8,
+                self.tex_width,
+                self.tex_height,
+            )
+            gl.glFramebufferRenderbuffer(
+                gl.GL_FRAMEBUFFER,
+                gl.GL_COLOR_ATTACHMENT0,
+                gl.GL_RENDERBUFFER,
+                self.i_msaa_rbo,
+            )
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
+
+            self.i_msaa_depth_rbo = gl.glGenRenderbuffers(1)
+            gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_msaa_depth_rbo)
+            gl.glRenderbufferStorageMultisample(
+                gl.GL_RENDERBUFFER,
+                self._msaa,
                 gl.GL_DEPTH24_STENCIL8,
                 self.tex_width,
                 self.tex_height,
             )
             gl.glFramebufferRenderbuffer(
                 gl.GL_FRAMEBUFFER,
-                gl.GL_DEPTH_STENCIL_ATTACHMENT,
+                gl.GL_DEPTH_ATTACHMENT,
                 gl.GL_RENDERBUFFER,
-                self.i_rbo,
+                self.i_msaa_depth_rbo,
             )
-
+            gl.glFramebufferRenderbuffer(
+                gl.GL_FRAMEBUFFER,
+                gl.GL_STENCIL_ATTACHMENT,
+                gl.GL_RENDERBUFFER,
+                self.i_msaa_depth_rbo,
+            )
             gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
+            gl.glClear(gl.GL_STENCIL_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-        except:
-            self.close()
-            raise
+        self.i_fbo = gl.glGenFramebuffers(1)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
 
-    def __enter__(self):
+        self.i_rbo = gl.glGenRenderbuffers(1)
+        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
+        gl.glRenderbufferStorage(
+            gl.GL_RENDERBUFFER,
+            gl.GL_DEPTH24_STENCIL8,
+            self.tex_width,
+            self.tex_height,
+        )
+        gl.glFramebufferRenderbuffer(
+            gl.GL_FRAMEBUFFER,
+            gl.GL_DEPTH_STENCIL_ATTACHMENT,
+            gl.GL_RENDERBUFFER,
+            self.i_rbo,
+        )
+
+        gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
+        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
 
-    @staticmethod
-    def close():
-        ovr.destroyTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
-        ovr.destroy()
-        ovr.shutdown()
+        self.nests -= 1
 
+        if self.nests == 0:
+            ovr.destroyTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
+            ovr.destroy()
+            ovr.shutdown()
 
-class MockRift:
-    def __init__(self, monoscopic=True):
-
-        self.tex_size = [1520] * 2
-
-        (self.tex_width, self.tex_height) = self.tex_size
-
-        self.viewport = [0, 0, self.tex_size[0], self.tex_size[1]]
-
-        self.proj_mat = pyrr.matrix44.create_perspective_projection_matrix(
-            fovy=87.4, aspect=1.0, near=0.01, far=100.0
-        ).T
-
-        flip = np.eye(4)
-        flip[0, 0]  = -1
-
-        self.proj_mat = self.proj_mat @ flip
-
-        gl.glViewport(*self.viewport)
-
-        self.i_fbo = 0
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        pass
-
-    @staticmethod
-    def close():
-        pass
-
-
-class Frame:
-    def __init__(self, i_frame, i_fbo):
-
-        self._i_frame = i_frame
-        self._i_fbo = i_fbo
-
-    def __enter__(self):
+    @contextlib.contextmanager
+    def frame(self):
 
         ovr.waitToBeginFrame(self._i_frame)
 
         abs_time = ovr.getPredictedDisplayTime(self._i_frame)
-        (tracking_state, _) = ovr.getTrackingState(abs_time, True)
-        (headPose, _) = tracking_state[ovr.TRACKED_DEVICE_TYPE_HMD]
-        ovr.calcEyePoses(headPose.pose)
+        tracking_state = ovr.getTrackingState(abs_time, True)
+        ovr.calcEyePoses(tracking_state.headPose.thePose)
 
         ovr.beginFrame(self._i_frame)
 
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self._i_fbo)
+        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
+        (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
+        if self._msaa == 1:
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_fbo)
+            gl.glFramebufferTexture2D(
+                gl.GL_DRAW_FRAMEBUFFER,  # target
+                gl.GL_COLOR_ATTACHMENT0,  # attachment
+                gl.GL_TEXTURE_2D,  # tex target
+                i_t,  # texture
+                0,  # level
+            )
+        else:
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.i_msaa_fbo)
+            gl.glEnable(gl.GL_MULTISAMPLE)
 
         # "OpenGL will automatically convert the output colors from linear to the sRGB
         # colorspace if, and only if, GL_FRAMEBUFFER_SRGB is enabled"
         gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
 
-        (_, i_swap) = ovr.getTextureSwapChainCurrentIndex(ovr.TEXTURE_SWAP_CHAIN0)
-        (_, i_t) = ovr.getTextureSwapChainBufferGL(ovr.TEXTURE_SWAP_CHAIN0, i_swap)
-
-        gl.glFramebufferTexture2D(
-            gl.GL_DRAW_FRAMEBUFFER,  # target
-            gl.GL_COLOR_ATTACHMENT0,  # attachment
-            gl.GL_TEXTURE_2D,  # tex target
-            i_t,  # texture
-            0,  # level
-        )
-
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         view = ovr.getEyeViewMatrix(0)
 
-        return view
+        yield view
 
-    def __exit__(self, exc_type, exc_value, traceback):
+        if self._msaa > 1:
 
-        # only wind up properly if there hasn't been an exception
-        if exc_type is None:
+            gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, self.i_msaa_fbo)
+            gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, self.i_fbo)
 
-            ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
+            gl.glFramebufferTexture2D(
+                gl.GL_DRAW_FRAMEBUFFER,
+                gl.GL_COLOR_ATTACHMENT0,
+                gl.GL_TEXTURE_2D,
+                i_t,
+                0,
+            )
 
-            gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
+            gl.glBlitFramebuffer(
+                0, 0, self.tex_width, self.tex_height,
+                0, 0, self.tex_width, self.tex_height,
+                gl.GL_COLOR_BUFFER_BIT,
+                gl.GL_NEAREST,
+            )
 
-            ovr.endFrame(self._i_frame)
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
-            gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
+        ovr.commitTextureSwapChain(ovr.TEXTURE_SWAP_CHAIN0)
 
-            gl.glDisable(gl.GL_DEPTH_TEST)
-            gl.glDisable(gl.GL_SCISSOR_TEST)
+        gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
 
+        ovr.endFrame(self._i_frame)
 
-class MockFrame:
-    def __init__(self, i_frame, i_fbo):
+        gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
 
-        self._i_frame = i_frame
-        self._i_fbo = i_fbo
+        gl.glDisable(gl.GL_DEPTH_TEST)
+        gl.glDisable(gl.GL_SCISSOR_TEST)
 
-    def __enter__(self):
+        self._i_frame += 1
 
-        gl.glEnable(gl.GL_DEPTH_TEST)
+    def update_controller(
+        self, thumb_threshold=0.8, min_t_interval_s=0.5, any_button=False
+    ):
 
-        gl.glEnable(gl.GL_FRAMEBUFFER_SRGB)
+        if self._controller is not None:
 
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+            ovr.updateInputState(self._controller)
 
-        view = np.eye(4)
+            buttons_to_check = [ovr.BUTTON_A, ovr.BUTTON_X]
 
-        return view
+            if any_button:
+                buttons_to_check += [ovr.BUTTON_B, ovr.BUTTON_Y]
 
-    def __exit__(self, exc_type, exc_value, traceback):
+            # `getButton` can only check for one button at a time
+            # the docs about ORing are for simultaneous presses
+            resp_status = [
+                ovr.getButton(self._controller, button_to_check, "pressed")
+                for button_to_check in buttons_to_check
+            ]
 
-        if exc_type is None:
-            gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
+            self.button = any(
+                [button_pressed for (button_pressed, _) in resp_status]
+            )
+
+            (_, time) =  resp_status[-1]
+
+            (left_touch, right_touch) = ovr.getThumbstickValues(self._controller, False)
+
+            self.thumb_x = np.array([left_touch[0], right_touch[0]])
+            self.thumb_y = np.array([left_touch[1], right_touch[1]])
+
+            if (time - self._last_thumb) > min_t_interval_s:
+                self.thumb_left = np.any(self.thumb_x < -(thumb_threshold))
+                self.thumb_right = np.any(self.thumb_x > thumb_threshold)
+                if self.thumb_left or self.thumb_right:
+                    self._last_thumb = time
+            else:
+                self.thumb_left = self.thumb_right = False
