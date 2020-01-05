@@ -56,7 +56,7 @@ def weibull(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
     return y
 
 
-def cnorm(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
+def cnorm(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0, allow_negative_slope=False):
     """Cumulative normal psychometric function.
 
     Parameters
@@ -65,17 +65,23 @@ def cnorm(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
         Point to evaluate the function
     alpha: float
         Threshold (point where function output is ~0.5)
-    beta: float, > 0
-        Slope of the function
+    beta: float
+        Slope of the function. If `allow_negative_slope` is `False`, must be positive.
     guess_rate, lapse_rate: float, [0, 1]
         How often the subject guesses or lapses
+    allow_negative_slope: bool
+        If `True`, the PF is computed with the absolute value of `beta` and the return
+        value is given by `1 - y`.
     """
 
-    y = scipy.stats.distributions.norm.cdf(x=x, loc=alpha, scale=beta)
+    y = scipy.stats.distributions.norm.cdf(x=x, loc=alpha, scale=np.abs(beta))
 
     y *= 1 - guess_rate - lapse_rate
 
     y += guess_rate
+
+    if beta < 0:
+        y = 1 - y
 
     return y
 
