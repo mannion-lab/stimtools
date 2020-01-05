@@ -36,6 +36,10 @@ class Rift:
         self.proj_mat = None
         self.i_fbo = self.i_rbo = None
 
+        self.yaw = self.pitch = self.roll = None
+
+        self.ypr = None
+
         self._i_frame = 0
 
         self.nests = 0
@@ -205,6 +209,10 @@ class Rift:
         abs_time = ovr.getPredictedDisplayTime(self._i_frame)
         tracking_state = ovr.getTrackingState(abs_time, True)
         ovr.calcEyePoses(tracking_state.headPose.thePose)
+
+        self.ypr = tracking_state.headPose.thePose.getYawPitchRoll()
+
+        (self.yaw, self.pitch, self.roll) = self.ypr
 
         ovr.beginFrame(self._i_frame)
 
