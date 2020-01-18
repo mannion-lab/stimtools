@@ -6,8 +6,8 @@ import scipy.stats
 import soundfile
 
 try:
-    import brian
-    import brian.hears
+    import brian2
+    import brian2hears
 except ImportError:
     pass
 
@@ -178,9 +178,9 @@ def get_filter_output(ir, sr, cf=None, dB=False, abs_conv=True):
     if cf is None:
         cf = get_filter_centres()
 
-    bs = brian.hears.Sound(data=ir, samplerate=sr * brian.Hz)
+    bs = brian2hears.Sound(data=ir, samplerate=sr * brian2.Hz)
 
-    bank = brian.hears.Gammatone(source=bs, cf=cf)
+    bank = brian2hears.Gammatone(source=bs, cf=cf)
 
     output = bank.process()
 
