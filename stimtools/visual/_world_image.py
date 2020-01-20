@@ -18,12 +18,13 @@ layout (location = 0) in vec2 pos;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform vec2 phase;
 
 out vec2 uv;
 
 void main()
 {
-    uv = (pos + 1.0) / 2.0;
+    uv = (pos + 1.0) / 2.0 + phase;
     gl_Position = projection * view * model * vec4(pos, 0.0, 1.0);
 }
 """
@@ -97,6 +98,8 @@ class WorldImageStim:
             self.program, "apply_global_alpha"
         )
 
+        self.i_phase = gl.glGetUniformLocation(self.program, "phase")
+
         # set up the geometry
         i_pos = gl.glGetAttribLocation(self.program, "pos")
         self.i_vao = gl.glGenVertexArrays(1)
@@ -144,6 +147,7 @@ class WorldImageStim:
 
         gl.glUseProgram(0)
 
+        self.phase = [0.0, 0.0]
         self.global_alpha = global_alpha
         self.apply_global_alpha = apply_global_alpha
 
@@ -216,6 +220,18 @@ class WorldImageStim:
             gl.GL_UNSIGNED_BYTE,  # type
             img,
         )
+
+    @property
+    def phase(self):
+        return self._phase
+
+    @phase.setter
+    def phase(self, phase):
+        self._phase = phase
+
+        gl.glUseProgram(self.program)
+        gl.glUniform2f(self.i_phase, *phase)
+        gl.glUseProgram(0)
 
     @property
     def global_alpha(self):

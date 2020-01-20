@@ -38,8 +38,6 @@ class Window:
 
         self._global_quit = global_quit
 
-        self.colour = tuple(colour)
-
         self.close_on_exit = close_on_exit
 
         self._event_buffer = collections.deque(maxlen=event_buffer_size)
@@ -75,18 +73,35 @@ class Window:
 
         glfw.set_window_close_callback(self.win, self.window_close_callback)
 
-        gl.glClearColor(*(self.colour + (1.0,)))
+        self.colour = colour
 
         self.flip()
 
         glfw.set_time(0.0)
 
+        self.nests = 0
+
     def __enter__(self):
+
+        self.nests += 1
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is not None or self.close_on_exit:
+
+        self.nests -= 1
+
+        if (exc_type is not None) or (self.close_on_exit) and (self.nests == 0):
             self.close()
+
+    @property
+    def colour(self):
+        return self._colour
+
+    @colour.setter
+    def colour(self, colour):
+        self._colour = tuple(colour)
+        gl.glClearColor(*(self.colour + (1.0,)))
 
     def close(self):
         glfw.set_gamma_ramp(monitor=self.monitor, ramp=self._orig_gamma)
@@ -100,13 +115,14 @@ class Window:
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         return approx_flip_time
 
-    def window_close_callback(self, window):
+    def window_close_callback(self, _):
         self.close()
 
-    def get_time(self):
+    @staticmethod
+    def get_time():
         return glfw.get_time()
 
-    def key_event_callback(self, window, key, scancode, action, mods):
+    def key_event_callback(self, _, key, __, action, mods):
 
         time = self.get_time()
 

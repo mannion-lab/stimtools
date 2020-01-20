@@ -275,7 +275,7 @@ class AudioFileSerial:
 
         reply = self._send_msg(msg, delay=delay)
 
-        if reply != str(track_num):
+        if reply != str(track_num) and delay > 0.0:
             print("Error playing track; response was " + reply)
 
 

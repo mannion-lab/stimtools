@@ -33,6 +33,7 @@ in vec2 uv;
 
 uniform float global_alpha;
 uniform bool apply_global_alpha;
+uniform vec3 colour_mod = vec3(1.0, 1.0, 1.0);
 
 uniform sampler2D img;
 
@@ -43,6 +44,9 @@ void main()
     if (apply_global_alpha) {
         FragColor = vec4(FragColor.rgb, FragColor.a * global_alpha);
     }
+
+    FragColor = FragColor * vec4(colour_mod, 1.0);
+
 }
 """
 
@@ -54,7 +58,14 @@ n_vertices = len(points) // 2
 
 
 class ImageStim:
-    def __init__(self, img, global_alpha=1.0, apply_global_alpha=False, srgb=True):
+    def __init__(
+        self,
+        img,
+        global_alpha=1.0,
+        apply_global_alpha=False,
+        srgb=True,
+        colour_mod=None,
+    ):
 
         self.i_tex = gl.glGenTextures(1)
 
@@ -81,6 +92,7 @@ class ImageStim:
         self.i_apply_global_alpha = gl.glGetUniformLocation(
             self.program, "apply_global_alpha"
         )
+        self.i_colour_mod = gl.glGetUniformLocation(self.program, "colour_mod")
 
         # set up the geometry
         i_pos = gl.glGetAttribLocation(self.program, "pos")
@@ -125,6 +137,9 @@ class ImageStim:
         self.global_alpha = global_alpha
         self.apply_global_alpha = apply_global_alpha
 
+        if colour_mod is None:
+            self.colour_mod = (1.0,) * 3
+
     def set_img(self, img, srgb=True):
 
         # load the image
@@ -167,6 +182,18 @@ class ImageStim:
 
         gl.glUseProgram(self.program)
         gl.glUniform1f(self.i_global_alpha, global_alpha)
+        gl.glUseProgram(0)
+
+    @property
+    def colour_mod(self):
+        return self._colour_mod
+
+    @colour_mod.setter
+    def colour_mod(self, colour_mod):
+        self._colour_mod = colour_mod
+
+        gl.glUseProgram(self.program)
+        gl.glUniform3f(self.i_colour_mod, *colour_mod)
         gl.glUseProgram(0)
 
     @property

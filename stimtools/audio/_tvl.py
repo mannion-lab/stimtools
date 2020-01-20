@@ -4,6 +4,8 @@ import os
 
 import numpy as np
 
+import soundfile
+
 try:
     import resampy
 except ImportError:
