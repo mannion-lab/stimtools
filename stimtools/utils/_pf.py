@@ -47,7 +47,7 @@ def weibull(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
 
     """
 
-    y = 1 - np.exp(-(x / alpha) ** beta)
+    y = 1 - np.exp(-((x / alpha) ** beta))
 
     y *= 1 - guess_rate - lapse_rate
 
@@ -74,14 +74,19 @@ def cnorm(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0, allow_negative_slope=F
         value is given by `1 - y`.
     """
 
-    y = scipy.stats.distributions.norm.cdf(x=x, loc=alpha, scale=np.abs(beta))
+    if allow_negative_slope:
+        scale = np.abs(beta)
+    else:
+        scale = beta
+
+    y = scipy.stats.distributions.norm.cdf(x=x, loc=alpha, scale=scale)
 
     y *= 1 - guess_rate - lapse_rate
 
     y += guess_rate
 
-    if beta < 0:
-        y = 1 - y
+    if allow_negative_slope:
+        y = np.where(beta < 0, 1 - y, y)
 
     return y
 
