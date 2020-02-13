@@ -21,6 +21,8 @@ try:
 except ImportError:
     pass
 
+import easygui
+
 import stimtools.utils
 
 
@@ -62,11 +64,11 @@ class Rift:
 
             if len(controllers) == 0:
                 if self._require_controller:
-                    response = stimtools.utils.windows_alert_box(
+                    try_again = easygui.ccbox(
                         msg="Pair a touch device",
-                        style=5,
+                        choices=["Try again", "Cancel"],
                     )
-                    if response == 1:
+                    if not try_again:
                         raise ValueError("User cancelled")
                 else:
                     self._controller = None
@@ -75,7 +77,16 @@ class Rift:
                 (self._controller,) = controllers
                 controllers_ok = True
             else:
-                raise NotImplementedError("Only one controller currently supported")
+                use_left_controller = easygui.boolbox(
+                    msg="Which controller?",
+                    choices=["Left", "Right"],
+                )
+                if use_left_controller:
+                    controller_id = ovr.CONTROLLER_TYPE_LTOUCH
+                else:
+                    controller_id = ovr.CONTROLLER_TYPE_RTOUCH
+                self._controller = controllers[controllers.index(controller_id)]
+                controllers_ok = True
 
         self._last_thumb = 0.0
 
