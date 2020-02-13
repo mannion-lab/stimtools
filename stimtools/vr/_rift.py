@@ -16,18 +16,10 @@ except ImportError:
         raise
     has_psychxr = False
 
-try:
-    import pyrr
-except ImportError:
-    pass
-
 import easygui
-
-import stimtools.utils
 
 
 class Rift:
-
     def __init__(self, msaa=1, require_controller=False):
 
         self._msaa = msaa
@@ -65,8 +57,7 @@ class Rift:
             if len(controllers) == 0:
                 if self._require_controller:
                     try_again = easygui.ccbox(
-                        msg="Pair a touch device",
-                        choices=["Try again", "Cancel"],
+                        msg="Pair a touch device", choices=["Try again", "Cancel"]
                     )
                     if not try_again:
                         raise ValueError("User cancelled")
@@ -78,8 +69,7 @@ class Rift:
                 controllers_ok = True
             else:
                 use_left_controller = easygui.boolbox(
-                    msg="Which controller?",
-                    choices=["Left", "Right"],
+                    msg="Which controller?", choices=["Left", "Right"]
                 )
                 if use_left_controller:
                     controller_id = ovr.CONTROLLER_TYPE_LTOUCH
@@ -186,10 +176,7 @@ class Rift:
         self.i_rbo = gl.glGenRenderbuffers(1)
         gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self.i_rbo)
         gl.glRenderbufferStorage(
-            gl.GL_RENDERBUFFER,
-            gl.GL_DEPTH24_STENCIL8,
-            self.tex_width,
-            self.tex_height,
+            gl.GL_RENDERBUFFER, gl.GL_DEPTH24_STENCIL8, self.tex_width, self.tex_height
         )
         gl.glFramebufferRenderbuffer(
             gl.GL_FRAMEBUFFER,
@@ -267,8 +254,14 @@ class Rift:
             )
 
             gl.glBlitFramebuffer(
-                0, 0, self.tex_width, self.tex_height,
-                0, 0, self.tex_width, self.tex_height,
+                0,
+                0,
+                self.tex_width,
+                self.tex_height,
+                0,
+                0,
+                self.tex_width,
+                self.tex_height,
                 gl.GL_COLOR_BUFFER_BIT,
                 gl.GL_NEAREST,
             )
@@ -308,11 +301,9 @@ class Rift:
                 for button_to_check in buttons_to_check
             ]
 
-            self.button = any(
-                [button_pressed for (button_pressed, _) in resp_status]
-            )
+            self.button = any([button_pressed for (button_pressed, _) in resp_status])
 
-            (_, time) =  resp_status[-1]
+            (_, time) = resp_status[-1]
 
             (left_touch, right_touch) = ovr.getThumbstickValues(self._controller, False)
 
