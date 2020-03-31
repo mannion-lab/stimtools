@@ -135,10 +135,7 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
 
     sign_changes = np.logical_and(
         np.sign(cum_diff[1:]) == 1,
-        np.logical_or(
-            np.sign(cum_diff[:-1]) == -1,
-            np.sign(cum_diff[:-1]) == 0,
-        )
+        np.logical_or(np.sign(cum_diff[:-1]) == -1, np.sign(cum_diff[:-1]) == 0),
     )
 
     i_sign_changes = np.flatnonzero(sign_changes)
@@ -173,11 +170,7 @@ def get_kurtosis_threshold(win_size, n_boot=10_000):
 
 def get_filter_centres(low=20, high=16_000, n=33):
 
-    return brian2hears.erbspace(
-        low=low * brian2.Hz,
-        high=high * brian2.Hz,
-        N=n,
-    )
+    return brian2hears.erbspace(low=low * brian2.Hz, high=high * brian2.Hz, N=n)
 
 
 def get_filter_output(ir, sr, cf=None, dB=False, abs_conv=True):
