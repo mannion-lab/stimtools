@@ -1,5 +1,3 @@
-import collections
-
 import numpy as np
 import scipy.stats
 
@@ -111,6 +109,8 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
 
     n = len(ir)
 
+    started = False
+
     kurtosis = np.full(n, np.nan)
 
     for i_sample in range(n):
@@ -120,30 +120,36 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
 
         win_data = ir[(i_sample - win_size // 2) : (i_sample + win_size // 2)]
 
+        if not started and np.all(np.abs(win_data) < 0.1):
+            continue
+        else:
+            started = True
+
         kurtosis[i_sample] = scipy.stats.kurtosis(win_data)
 
-    n_gauss = 0
-    n_nongauss = 0
+    with np.errstate(invalid="ignore"):
+        gauss_cum = np.nancumsum(kurtosis < thresh)
+        nongauss_cum = np.nancumsum(kurtosis >= thresh)
 
-    for i_sample in range(n):
+    cum_diff = gauss_cum - nongauss_cum
 
-        if np.isfinite(kurtosis[i_sample]):
+    sign_changes = np.logical_and(
+        np.sign(cum_diff[1:]) == 1,
+        np.logical_or(
+            np.sign(cum_diff[:-1]) == -1,
+            np.sign(cum_diff[:-1]) == 0,
+        )
+    )
 
-            if kurtosis[i_sample] > thresh:
-                n_nongauss += 1
+    i_sign_changes = np.flatnonzero(sign_changes)
 
-            else:
-                n_gauss += 1
-
-        if n_gauss > n_nongauss > 0:
-            crossover = i_sample
-            break
+    crossover = i_sign_changes[-1] + 1
 
     t_gauss = (crossover / float(sr)) * 1_000
 
     if peak_rel:
 
-        i_peak_sample = np.argmax(ir)
+        i_peak_sample = np.argmax(np.abs(ir))
 
         peak_ms = (i_peak_sample / float(sr)) * 1_000
 
@@ -209,6 +215,8 @@ def fit_filter_output(filt_out, sr):
     t60 = -(60.0 / params[:, 0])
 
     t60_bb = np.median(t60)
+
+    fit_flags = fit_flags.astype("int")
 
     return (params, fit_flags, t60, t60_bb)
 
