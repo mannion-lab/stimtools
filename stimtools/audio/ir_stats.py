@@ -1,15 +1,12 @@
-from builtins import range
+import collections
 
 import numpy as np
 import scipy.stats
 
 import soundfile
 
-try:
-    import brian2
-    import brian2hears
-except ImportError:
-    pass
+import brian2
+import brian2hears
 
 
 def get_ir_stats(ir, t_gauss_thresh=None, filt_centres=None, sr=None):
@@ -107,7 +104,7 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
 
     """
 
-    win_size = int((sr / 1000) * win_ms)
+    win_size = int((sr / 1_000) * win_ms)
 
     if thresh is None:
         thresh = get_kurtosis_threshold(win_size=win_size)
@@ -142,20 +139,20 @@ def calc_t_gauss(ir, sr, win_ms=10, thresh=None, peak_rel=True):
             crossover = i_sample
             break
 
-    t_gauss = (crossover / float(sr)) * 1000.0
+    t_gauss = (crossover / float(sr)) * 1_000
 
     if peak_rel:
 
         i_peak_sample = np.argmax(ir)
 
-        peak_ms = (i_peak_sample / float(sr)) * 1000.0
+        peak_ms = (i_peak_sample / float(sr)) * 1_000
 
         t_gauss -= peak_ms
 
     return (kurtosis, crossover, t_gauss)
 
 
-def get_kurtosis_threshold(win_size, n_boot=10000):
+def get_kurtosis_threshold(win_size, n_boot=10_000):
     """Use the distribution of kurtosis of a random noise sample to identify a
     threshold for unlikelyness."""
 
@@ -168,9 +165,13 @@ def get_kurtosis_threshold(win_size, n_boot=10000):
     return thresh
 
 
-def get_filter_centres(low=20, high=16000, n=33):
+def get_filter_centres(low=20, high=16_000, n=33):
 
-    return erbspace(low, high, n)
+    return brian2hears.erbspace(
+        low=low * brian2.Hz,
+        high=high * brian2.Hz,
+        N=n,
+    )
 
 
 def get_filter_output(ir, sr, cf=None, dB=False, abs_conv=True):
@@ -241,23 +242,3 @@ def M(x, params):
     y = 10 ** (((phi * x) - drr) / 20.0)
 
     return y
-
-
-def erbspace(low, high, N, earQ=9.26449, minBW=24.7):
-    """
-    This is from brian.hears
-    """
-
-    low = float(low)
-
-    high = float(high)
-
-    cf = -(earQ * minBW) + np.exp(
-        np.arange(N)
-        * (-np.log(high + earQ * minBW) + np.log(low + earQ * minBW))
-        / (N - 1)
-    ) * (high + earQ * minBW)
-
-    cf = cf[::-1]
-
-    return cf
