@@ -99,13 +99,11 @@ def get_db_info(base_path=None):
 
     if not locations:
         raise ValueError(
-            """
-Database not found at {d:s}.
+            f"""
+Database not found at {base_path}.
 
 Try setting the ECHO_THIEF_PATH shell environment variable.
-            """.format(
-                d=base_path
-            )
+            """
         )
 
     # sort by key
