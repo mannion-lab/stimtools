@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 
@@ -114,6 +116,17 @@ def parse_roomeqwizard_ir_stats_file(stats_path, freq_set=None):
                 param_stats = np.array(param_stats, dtype=np.float)
 
             filt_stats[param] = param_stats
+
+        extra_param = "Topt qa (s)"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            bad_fit = np.abs(filt_stats["Topt linearity (r)"]) < 0.99
+
+        topt_qa = np.array(filt_stats["Topt (s)"])
+        topt_qa[bad_fit] = np.nan
+
+        filt_stats[extra_param] = topt_qa
 
         filt_stats["freq (Hz)"] = curr_freq_set
 
