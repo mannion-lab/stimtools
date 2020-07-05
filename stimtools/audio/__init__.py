@@ -13,6 +13,7 @@ from ._stats import rms_over_time
 from ._io import (save, load)
 from ._calib import fit_rms_db_measurements, rms_to_db_from_coefs, db_to_rms_from_coefs
 from ._tvl import compute_tvl
+from ._roomeqwizard import parse_roomeqwizard_ir_stats_file
 
 __all__ = [
     "pure_tone",
@@ -32,4 +33,5 @@ __all__ = [
     "compute_tvl",
     "phon_to_sone",
     "sone_to_phon",
+    "parse_roomeqwizard_ir_stats_file",
 ]
