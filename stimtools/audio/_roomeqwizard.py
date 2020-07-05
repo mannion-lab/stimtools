@@ -1,4 +1,3 @@
-
 import numpy as np
 
 
@@ -111,9 +110,7 @@ def parse_roomeqwizard_ir_stats_file(stats_path, freq_set=None):
                         param_value = np.nan
                     param_stats.append(param_value)
 
-            if param not in [
-                "BW (octaves)", "reverse/forward/zero phase filtered"
-            ]:
+            if param not in ["BW (octaves)", "reverse/forward/zero phase filtered"]:
                 param_stats = np.array(param_stats, dtype=np.float)
 
             filt_stats[param] = param_stats
