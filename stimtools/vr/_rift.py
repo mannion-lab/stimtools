@@ -20,10 +20,11 @@ import easygui
 
 
 class Rift:
-    def __init__(self, msaa=1, require_controller=False):
+    def __init__(self, msaa=1, require_controller=False, mirror=True):
 
         self._msaa = msaa
         self._require_controller = require_controller
+        self.mirror = mirror
 
         self.hmd_info = None
         self.tex_width = self.tex_height = self.tex_size = None
@@ -188,6 +189,14 @@ class Rift:
         gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, 0)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
+        if self.mirror:
+            ovr.createMirrorTexture(
+                width=self.tex_width,
+                height=self.tex_height,
+                mirrorOptions=ovr.MIRROR_OPTION_RIGHT_EYE_ONLY,
+            )
+            self.i_mirror_fbo = gl.glGenFramebuffers(1)
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -273,6 +282,33 @@ class Rift:
         gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
 
         ovr.endFrame(self._i_frame)
+
+        if self.mirror:
+
+            gl.glBindFramebuffer(gl.GL_READ_FRAMEBUFFER, self.i_mirror_fbo)
+            gl.glBindFramebuffer(gl.GL_DRAW_FRAMEBUFFER, 0)
+
+            (_, mirror_id) = ovr.getMirrorTexture()
+
+            # bind the rift's mirror texture to the framebuffer
+            gl.glFramebufferTexture2D(
+                gl.GL_READ_FRAMEBUFFER,
+                gl.GL_COLOR_ATTACHMENT0,
+                gl.GL_TEXTURE_2D,
+                mirror_id,
+                0,
+            )
+
+            # render the mirror texture to the on-screen window's back buffer
+            gl.glViewport(0, 0, self.tex_width, self.tex_height)
+            gl.glBlitFramebuffer(
+                0, 0, self.tex_width, self.tex_height,
+                0, self.tex_height, self.tex_width, 0,  # this flips the texture
+                gl.GL_COLOR_BUFFER_BIT,
+                gl.GL_NEAREST,
+            )
+
+            gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
         gl.glDisable(gl.GL_FRAMEBUFFER_SRGB)
 

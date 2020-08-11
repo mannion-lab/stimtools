@@ -28,7 +28,7 @@ Keypress = collections.namedtuple(
 class Window:
     def __init__(
         self,
-        size_pix=(800, 800),
+        size_pix=(1520, 1520),
         colour=(0.5, 0.5, 0.5),
         event_buffer_size=20,
         gamma=None,
