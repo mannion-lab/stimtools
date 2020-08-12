@@ -303,7 +303,7 @@ class Rift:
             gl.glViewport(0, 0, self.tex_width, self.tex_height)
             gl.glBlitFramebuffer(
                 0, 0, self.tex_width, self.tex_height,
-                0, self.tex_height, self.tex_width, 0,  # this flips the texture
+                0, self.tex_height // 2, self.tex_width // 2, 0,  # this flips the texture
                 gl.GL_COLOR_BUFFER_BIT,
                 gl.GL_NEAREST,
             )
