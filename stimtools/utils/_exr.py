@@ -28,7 +28,7 @@ def read_exr(exr_path, squeeze=True, channel_order=None):
 
     header = exr_file.header()
 
-    channels = header["channels"].keys()
+    channels = list(header["channels"].keys())
 
     data_window = header["dataWindow"]
 
