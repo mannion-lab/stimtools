@@ -4,7 +4,7 @@ import collections
 import soundfile
 import librosa
 
-import PIL as pillow
+from PIL import Image
 import imageio
 
 import skimage.transform
@@ -79,7 +79,7 @@ def get_db_info(base_path=None):
             assert file_name not in locations
 
             # load the header
-            header = pillow.Image.open(fp=jpg_path)
+            header = Image.open(fp=jpg_path)
 
             img_size_pix = header.size
 
