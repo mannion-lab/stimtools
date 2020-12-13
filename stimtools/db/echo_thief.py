@@ -83,7 +83,7 @@ def get_db_info(base_path=None):
             assert file_name not in locations
 
             # load the header
-            header = Image.open(fp=jpg_path)
+            header = pillow.Image.open(fp=jpg_path)
 
             img_size_pix = header.size
 
