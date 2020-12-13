@@ -5,6 +5,10 @@ import soundfile
 import librosa
 
 import PIL as pillow
+from PIL import Image
+pillow.Image = Image
+del Image
+
 import imageio
 
 import skimage.transform
