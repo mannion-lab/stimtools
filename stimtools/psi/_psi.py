@@ -70,7 +70,12 @@ class Psi:
             self._stim_levels, (self._n_stim_levels,) + (1,) * self._n_params
         )
 
-        self._prior = np.prod([param["full_prior"] for param in self._params.values()])
+        self._prior = np.prod(
+            np.array(
+                [param["full_prior"] for param in self._params.values()],
+                dtype=object,
+            ),
+        )
 
         self._marginal_sum_axes = tuple(
             2 + i_axis
@@ -100,7 +105,12 @@ class Psi:
 
         self._rand = np.random.RandomState(seed=self.seed)
 
-        self._prior = np.prod([param["full_prior"] for param in self._params.values()])
+        self._prior = np.prod(
+            np.array(
+                [param["full_prior"] for param in self._params.values()],
+                dtype=object,
+            ),
+        )
 
     def step(self, ratio=0.0):
         """Steps the Psi handler forward. Inspect `curr_stim_index` and

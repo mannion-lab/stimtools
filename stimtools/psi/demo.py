@@ -86,4 +86,5 @@ def psi_demo(n_trials=150, fixed_seed=False, verbose=False, ratio=0.0, check_res
 
 
 if __name__ == "__main__":
+    # {'alpha': 4.974747474747475, 'beta': 1.3131313131313131}
     psi_demo(fixed_seed=True)
