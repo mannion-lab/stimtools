@@ -13,6 +13,7 @@ from ._cubemap import CubeMap
 from ._image import ImageStim
 from ._sphere import Sphere
 from ._text_image import image_with_text
+from ._window import Window
 from ._world_image import WorldImageStim
 
 __all__ = [
@@ -31,5 +32,6 @@ __all__ = [
     "ImageStim",
     "Sphere",
     "image_with_text",
+    "Window",
     "WorldImageStim",
 ]
