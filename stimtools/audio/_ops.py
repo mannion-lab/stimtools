@@ -1,23 +1,17 @@
 import numpy as np
 
+import scipy.signal
+
 
 def convolve(source, ir):
 
-    if source.ndim == 1:
+    if source.ndim == 1 and ir.ndim == 2:
         source = np.repeat(source[:, np.newaxis], repeats=2, axis=-1)
 
-    if ir.ndim == 1:
+    if ir.ndim == 1 and source.ndim == 2:
         ir = np.repeat(ir[:, np.newaxis], repeats=2, axis=-1)
 
-    y = np.concatenate(
-        [
-            np.convolve(source[:, i_channel], ir[:, i_channel])[:, np.newaxis]
-            for i_channel in range(2)
-        ],
-        axis=-1,
-    )
-
-    y = np.squeeze(y)
+    y = scipy.signal.fftconvolve(in1=source, in2=ir, mode="full", axes=0)
 
     return y
 
