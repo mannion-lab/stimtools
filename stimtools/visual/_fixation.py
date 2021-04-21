@@ -45,39 +45,45 @@ class Fixation:
         self._circle_edges = circle_edges
         self._stim = {}
 
+        self._stim["aperture"] = psychopy.visual.Aperture(
+            win=win,
+            size=self._outer_diam_pix,
+            nVert=self._circle_edges,
+            shape="circle",
+            units="pix",
+            autoLog=False,
+        )
+
+        self._stim["aperture"].enabled = False
+
         self._stim["bg"] = psychopy.visual.Circle(
             win=self._win,
             radius=self._outer_diam_pix / 2.0,
             units="pix",
-            lineColor=bg_colour,
+            lineColor=None,
             fillColor=bg_colour,
             edges=self._circle_edges,
+            autoLog=False,
         )
 
-        self._stim["h_line"] = psychopy.visual.Line(
+        self._stim["line"] = psychopy.visual.Rect(
             win=self._win,
-            start=[-self._outer_diam_pix / 2.0, 0],
-            end=[+self._outer_diam_pix / 2.0, 0],
-            lineColor=line_colour,
+            size=(self._outer_diam_pix * 2, self._inner_diam_pix),
             units="pix",
-            lineWidth=self._inner_diam_pix,
-        )
-        self._stim["v_line"] = psychopy.visual.Line(
-            win=self._win,
-            start=[0, -self._outer_diam_pix / 2.0],
-            end=[0, +self._outer_diam_pix / 2.0],
-            lineColor=line_colour,
-            units="pix",
-            lineWidth=self._inner_diam_pix,
+            lineWidth=0,
+            lineColor=None,
+            fillColor=line_colour,
+            autoLog=False,
         )
 
         self._stim["spot"] = psychopy.visual.Circle(
             win=self._win,
             radius=self._inner_diam_pix / 2.0,
             units="pix",
-            lineColor=spot_colour,
             fillColor=spot_colour,
             edges=self._circle_edges,
+            lineWidth=0,
+            autoLog=False,
         )
 
         self.bg_colour = bg_colour
@@ -103,8 +109,7 @@ class Fixation:
     def line_colour(self, line_colour):
         self._line_colour = line_colour
 
-        self._stim["h_line"].lineColor = line_colour
-        self._stim["v_line"].fillColor = line_colour
+        self._stim["line"].lineColor = line_colour
 
     @property
     def spot_colour(self):
@@ -117,17 +122,14 @@ class Fixation:
         self._stim["spot"].lineColor = spot_colour
         self._stim["spot"].fillColor = spot_colour
 
-    def draw(self, contrast=1):
+    def draw(self):
 
-        stim_c = (
-            ("bg", -contrast),
-            ("h_line", contrast),
-            ("v_line", contrast),
-            ("spot", -contrast),
-        )
+        self._stim["aperture"].enabled = True
 
-        for (stim_type, stim_contrast) in stim_c:
-            self._stim[stim_type].lineColor = stim_contrast
-            self._stim[stim_type].fillColor = stim_contrast
+        self._stim["bg"].draw()
+        self._stim["line"].draw()
+        self._stim["line"].ori += 90
+        self._stim["line"].draw()
+        self._stim["spot"].draw()
 
-            self._stim[stim_type].draw()
+        self._stim["aperture"].enabled = False
