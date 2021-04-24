@@ -12,7 +12,7 @@ from ._conversions import (
     linear_to_srgb,
 )
 from ._circ_dist import circ_dist
-from ._pf import logistic, weibull, cnorm, cnorm_alt, cnorm_wrap
+from ._pf import logistic, logistic_alt, weibull, cnorm, cnorm_alt, cnorm_wrap
 from ._vids import img_seq_to_vid, combine_vids
 from ._exr import write_exr, read_exr
 from ._vid_read import read_frames, read_vid_audio
@@ -43,6 +43,7 @@ __all__ = [
     "rgb_to_grey",
     "circ_dist",
     "logistic",
+    "logistic_alt",
     "weibull",
     "img_seq_to_vid",
     "write_exr",

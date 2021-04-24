@@ -31,6 +31,31 @@ def logistic(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
     return y
 
 
+def logistic_alt(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
+    """Logistic psychometric function, where `beta` approximates sigma in a cumulative
+    normal.
+
+    Parameters
+    ----------
+    x: float or vector of floats
+        Point to evaluate the function
+    alpha: float
+        Threshold (point where function output is 0.5)
+    betae float, > 0
+        Slope of the function
+    guess_rate, lapse_rate: float, [0,1]
+        How often the subject guesses or lapses.
+
+    """
+
+    y = 1.0 / (1 + np.exp(-(x - alpha) / ((np.sqrt(3) / np.pi) * beta)))
+
+    y *= 1 - guess_rate - lapse_rate
+
+    y += guess_rate
+
+    return y
+
 def weibull(x, alpha, beta, guess_rate=0.0, lapse_rate=0.0):
     """Weibull psychometric function.
 
