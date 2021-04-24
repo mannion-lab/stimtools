@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Psi:
-    def __init__(self, params, stim_levels, pf, seed=None):
+    def __init__(self, params, stim_levels, pf, seed=None, store_intermediate=False):
         """Initialise a Psi adaptive staircase handler.
 
         Parameters
@@ -22,6 +22,8 @@ class Psi:
             parameters named in `params`.
         seed: int or None, optional
             Seed for random number generation. Used in `update`.
+        store_intermediate: bool, optional
+            Whether to save the results of intermediate operations.
 
         """
 
@@ -29,6 +31,7 @@ class Psi:
         self._stim_levels = stim_levels
         self._n_stim_levels = len(stim_levels)
         self._pf = pf
+        self._store_intermediate = store_intermediate
 
         self.seed = seed
 
@@ -159,6 +162,10 @@ class Psi:
         self.curr_stim_level = self._stim_levels[self.curr_stim_index]
 
         self._posterior = posterior
+
+        if self._store_intermediate:
+            self.p_r_x_full = p_r_x_full
+            self.p_r_x = p_r_x
 
     def override_stim_index(self, new_index):
 
