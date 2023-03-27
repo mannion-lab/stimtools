@@ -71,9 +71,10 @@ def img_seq_to_vid(
         if image_paths.dtype != np.uint8:
             raise ValueError("Array datatype must be uint8")
 
-        image_paths = (
-            ((image_paths.astype("float") / 255.0) ** (1.0 / gamma)) * 255.0
-        ).astype("uint8")
+        if gamma != 1.0:
+            image_paths = (
+                ((image_paths.astype("float") / 255.0) ** (1.0 / gamma)) * 255.0
+            ).astype("uint8")
 
         n_frames = image_paths.shape[-1]
 
